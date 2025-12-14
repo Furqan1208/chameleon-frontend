@@ -1,18 +1,47 @@
+// D:\FYP\Chameleon Frontend\components\dashboard\StatsCards.tsx
 "use client"
 
 import { FileText, AlertTriangle, CheckCircle, Clock } from "lucide-react"
+import { useEffect, useState } from "react"
+import { apiService } from "@/lib/api-service"
 
 export function StatsCards() {
-  const stats = [
-    { icon: FileText, label: "Total Analyses", value: "0", color: "green" },
-    { icon: CheckCircle, label: "Completed", value: "0", color: "green" },
-    { icon: Clock, label: "Pending", value: "0", color: "blue" },
-    { icon: AlertTriangle, label: "Threats Detected", value: "0", color: "pink" },
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    pending: 0,
+    threats: 0
+  })
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const reports = await apiService.getAllReports()
+        
+        const total = reports.length
+        const completed = reports.filter(r => r.status === "complete").length
+        const pending = reports.filter(r => r.status !== "complete").length
+        const threats = reports.filter(r => (r.malscore || 0) >= 4).length
+        
+        setStats({ total, completed, pending, threats })
+      } catch (err) {
+        console.warn("Failed to fetch stats:", err)
+      }
+    }
+    
+    fetchStats()
+  }, [])
+
+  const statItems = [
+    { icon: FileText, label: "Total Analyses", value: stats.total, color: "green" },
+    { icon: CheckCircle, label: "Completed", value: stats.completed, color: "green" },
+    { icon: Clock, label: "Pending", value: stats.pending, color: "blue" },
+    { icon: AlertTriangle, label: "Threats Detected", value: stats.threats, color: "pink" },
   ]
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {stats.map((stat) => {
+      {statItems.map((stat) => {
         const Icon = stat.icon
         const glowClass = stat.color === "green" ? "glow-green" : stat.color === "blue" ? "glow-blue" : "glow-pink"
         const iconColor =
