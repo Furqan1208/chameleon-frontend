@@ -28,6 +28,61 @@ import {
 import { apiService } from "@/lib/api-service"
 import { formatDistanceToNow } from "date-fns"
 
+// Helper functions for AI data rendering
+const hasAISections = (aiData: any) => {
+  if (!aiData) return false
+  const sections = [
+    'initial_combined_analysis',
+    'memory_analysis',
+    'behavior_analysis',
+    'strings_analysis',
+    'signatures_analysis',
+    'target_analysis',
+    'final_synthesis'
+  ]
+  return sections.some(section => aiData[section])
+}
+
+const renderAISection = (aiData: any, sectionKey: string, displayName: string, filename: string) => {
+  const sectionData = aiData[sectionKey]
+  if (!sectionData) return null
+  
+  return (
+    <AIAnalysisSection 
+      key={sectionKey}
+      name={displayName} 
+      data={sectionData} 
+      filename={filename}
+    />
+  )
+}
+
+// Helper function to render AI content safely
+const renderAIContent = (content: any) => {
+  if (typeof content === 'string') {
+    return <p className="text-foreground text-sm whitespace-pre-wrap">{content}</p>
+  } else if (content && typeof content === 'object') {
+    return (
+      <div className="space-y-2">
+        {content.overview && (
+          <p className="text-foreground text-sm"><strong>Overview:</strong> {content.overview}</p>
+        )}
+        {content.key_findings && Array.isArray(content.key_findings) && (
+          <div>
+            <p className="text-foreground text-sm font-medium mb-1">Key Findings:</p>
+            <ul className="list-disc pl-5 text-sm text-foreground">
+              {content.key_findings.map((finding: string, idx: number) => (
+                <li key={idx} className="mb-1">{finding}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    )
+  }
+  return null
+}
+
 export default function AnalysisPage() {
   const params = useParams()
   const analysisId = params.id as string
@@ -80,8 +135,39 @@ export default function AnalysisPage() {
       
       if (comps.components?.ai_analysis) {
         try {
-          const ai = await apiService.getAiAnalysis(analysisId, "summary")
-          setAiData(ai.data)
+          // Try to load the analysis summary first
+          const aiSummary = await apiService.getAiAnalysis(analysisId, "summary")
+          
+          // Load individual AI analysis sections
+          const aiSectionsToLoad = [
+            "initial_combined_analysis",
+            "memory_analysis",
+            "behavior_analysis", 
+            "strings_analysis",
+            "signatures_analysis",
+            "target_analysis",
+            "final_synthesis"
+          ]
+          
+          const loadedAISections: any = {}
+          
+          // Try to load each section
+          for (const section of aiSectionsToLoad) {
+            try {
+              const sectionData = await apiService.getAiAnalysis(analysisId, section)
+              if (sectionData && !sectionData.error) {
+                loadedAISections[section] = sectionData.data || sectionData
+              }
+            } catch (sectionErr) {
+              console.warn(`Failed to load AI section ${section}:`, sectionErr)
+            }
+          }
+          
+          // Combine summary with sections
+          setAiData({
+            ...(aiSummary.data || aiSummary),
+            ...loadedAISections
+          })
         } catch (err) {
           console.warn("Failed to load AI data:", err)
         }
@@ -345,100 +431,87 @@ export default function AnalysisPage() {
                 )}
 
                 {activeView === "ai" && (
-                  <div className="glass border border-border rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <Brain className="w-6 h-6 text-primary" />
-                        <h2 className="text-2xl font-semibold text-foreground">AI Analysis</h2>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        AI-powered insights and synthesis
-                      </p>
-                    </div>
-                    
-                    {loadingComponents ? (
-                      <div className="flex items-center justify-center py-12">
-                        <Loader className="w-6 h-6 text-primary animate-spin" />
-                      </div>
-                    ) : aiData ? (
-                      <div className="space-y-6">
-                        {/* Analysis Summary */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                          <div className="border border-border rounded-lg p-4">
-                            <p className="text-sm text-muted-foreground">Sections Analyzed</p>
-                            <p className="text-2xl font-bold text-foreground">
-                              {aiData.sections_analyzed?.length || 0}
-                            </p>
-                          </div>
-                          <div className="border border-border rounded-lg p-4">
-                            <p className="text-sm text-muted-foreground">Duration</p>
-                            <p className="text-2xl font-bold text-foreground">
-                              {aiData.duration_seconds ? `${aiData.duration_seconds.toFixed(2)}s` : "N/A"}
-                            </p>
-                          </div>
-                          <div className="border border-border rounded-lg p-4">
-                            <p className="text-sm text-muted-foreground">AI Model</p>
-                            <p className="text-2xl font-bold text-foreground">
-                              {combinedAnalysis.model_used || "Gemini"}
-                            </p>
-                          </div>
+                  <div className="space-y-6">
+                    <div className="glass border border-border rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <Brain className="w-6 h-6 text-primary" />
+                          <h2 className="text-2xl font-semibold text-foreground">AI Analysis</h2>
                         </div>
-                        
-                        {/* Final Synthesis */}
-                        {aiData.results?.final_synthesis && (
-                          <div className="border border-primary/30 rounded-lg p-6 bg-primary/5">
-                            <h3 className="text-lg font-semibold text-foreground mb-4">Final Synthesis</h3>
-                            <div className="prose prose-invert max-w-none">
-                              <p className="text-foreground whitespace-pre-wrap leading-relaxed">
-                                {aiData.results.final_synthesis}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Individual AI Sections */}
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-semibold text-foreground">Detailed Analysis</h3>
-                          {Object.entries(aiData.results || {})
-                            .filter(([key]) => key !== 'final_synthesis')
-                            .map(([key, value]) => (
-                              <div key={key} className="border border-border rounded-lg p-4 bg-muted/5">
-                                <h3 className="font-semibold text-foreground mb-2 capitalize">
-                                  {key.replace(/_/g, ' ')}
-                                </h3>
-                                <div className="prose prose-invert max-w-none">
-                                  <p className="text-foreground whitespace-pre-wrap leading-relaxed">
-                                    {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                        
-                        {/* Model Usage Stats */}
-                        {aiData.model_usage && Object.keys(aiData.model_usage).length > 0 && (
-                          <div className="border border-border rounded-lg p-4">
-                            <h3 className="font-semibold text-foreground mb-3">Model Usage Statistics</h3>
-                            <div className="space-y-2">
-                              {Object.entries(aiData.model_usage).map(([model, count]) => (
-                                <div key={model} className="flex items-center justify-between">
-                                  <span className="text-foreground">{model}</span>
-                                  <span className="text-muted-foreground">{count} requests</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">No AI analysis available</p>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          This analysis was performed without AI analysis or the AI analysis failed to load.
+                        <p className="text-sm text-muted-foreground">
+                          AI-powered insights and synthesis
                         </p>
                       </div>
-                    )}
+                      
+                      {loadingComponents ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader className="w-6 h-6 text-primary animate-spin" />
+                        </div>
+                      ) : aiData ? (
+                        <div className="space-y-6">
+                          {/* AI Analysis Summary - Keep this if available */}
+                          {(aiData.analysis_id || aiData.sections_analyzed || aiData.model_usage) && (
+                            <div className="border border-border rounded-lg p-4 mb-6">
+                              <h3 className="font-semibold text-foreground mb-3">AI Analysis Summary</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {aiData.analysis_id && (
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Analysis ID</p>
+                                    <p className="text-foreground font-mono text-sm">{aiData.analysis_id}</p>
+                                  </div>
+                                )}
+                                {aiData.sections_analyzed && Array.isArray(aiData.sections_analyzed) && (
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Sections Analyzed</p>
+                                    <p className="text-foreground font-medium">{aiData.sections_analyzed.length}</p>
+                                  </div>
+                                )}
+                                {aiData.model_usage && typeof aiData.model_usage === 'object' && (
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">AI Models Used</p>
+                                    <p className="text-foreground font-medium">
+                                      {Object.keys(aiData.model_usage).join(', ')}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* AI Sections - Similar to parsed sections */}
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">AI Analysis Sections</h3>
+                            
+                            {/* Display each AI analysis file as a separate section */}
+                            {renderAISection(aiData, 'initial_combined_analysis', 'Initial Combined Analysis', 'initial_combined_analysis_analysis.json')}
+                            {renderAISection(aiData, 'memory_analysis', 'Memory Analysis', 'memory_analysis_analysis.json')}
+                            {renderAISection(aiData, 'behavior_analysis', 'Behavior Analysis', 'behavior_analysis_analysis.json')}
+                            {renderAISection(aiData, 'strings_analysis', 'Strings Analysis', 'strings_analysis_analysis.json')}
+                            {renderAISection(aiData, 'signatures_analysis', 'Signatures Analysis', 'signatures_analysis_analysis.json')}
+                            {renderAISection(aiData, 'target_analysis', 'Target Analysis', 'target_analysis_analysis.json')}
+                            {renderAISection(aiData, 'final_synthesis', 'Final Synthesis', 'final_synthesis_analysis.json')}
+                            
+                            {/* If AI data is in a different format, display raw */}
+                            {!hasAISections(aiData) && (
+                              <div className="border border-border rounded-lg p-4">
+                                <h3 className="font-semibold text-foreground mb-2">Raw AI Analysis Data</h3>
+                                <pre className="text-sm text-foreground font-mono overflow-x-auto max-h-[400px] overflow-y-auto">
+                                  {JSON.stringify(aiData, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground">No AI analysis available</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            This analysis was performed without AI analysis or the AI analysis failed to load.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -517,6 +590,123 @@ function ParsedSection({ name, data }: { name: string; data: any }) {
           <pre className="text-sm text-foreground font-mono overflow-x-auto max-h-[400px] overflow-y-auto">
             {JSON.stringify(data, null, 2)}
           </pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AIAnalysisSection({ name, data, filename }: { name: string; data: any; filename?: string }) {
+  const [expanded, setExpanded] = useState(false)
+  
+  // Safely extract analysis content
+  let analysisContent = null
+  if (typeof data === 'object') {
+    analysisContent = data.analysis || data
+  } else {
+    analysisContent = data
+  }
+  
+  // Format the filename display
+  const displayFilename = filename || `${name.toLowerCase().replace(/ /g, '_')}_analysis.json`
+  
+  return (
+    <div className="border border-border rounded-lg p-4" id={`ai-section-${name}`}>
+      <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center gap-3">
+          <Brain className="w-5 h-5 text-primary" />
+          <div>
+            <h4 className="font-semibold text-foreground">{name}</h4>
+            {filename && (
+              <p className="text-xs text-muted-foreground font-mono mt-1">{displayFilename}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {data.ai_model && typeof data.ai_model === 'string' && (
+            <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+              {data.ai_model}
+            </span>
+          )}
+          <button className="p-1 rounded hover:bg-muted">
+            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+      
+      {expanded && (
+        <div className="mt-4 border-t border-border pt-4">
+          {/* Safely display analysis content */}
+          {typeof analysisContent === 'string' ? (
+            <div className="prose prose-invert max-w-none">
+              <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                {analysisContent}
+              </p>
+            </div>
+          ) : analysisContent && typeof analysisContent === 'object' ? (
+            <div className="space-y-4">
+              {/* Check for common structures in your AI files */}
+              {analysisContent.executive_summary && (
+                <div className="border-l-2 border-primary pl-4">
+                  <h5 className="font-medium text-foreground mb-2">Executive Summary</h5>
+                  {renderAIContent(analysisContent.executive_summary)}
+                </div>
+              )}
+              
+              {analysisContent.technical_analysis && (
+                <div className="border-l-2 border-secondary pl-4">
+                  <h5 className="font-medium text-foreground mb-2">Technical Analysis</h5>
+                  <pre className="text-sm text-foreground font-mono overflow-x-auto max-h-[300px] overflow-y-auto">
+                    {JSON.stringify(analysisContent.technical_analysis, null, 2)}
+                  </pre>
+                </div>
+              )}
+              
+              {/* Display chunk results if present (for behavior/strings analysis) */}
+              {analysisContent.chunk_results && Array.isArray(analysisContent.chunk_results) && (
+                <div className="border-l-2 border-accent pl-4">
+                  <h5 className="font-medium text-foreground mb-2">Chunk Analysis Results</h5>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {analysisContent.chunks_analyzed || analysisContent.chunk_results.length} chunks analyzed
+                  </p>
+                  {analysisContent.chunk_results.slice(0, 2).map((chunk: any, idx: number) => (
+                    <div key={idx} className="mb-3 p-3 bg-muted/5 rounded">
+                      <p className="text-sm font-medium text-foreground">Chunk {chunk.chunk_number}</p>
+                      {chunk.analysis && typeof chunk.analysis === 'object' && (
+                        <pre className="text-xs text-foreground font-mono overflow-x-auto mt-2">
+                          {JSON.stringify(chunk.analysis, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Raw data fallback */}
+              {!analysisContent.executive_summary && !analysisContent.technical_analysis && !analysisContent.chunk_results && (
+                <pre className="text-sm text-foreground font-mono overflow-x-auto max-h-[400px] overflow-y-auto">
+                  {JSON.stringify(analysisContent, null, 2)}
+                </pre>
+              )}
+            </div>
+          ) : (
+            <pre className="text-sm text-foreground font-mono overflow-x-auto max-h-[400px] overflow-y-auto">
+              {JSON.stringify(analysisContent, null, 2)}
+            </pre>
+          )}
+          
+          {/* Show metadata */}
+          <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground flex flex-wrap gap-3">
+            {data.timestamp && (
+              <span>Timestamp: {new Date(data.timestamp).toLocaleString()}</span>
+            )}
+            {data.analysis_type && (
+              <span>Type: {data.analysis_type}</span>
+            )}
+            {data.section && (
+              <span>Section: {data.section}</span>
+            )}
+          </div>
         </div>
       )}
     </div>
