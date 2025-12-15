@@ -6,20 +6,14 @@ import { useState, useEffect, useMemo } from "react"
 import { useAnalysis } from "@/hooks/useAnalysis"
 import { useAnalysisData } from "@/hooks/useAnalysisData"
 import { NetworkBackground } from "@/components/3d/NetworkBackground"
-import { AnalysisOverview } from "@/components/analysis/AnalysisOverview"
-import { BehaviorVisualizer } from "@/components/analysis/BehaviorVisualizer"
-import { MemoryAnalysis } from "@/components/analysis/MemoryAnalysis"
-import { StringsAnalysis } from "@/components/analysis/StringsAnalysis"
-import { SignaturesAnalysis } from "@/components/analysis/SignaturesAnalysis"
-import { AIAnalysisResults } from "@/components/analysis/AIAnalysisResults"
 import { ThreatGauge } from "@/components/charts/ThreatGauge"
-import { 
-  Loader, 
-  FileJson, 
-  FileText, 
-  Brain, 
-  Layers, 
-  ChevronDown, 
+import {
+  Loader,
+  FileJson,
+  FileText,
+  Brain,
+  Layers,
+  ChevronDown,
   ChevronUp,
   Download,
   AlertTriangle,
@@ -66,9 +60,9 @@ import { formatDistanceToNow } from "date-fns"
 const extractFileHashes = (parsedData: any) => {
   // Handle array structure (target[0]) or direct object
   const targetData = parsedData?.sections?.target?.[0] || parsedData?.sections?.target
-  
+
   if (!targetData) return null
-  
+
   return {
     md5: targetData.md5 || "N/A",
     sha1: targetData.sha1 || "N/A",
@@ -81,38 +75,67 @@ const extractFileHashes = (parsedData: any) => {
   }
 }
 
-// Utility function to get behavior process count - FIXED for array structure
-const getBehaviorProcessCount = (parsedData: any) => {
-  const behaviorData = parsedData?.sections?.behavior?.[0] || parsedData?.sections?.behavior
-  if (!behaviorData) return 0
+// Utility function to get signature count - FROM CAPE ROOT signatures array
+const getSignaturesCount = (capeData: any) => {
+  if (capeData?.signatures && Array.isArray(capeData.signatures)) {
+    return capeData.signatures.length
+  }
+  return 0
+}
+
+// Utility function to get process count - Count unique PIDs from behavior
+const getProcessCount = (capeData: any) => {
+  if (!capeData?.behavior?.processes) return 0
   
-  if (Array.isArray(behaviorData.processes)) {
-    return behaviorData.processes.length
-  } else if (behaviorData.processes && typeof behaviorData.processes === 'object') {
-    return Object.keys(behaviorData.processes).length
+  // Extract all unique PIDs from processes
+  const processes = capeData.behavior.processes
+  if (Array.isArray(processes)) {
+    return processes.length
   }
   return 0
 }
 
-// Utility function to get signatures count - FIXED for array structure
-const getSignaturesCount = (parsedData: any) => {
-  const signaturesData = parsedData?.sections?.signatures?.[0] || parsedData?.sections?.signatures
-  if (Array.isArray(signaturesData)) {
-    return signaturesData.length
-  }
-  return 0
-}
-
-// Utility function to get strings count - FIXED for array structure
+// Utility function to get strings count - FROM strings metadata in parsed data
 const getStringsCount = (parsedData: any) => {
+  // Check in parsed data sections
   const stringsData = parsedData?.sections?.strings?.[0] || parsedData?.sections?.strings
   if (stringsData?.metadata?.total_strings_processed) {
     return stringsData.metadata.total_strings_processed
   }
+  
+  // Fallback: check in cape data
+  if (parsedData?.strings?.metadata?.total_strings_processed) {
+    return parsedData.strings.metadata.total_strings_processed
+  }
+  
+  // Last resort: check array length
   if (Array.isArray(stringsData)) {
     return stringsData.length
   }
+  
   return 0
+}
+
+// Utility function to get duration from CAPE info
+const getAnalysisDuration = (capeData: any) => {
+  if (capeData?.info?.duration) {
+    // Duration is in seconds, convert to formatted string
+    const seconds = capeData.info.duration
+    if (seconds < 60) {
+      return `${seconds}s`
+    } else if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60)
+      const remainingSeconds = seconds % 60
+      return `${minutes}m ${remainingSeconds}s`
+    } else {
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      return `${hours}h ${minutes}m`
+    }
+  }
+  
+  // Fallback to AI duration if available
+  return null
 }
 
 // Custom JSON viewer component with fallback
@@ -237,9 +260,8 @@ const FormattedJSONViewer = ({ data, title }: { data: any, title?: string }) => 
 
     if (typeof value === 'boolean') {
       return (
-        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-          value ? 'bg-primary/20 text-primary' : 'bg-destructive/20 text-destructive'
-        }`}>
+        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${value ? 'bg-primary/20 text-primary' : 'bg-destructive/20 text-destructive'
+          }`}>
           {value ? 'Yes' : 'No'}
         </span>
       )
@@ -260,16 +282,24 @@ const FormattedJSONViewer = ({ data, title }: { data: any, title?: string }) => 
 
 // Cape Report Structured Viewer - Fixed layout
 const CapeStructuredViewer = ({ data }: { data: any }) => {
-  const [activeSection, setActiveSection] = useState<string>("file")
+  const [activeSection, setActiveSection] = useState<string>("overview")
 
   const sections = useMemo(() => {
     if (!data || typeof data !== 'object') return []
-    
-    return Object.entries(data).map(([key, value]) => {
+
+    const allSections = Object.entries(data).map(([key, value]) => {
       let icon = <File className="w-4 h-4" />
       let description = ""
-      
-      switch(key) {
+
+      switch (key) {
+        case 'malscore':
+          icon = <Shield className="w-4 h-4" />
+          description = "Overall threat score"
+          break
+        case 'malstatus':
+          icon = <AlertTriangle className="w-4 h-4" />
+          description = "Malware status classification"
+          break
         case 'file':
           icon = <File className="w-4 h-4" />
           description = "File information and metadata"
@@ -298,13 +328,39 @@ const CapeStructuredViewer = ({ data }: { data: any }) => {
           icon = <BarChart3 className="w-4 h-4" />
           description = "Analysis statistics"
           break
+        case 'ttps':
+          icon = <FileCode className="w-4 h-4" />
+          description = "MITRE ATT&CK Techniques"
+          break
+        case 'strings':
+          icon = <Type className="w-4 h-4" />
+          description = "Extracted strings"
+          break
+        case 'info':
+          icon = <FileText className="w-4 h-4" />
+          description = "Analysis information"
+          break
         default:
           icon = <Code className="w-4 h-4" />
           description = "Additional data"
       }
-      
+
       return { key, icon, description, value }
     })
+
+    // Put malscore and malstatus first if they exist
+    const orderedSections = []
+    const malscoreSection = allSections.find(s => s.key === 'malscore')
+    const malstatusSection = allSections.find(s => s.key === 'malstatus')
+    const otherSections = allSections.filter(s => 
+      s.key !== 'malscore' && s.key !== 'malstatus'
+    )
+
+    if (malscoreSection) orderedSections.push(malscoreSection)
+    if (malstatusSection) orderedSections.push(malstatusSection)
+    orderedSections.push(...otherSections)
+
+    return orderedSections
   }, [data])
 
   if (!data || sections.length === 0) {
@@ -326,11 +382,10 @@ const CapeStructuredViewer = ({ data }: { data: any }) => {
             <button
               key={section.key}
               onClick={() => setActiveSection(section.key)}
-              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${
-                activeSection === section.key
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${activeSection === section.key
                   ? 'bg-primary/10 text-primary border border-primary/20'
                   : 'hover:bg-muted/20 text-muted-foreground border border-border'
-              }`}
+                }`}
             >
               {section.icon}
               <span className="font-medium capitalize">
@@ -357,9 +412,56 @@ const CapeStructuredViewer = ({ data }: { data: any }) => {
           </div>
         </div>
 
-        <div className="max-h-[600px] overflow-y-auto">
-          <CustomJSONViewer data={sections.find(s => s.key === activeSection)?.value} mode="raw" />
-        </div>
+        {activeSection === 'malscore' ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-center p-8">
+              <div className="relative">
+                {/* Threat Gauge for malscore */}
+                <div className="text-center">
+                  <div className="text-6xl font-bold text-foreground mb-2">
+                    {data.malscore?.toFixed(1) || 0}
+                  </div>
+                  <div className="text-lg text-muted-foreground">out of 10</div>
+                </div>
+                
+                {/* Status indicator */}
+                {data.malstatus && (
+                  <div className={`mt-4 inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                    data.malstatus.toLowerCase() === 'malicious' 
+                      ? 'bg-destructive/20 text-destructive' 
+                      : data.malstatus.toLowerCase() === 'suspicious'
+                      ? 'bg-accent/20 text-accent'
+                      : 'bg-primary/20 text-primary'
+                  }`}>
+                    Status: {data.malstatus}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Explanation */}
+            <div className="border-t border-border pt-4">
+              <h4 className="font-semibold text-foreground mb-2">What this score means:</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    data.malscore >= 7 ? 'bg-destructive' : 
+                    data.malscore >= 4 ? 'bg-accent' : 'bg-primary'
+                  }`}></div>
+                  <span>
+                    {data.malscore >= 7 ? 'High Risk (7.0-10.0): Likely malicious' : 
+                     data.malscore >= 4 ? 'Medium Risk (4.0-6.9): Suspicious activity' : 
+                     'Low Risk (0.0-3.9): Probably benign'}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <div className="max-h-[600px] overflow-y-auto">
+            <CustomJSONViewer data={sections.find(s => s.key === activeSection)?.value} mode="raw" />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -372,14 +474,14 @@ const ParsedSectionsViewer = ({ data }: { data: any }) => {
 
   const sections = useMemo(() => {
     if (!data?.sections || typeof data.sections !== 'object') return []
-    
+
     return Object.entries(data.sections).map(([key, value]: [string, any]) => {
       let icon = getSectionIcon(key)
       let itemCount = 0
-      
+
       // Handle both array[0] and direct object structures
       const sectionData = Array.isArray(value) && value.length > 0 ? value[0] : value
-      
+
       if (Array.isArray(sectionData)) {
         itemCount = sectionData.length
       } else if (typeof sectionData === 'object') {
@@ -387,7 +489,7 @@ const ParsedSectionsViewer = ({ data }: { data: any }) => {
       } else {
         itemCount = 1
       }
-      
+
       return { key, icon, itemCount, data: sectionData }
     })
   }, [data])
@@ -415,21 +517,19 @@ const ParsedSectionsViewer = ({ data }: { data: any }) => {
         <div className="inline-flex border border-border rounded-lg overflow-hidden">
           <button
             onClick={() => setViewMode("formatted")}
-            className={`px-3 py-1.5 text-sm transition-colors ${
-              viewMode === "formatted" 
-                ? "bg-primary text-primary-foreground" 
+            className={`px-3 py-1.5 text-sm transition-colors ${viewMode === "formatted"
+                ? "bg-primary text-primary-foreground"
                 : "hover:bg-muted/20"
-            }`}
+              }`}
           >
             Formatted
           </button>
           <button
             onClick={() => setViewMode("raw")}
-            className={`px-3 py-1.5 text-sm transition-colors ${
-              viewMode === "raw" 
-                ? "bg-primary text-primary-foreground" 
+            className={`px-3 py-1.5 text-sm transition-colors ${viewMode === "raw"
+                ? "bg-primary text-primary-foreground"
                 : "hover:bg-muted/20"
-            }`}
+              }`}
           >
             Raw JSON
           </button>
@@ -456,9 +556,8 @@ const ParsedSectionsViewer = ({ data }: { data: any }) => {
               <span className="text-sm text-muted-foreground">
                 {section.itemCount} {section.itemCount === 1 ? 'item' : 'items'}
               </span>
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${
-                expandedSections[section.key] ? 'rotate-180' : ''
-              }`} />
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedSections[section.key] ? 'rotate-180' : ''
+                }`} />
             </div>
           </div>
         ))}
@@ -505,13 +604,13 @@ const AIAnalysisViewer = ({ data }: { data: any }) => {
 
   const sections = useMemo(() => {
     if (!data) return []
-    
+
     if (data.results) {
       return Object.entries(data.results).map(([key, value]: [string, any]) => {
         let icon = <Brain className="w-4 h-4" />
         let description = ""
-        
-        switch(key) {
+
+        switch (key) {
           case 'initial_combined_analysis':
             icon = <FileText className="w-4 h-4" />
             description = "Initial combined analysis"
@@ -544,11 +643,11 @@ const AIAnalysisViewer = ({ data }: { data: any }) => {
             icon = <Brain className="w-4 h-4" />
             description = "AI analysis"
         }
-        
+
         return { key, icon, description, data: value }
       })
     }
-    
+
     return []
   }, [data])
 
@@ -606,21 +705,19 @@ const AIAnalysisViewer = ({ data }: { data: any }) => {
         <div className="inline-flex border border-border rounded-lg overflow-hidden">
           <button
             onClick={() => setViewMode("formatted")}
-            className={`px-3 py-1.5 text-sm transition-colors ${
-              viewMode === "formatted" 
-                ? "bg-primary text-primary-foreground" 
+            className={`px-3 py-1.5 text-sm transition-colors ${viewMode === "formatted"
+                ? "bg-primary text-primary-foreground"
                 : "hover:bg-muted/20"
-            }`}
+              }`}
           >
             Formatted
           </button>
           <button
             onClick={() => setViewMode("raw")}
-            className={`px-3 py-1.5 text-sm transition-colors ${
-              viewMode === "raw" 
-                ? "bg-primary text-primary-foreground" 
+            className={`px-3 py-1.5 text-sm transition-colors ${viewMode === "raw"
+                ? "bg-primary text-primary-foreground"
                 : "hover:bg-muted/20"
-            }`}
+              }`}
           >
             Raw JSON
           </button>
@@ -652,9 +749,8 @@ const AIAnalysisViewer = ({ data }: { data: any }) => {
               <span className="text-sm text-muted-foreground">
                 Click to view analysis
               </span>
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${
-                expandedSections[section.key] ? 'rotate-180' : ''
-              }`} />
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedSections[section.key] ? 'rotate-180' : ''
+                }`} />
             </div>
           </div>
         ))}
@@ -699,13 +795,74 @@ const AIAnalysisViewer = ({ data }: { data: any }) => {
   )
 }
 
+// Simple Analysis Overview component
+const SimpleAnalysisOverview = ({ analysis }: { analysis: any }) => {
+  const getThreatColor = (score?: number) => {
+    if (!score) return "text-muted-foreground"
+    if (score >= 7) return "text-destructive"
+    if (score >= 4) return "text-accent"
+    return "text-primary"
+  }
+
+  const getThreatLabel = (score?: number) => {
+    if (!score) return "Unknown"
+    if (score >= 7) return "High Risk"
+    if (score >= 4) return "Medium Risk"
+    return "Low Risk"
+  }
+
+  return (
+    <div className="glass border border-border rounded-xl p-6">
+      <h2 className="text-xl font-semibold text-foreground mb-6">Analysis Overview</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+            <File className="w-4 h-4" />
+            <span className="text-sm">Filename</span>
+          </div>
+          <p className="text-foreground font-medium truncate">{analysis.filename || "Unknown"}</p>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+            <Clock className="w-4 h-4" />
+            <span className="text-sm">Created</span>
+          </div>
+          <p className="text-foreground font-medium">
+            {analysis.created_at ? formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true }) : "Unknown"}
+          </p>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+            <Shield className="w-4 h-4" />
+            <span className="text-sm">Status</span>
+          </div>
+          <p className="text-foreground font-medium capitalize">{analysis.status || "pending"}</p>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+            <AlertTriangle className="w-4 h-4" />
+            <span className="text-sm">Threat Level</span>
+          </div>
+          <p className={`font-semibold text-lg ${getThreatColor(analysis.malscore)}`}>
+            {getThreatLabel(analysis.malscore)}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AnalysisPage() {
   const params = useParams()
   const analysisId = params.id as string
-  
+
   const { analysis: originalAnalysis, loading: originalLoading, error: originalError } = useAnalysis(analysisId)
   const { overviewData, loading: overviewLoading, error: overviewError } = useAnalysisData(analysisId)
-  
+
   const [activeView, setActiveView] = useState<"overview" | "cape" | "parsed" | "ai">("overview")
   const [components, setComponents] = useState<any>(null)
   const [capeData, setCapeData] = useState<any>(null)
@@ -730,7 +887,7 @@ export default function AnalysisPage() {
       setLoadingComponents(true)
       const comps = await apiService.getAnalysisComponents(analysisId)
       setComponents(comps)
-      
+
       if (comps.components?.cape) {
         try {
           const cape = await apiService.getCapeReport(analysisId)
@@ -739,7 +896,7 @@ export default function AnalysisPage() {
           console.warn("Failed to load CAPE data:", err)
         }
       }
-      
+
       if (comps.components?.parsed) {
         try {
           const parsed = await apiService.getParsedSection(analysisId, "all")
@@ -748,12 +905,12 @@ export default function AnalysisPage() {
           console.warn("Failed to load parsed data:", err)
         }
       }
-      
+
       if (comps.components?.ai_analysis) {
         try {
           const ai = await apiService.getAiAnalysis(analysisId, "summary")
           const aiResponse = ai.data || ai
-          
+
           if (aiResponse.results) {
             setAiData(aiResponse)
           } else if (aiResponse.sections) {
@@ -785,44 +942,43 @@ export default function AnalysisPage() {
   }
 
   const handleDownload = async (format: string) => {
-  try {
-    setDownloadProgress(0)
-    const interval = setInterval(() => {
-      setDownloadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(interval)
-          return 90
-        }
-        return prev + 10
-      })
-    }, 100)
+    try {
+      setDownloadProgress(0)
+      const interval = setInterval(() => {
+        setDownloadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(interval)
+            return 90
+          }
+          return prev + 10
+        })
+      }, 100)
 
-    const data = await apiService.downloadReport(analysisId, format as any)
+      const data = await apiService.downloadReport(analysisId, format as any)
 
-    clearInterval(interval)
-    setDownloadProgress(100)
+      clearInterval(interval)
+      setDownloadProgress(100)
 
-    // Convert JSON to Blob and download
-    const jsonStr = JSON.stringify(data, null, 2)
-    const blob = new Blob([jsonStr], { type: "application/json" })
-    const url = window.URL.createObjectURL(blob)
+      // Convert JSON to Blob and download
+      const jsonStr = JSON.stringify(data, null, 2)
+      const blob = new Blob([jsonStr], { type: "application/json" })
+      const url = window.URL.createObjectURL(blob)
 
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${analysisId}.${format}` // e.g. "123.json"
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    window.URL.revokeObjectURL(url)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${analysisId}.${format}` // e.g. "123.json"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
 
-    setTimeout(() => setDownloadProgress(0), 1000)
-  } catch (err) {
-    console.error("Download failed:", err)
-    alert("Download failed. Please try again.")
-    setDownloadProgress(0)
+      setTimeout(() => setDownloadProgress(0), 1000)
+    } catch (err) {
+      console.error("Download failed:", err)
+      alert("Download failed. Please try again.")
+      setDownloadProgress(0)
+    }
   }
- }
-
 
   const handleCopyJson = (data: any) => {
     try {
@@ -836,25 +992,33 @@ export default function AnalysisPage() {
 
   // Extract data with corrected functions
   const fileHashes = extractFileHashes(parsedData)
-  const behaviorProcessCount = getBehaviorProcessCount(parsedData)
-  const signaturesCount = getSignaturesCount(parsedData)
+  
+  // Get counts from CAPE data
+  const signaturesCount = getSignaturesCount(capeData)
+  const processCount = getProcessCount(capeData)
   const stringsCount = getStringsCount(parsedData)
+  const analysisDuration = getAnalysisDuration(capeData)
 
   // Get malscore from the right place - check both originalAnalysis and overviewData
   const getMalscore = () => {
-    // First check overviewData (from useAnalysisData hook)
+    // 1. Check the root of capeData (this is where it's actually located)
+    if (capeData?.malscore !== undefined) {
+      return capeData.malscore
+    }
+
+    // 2. Check other sources as fallback
     if (overviewData?.malscore !== undefined) {
       return overviewData.malscore
     }
-    // Then check originalAnalysis
+
     if (originalAnalysis?.malscore !== undefined) {
       return originalAnalysis.malscore
     }
-    // Check in parsed data sections
+
     if (parsedData?.sections?.info?.[0]?.malscore !== undefined) {
       return parsedData.sections.info[0].malscore
     }
-    // Default to 0
+
     return 0
   }
 
@@ -893,7 +1057,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {activeView === "cape" && (
                 <button
@@ -914,7 +1078,7 @@ export default function AnalysisPage() {
                   <>
                     <Loader className="w-3 h-3 animate-spin" />
                     <span className="text-xs">Downloading... {downloadProgress}%</span>
-                    <div 
+                    <div
                       className="absolute bottom-0 left-0 h-0.5 bg-primary/30 transition-all duration-300"
                       style={{ width: `${downloadProgress}%` }}
                     />
@@ -964,7 +1128,7 @@ export default function AnalysisPage() {
                   color="green"
                   description="Summary & visualizations"
                 />
-                
+
                 {components?.components?.cape && (
                   <ViewCard
                     icon={<FileJson className="w-4 h-4" />}
@@ -975,7 +1139,7 @@ export default function AnalysisPage() {
                     description="Raw & structured CAPE data"
                   />
                 )}
-                
+
                 {components?.components?.parsed && (
                   <ViewCard
                     icon={<FileText className="w-4 h-4" />}
@@ -986,7 +1150,7 @@ export default function AnalysisPage() {
                     description="Structured analysis"
                   />
                 )}
-                
+
                 {components?.components?.ai_analysis && (
                   <ViewCard
                     icon={<Brain className="w-4 h-4" />}
@@ -1007,11 +1171,10 @@ export default function AnalysisPage() {
                     {Object.entries(components.components || {}).map(([key, value]) => (
                       <div
                         key={key}
-                        className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
-                          value 
-                            ? "bg-primary/10 text-primary border border-primary/20" 
+                        className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${value
+                            ? "bg-primary/10 text-primary border border-primary/20"
                             : "bg-muted/20 text-muted-foreground border border-border"
-                        }`}
+                          }`}
                       >
                         {value ? (
                           <CheckCircle className="w-3 h-3" />
@@ -1088,14 +1251,14 @@ export default function AnalysisPage() {
                       </div>
                     )}
 
-                    {/* Analysis Overview */}
-                    <AnalysisOverview analysis={combinedAnalysis} />
-                    
+                    {/* Simple Analysis Overview - UPDATED to remove duplicate file info */}
+                    <SimpleAnalysisOverview analysis={combinedAnalysis} />
+
                     {/* Threat Gauge & Stats */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-1">
-                        <ThreatGauge 
-                          score={malscore} 
+                        <ThreatGauge
+                          score={malscore}
                           title="Threat Score"
                           size="md"
                         />
@@ -1104,27 +1267,27 @@ export default function AnalysisPage() {
                         <div className="glass border border-border rounded-xl p-6 h-full">
                           <h3 className="text-lg font-semibold text-foreground mb-4">Quick Stats</h3>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <StatCard 
-                              label="Processes" 
-                              value={behaviorProcessCount} 
+                            <StatCard
+                              label="Processes"
+                              value={processCount}
                               icon={<Activity className="w-4 h-4" />}
                               color="blue"
                             />
-                            <StatCard 
-                              label="Signatures" 
-                              value={signaturesCount} 
+                            <StatCard
+                              label="Signatures"
+                              value={signaturesCount}
                               icon={<FileSignature className="w-4 h-4" />}
                               color="pink"
                             />
-                            <StatCard 
-                              label="Strings" 
-                              value={stringsCount} 
+                            <StatCard
+                              label="Strings"
+                              value={stringsCount.toLocaleString()}
                               icon={<Type className="w-4 h-4" />}
                               color="green"
                             />
-                            <StatCard 
-                              label="Duration" 
-                              value={`${aiData?.duration_seconds?.toFixed(1)}s` || "N/A"} 
+                            <StatCard
+                              label="Duration"
+                              value={analysisDuration || `${aiData?.duration_seconds?.toFixed(1)}s` || "N/A"}
                               icon={<Clock className="w-4 h-4" />}
                               color="accent"
                             />
@@ -1132,25 +1295,6 @@ export default function AnalysisPage() {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Other Analysis Components */}
-                    {parsedData?.sections?.behavior && (
-                      <BehaviorVisualizer behavior={parsedData.sections.behavior} />
-                    )}
-
-                    {parsedData?.sections?.memory && (
-                      <MemoryAnalysis memory={parsedData.sections.memory} />
-                    )}
-
-                    {parsedData?.sections?.strings && (
-                      <StringsAnalysis strings={parsedData.sections.strings} />
-                    )}
-
-                    {parsedData?.sections?.signatures && (
-                      <SignaturesAnalysis signatures={parsedData.sections.signatures} />
-                    )}
-
-                    {aiData && <AIAnalysisResults aiAnalysis={aiData} />}
                   </>
                 )}
 
@@ -1178,7 +1322,7 @@ export default function AnalysisPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="mt-6">
                       {loadingComponents ? (
                         <div className="flex items-center justify-center py-8">
@@ -1214,7 +1358,7 @@ export default function AnalysisPage() {
                         {parsedData?.sections ? Object.keys(parsedData.sections).length : 0} sections
                       </div>
                     </div>
-                    
+
                     {loadingComponents ? (
                       <div className="flex items-center justify-center py-8">
                         <Loader className="w-6 h-6 text-primary animate-spin" />
@@ -1254,7 +1398,7 @@ export default function AnalysisPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     {loadingComponents ? (
                       <div className="flex items-center justify-center py-8">
                         <Loader className="w-6 h-6 text-primary animate-spin" />
@@ -1304,9 +1448,9 @@ function ViewCard({
   color: "green" | "blue" | "pink" | "accent"
   description: string
 }) {
-  const activeClass = active 
-    ? color === "green" 
-      ? "bg-primary/10 border-primary text-primary" 
+  const activeClass = active
+    ? color === "green"
+      ? "bg-primary/10 border-primary text-primary"
       : color === "blue"
         ? "bg-blue-500/10 border-blue-500 text-blue-500"
         : color === "pink"
@@ -1330,11 +1474,11 @@ function ViewCard({
   )
 }
 
-function StatCard({ label, value, icon, color }: { 
-  label: string; 
-  value: string | number; 
+function StatCard({ label, value, icon, color }: {
+  label: string;
+  value: string | number;
   icon: React.ReactNode;
-  color: "green" | "blue" | "pink" | "accent" 
+  color: "green" | "blue" | "pink" | "accent"
 }) {
   const colorClasses = {
     green: 'text-primary border-primary/20 bg-primary/5',
@@ -1358,7 +1502,7 @@ function StatCard({ label, value, icon, color }: {
 
 function getSectionIcon(sectionName: string) {
   const lowerName = sectionName.toLowerCase()
-  switch(lowerName) {
+  switch (lowerName) {
     case 'behavior':
       return <Activity className="w-4 h-4" />
     case 'memory':
@@ -1388,14 +1532,4 @@ function getSectionIcon(sectionName: string) {
     default:
       return <Code className="w-4 h-4" />
   }
-}
-
-function Target({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  )
 }
