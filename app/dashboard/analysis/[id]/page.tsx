@@ -785,30 +785,44 @@ export default function AnalysisPage() {
   }
 
   const handleDownload = async (format: string) => {
-    try {
-      setDownloadProgress(0)
-      const interval = setInterval(() => {
-        setDownloadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(interval)
-            return 90
-          }
-          return prev + 10
-        })
-      }, 100)
+  try {
+    setDownloadProgress(0)
+    const interval = setInterval(() => {
+      setDownloadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(interval)
+          return 90
+        }
+        return prev + 10
+      })
+    }, 100)
 
-      await apiService.downloadReport(analysisId, format as any)
-      
-      clearInterval(interval)
-      setDownloadProgress(100)
-      
-      setTimeout(() => setDownloadProgress(0), 1000)
-    } catch (err) {
-      console.error("Download failed:", err)
-      alert("Download failed. Please try again.")
-      setDownloadProgress(0)
-    }
+    const data = await apiService.downloadReport(analysisId, format as any)
+
+    clearInterval(interval)
+    setDownloadProgress(100)
+
+    // Convert JSON to Blob and download
+    const jsonStr = JSON.stringify(data, null, 2)
+    const blob = new Blob([jsonStr], { type: "application/json" })
+    const url = window.URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${analysisId}.${format}` // e.g. "123.json"
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+
+    setTimeout(() => setDownloadProgress(0), 1000)
+  } catch (err) {
+    console.error("Download failed:", err)
+    alert("Download failed. Please try again.")
+    setDownloadProgress(0)
   }
+ }
+
 
   const handleCopyJson = (data: any) => {
     try {
