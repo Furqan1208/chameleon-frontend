@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx - Updated logo section
+// components/layout/Sidebar.tsx - Toggle button with just arrow symbol
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
@@ -12,10 +12,12 @@ import {
   Plug, 
   Cpu,
   Menu,
-  X
+  X,
+  ChevronLeft
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
+import { Logo } from "@/components/ui/Logo" // Import your Logo component
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
@@ -157,45 +159,29 @@ export function Sidebar() {
           : "w-64",
         "fixed md:relative h-screen z-40 bg-background"
       )}>
-        {/* Logo and toggle - FIXED */}
+        {/* Logo and toggle - REMOVED toggle from logo section */}
         <div className={cn(
           "border-b border-border flex items-center transition-all duration-300",
-          isCollapsed ? "p-3 justify-center" : "p-4 justify-between"
+          isCollapsed ? "p-3 justify-center" : "p-4 justify-center"
         )}>
           {/* Logo when expanded */}
           <div className={cn(
             "flex items-center gap-3 transition-all duration-300",
             isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
           )}>
-            <Shield className="w-8 h-8 text-primary neon-text flex-shrink-0" />
+            {/* Changed Shield to Logo component */}
+            <Logo type="icon" size="md" className="text-primary neon-text flex-shrink-0" />
             <div className="min-w-0">
               <h1 className="text-xl font-bold text-foreground truncate">Chameleon</h1>
               <p className="text-xs text-muted-foreground truncate">Malware Analysis</p>
             </div>
           </div>
           
-          {/* Desktop toggle button */}
-          {!isMobile && (
-            <button
-              onClick={toggleSidebar}
-              className={cn(
-                "p-1.5 rounded hover:bg-muted transition-colors flex-shrink-0",
-                isCollapsed ? "absolute right-1.5" : ""
-              )}
-              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4 rotate-180" />
-              )}
-            </button>
-          )}
-          
           {/* Logo when collapsed (centered) */}
           {isCollapsed && (
             <div className="flex items-center justify-center w-full">
-              <Shield className="w-8 h-8 text-primary neon-text" />
+              {/* Changed Shield to Logo component */}
+              <Logo type="icon" size="md" className="text-primary neon-text" />
             </div>
           )}
         </div>
@@ -207,8 +193,29 @@ export function Sidebar() {
           </div>
         </nav>
 
-        {/* Status */}
+        {/* Status with Toggle Button above it */}
         <div className="p-4 border-t border-border">
+          {/* Toggle Button moved here - ABOVE the status */}
+          {!isMobile && (
+            <div className="mb-3 flex justify-center">
+              <button
+                onClick={toggleSidebar}
+                className={cn(
+                  "p-2 rounded-lg hover:bg-muted transition-colors flex items-center justify-center border border-border hover:border-primary/30 group",
+                  isCollapsed ? "w-10 h-10" : "w-10 h-10"
+                )}
+                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Status section */}
           <div className={cn(
             "glass rounded-lg transition-all duration-300",
             isCollapsed ? "p-2 flex flex-col items-center" : "p-4"
