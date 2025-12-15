@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx - Toggle button with just arrow symbol
+// components/layout/Sidebar.tsx
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
@@ -13,11 +13,12 @@ import {
   Cpu,
   Menu,
   X,
-  ChevronLeft
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
-import { Logo } from "@/components/ui/Logo" // Import your Logo component
+import { Logo } from "@/components/ui/Logo"
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
@@ -157,33 +158,33 @@ export function Sidebar() {
         isCollapsed 
           ? "w-16" 
           : "w-64",
-        "fixed md:relative h-screen z-40 bg-background"
+        "fixed md:relative h-screen z-40 bg-background",
+        "md:translate-x-0 transition-transform",
+        isMobile && isCollapsed && "-translate-x-full",
+        isMobile && !isCollapsed && "translate-x-0"
       )}>
-        {/* Logo and toggle - REMOVED toggle from logo section */}
+        {/* Logo section - Clickable to go to home page */}
         <div className={cn(
           "border-b border-border flex items-center transition-all duration-300",
-          isCollapsed ? "p-3 justify-center" : "p-4 justify-center"
+          isCollapsed ? "p-4 justify-center" : "p-4 justify-center"
         )}>
-          {/* Logo when expanded */}
-          <div className={cn(
-            "flex items-center gap-3 transition-all duration-300",
-            isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
-          )}>
-            {/* Changed Shield to Logo component */}
+          {/* Clickable logo to go to home page */}
+          <button 
+            onClick={() => router.push("/")}
+            className={cn(
+              "flex items-center gap-3 transition-all duration-300 group cursor-pointer hover:opacity-80",
+              isCollapsed ? "justify-center" : ""
+            )}
+            title="Go to Home"
+          >
             <Logo type="icon" size="md" className="text-primary neon-text flex-shrink-0" />
-            <div className="min-w-0">
-              <h1 className="text-xl font-bold text-foreground truncate">Chameleon</h1>
-              <p className="text-xs text-muted-foreground truncate">Malware Analysis</p>
-            </div>
-          </div>
-          
-          {/* Logo when collapsed (centered) */}
-          {isCollapsed && (
-            <div className="flex items-center justify-center w-full">
-              {/* Changed Shield to Logo component */}
-              <Logo type="icon" size="md" className="text-primary neon-text" />
-            </div>
-          )}
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold text-foreground truncate">Chameleon</h1>
+                <p className="text-xs text-muted-foreground truncate">Malware Analysis</p>
+              </div>
+            )}
+          </button>
         </div>
 
         {/* Navigation */}
@@ -193,48 +194,50 @@ export function Sidebar() {
           </div>
         </nav>
 
-        {/* Status with Toggle Button above it */}
+        {/* Footer section with toggle button */}
         <div className="p-4 border-t border-border">
-          {/* Toggle Button moved here - ABOVE the status */}
+          {/* Desktop toggle button */}
           {!isMobile && (
-            <div className="mb-3 flex justify-center">
+            <div className="flex justify-end">
               <button
                 onClick={toggleSidebar}
                 className={cn(
-                  "p-2 rounded-lg hover:bg-muted transition-colors flex items-center justify-center border border-border hover:border-primary/30 group",
+                  "p-2 rounded-lg hover:bg-muted transition-all duration-200 flex items-center justify-center group relative",
+                  "border border-border hover:border-primary/30",
                   isCollapsed ? "w-10 h-10" : "w-10 h-10"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
+                {/* Fixed arrow direction: left arrow when expanded, right arrow when collapsed */}
                 {isCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 ) : (
                   <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                )}
+                
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && (
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-foreground text-background text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    Expand
+                  </div>
                 )}
               </button>
             </div>
           )}
 
-          {/* Status section */}
-          <div className={cn(
-            "glass rounded-lg transition-all duration-300",
-            isCollapsed ? "p-2 flex flex-col items-center" : "p-4"
-          )}>
-            {!isCollapsed ? (
-              <>
-                <p className="text-xs text-muted-foreground mb-2">Backend Status</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-sm text-foreground">Connected</span>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse mb-1" />
-                <span className="text-xs text-muted-foreground">Online</span>
-              </div>
-            )}
-          </div>
+          {/* Version info */}
+          {!isCollapsed && !isMobile && (
+            <div className="mt-4 text-center">
+              <p className="text-xs text-muted-foreground">v1.0.0</p>
+            </div>
+          )}
+          
+          {/* Minimal version info for collapsed state */}
+          {isCollapsed && !isMobile && (
+            <div className="mt-4 text-center">
+              <p className="text-xs text-muted-foreground rotate-90 whitespace-nowrap">v1.0</p>
+            </div>
+          )}
         </div>
       </div>
 

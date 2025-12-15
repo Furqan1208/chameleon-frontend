@@ -463,7 +463,7 @@ export default function HomePage() {
               </div>
               
               <div className="text-sm text-muted-foreground">
-                © 2024 Chameleon Security Platform
+                © 2025 Chameleon Security Platform
               </div>
             </div>
           </div>
