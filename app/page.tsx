@@ -1,10 +1,9 @@
-// app/page.tsx - Completely replace your existing landing page
+// app/page.tsx - Complete updated version
 "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { 
-  Shield, 
   Upload, 
   Brain, 
   Zap, 
@@ -18,17 +17,12 @@ import {
   ChevronRight,
   Sparkles,
   Lock,
-  Key,
-  Fingerprint,
-  Code,
-  Server,
-  Cloud,
-  Terminal,
-  ShieldCheck,
   CircuitBoard,
-  Radar
+  Radar,
+  ShieldCheck
 } from "lucide-react"
 import { motion } from "framer-motion"
+import { Logo } from "@/components/ui/Logo"
 
 // Integration data with logos
 const integrations = [
@@ -36,7 +30,7 @@ const integrations = [
     id: 'virustotal',
     name: 'VirusTotal',
     description: '70+ antivirus engines, file analysis, threat intelligence',
-    icon: Shield,
+    icon: ShieldCheck,
     color: '#00ff88',
     status: 'active'
   },
@@ -194,14 +188,11 @@ export default function HomePage() {
             className="text-center space-y-8 mb-16"
           >
             <div className="flex flex-col items-center gap-4 mb-6">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="relative"
-              >
+              {/* Bigger Logo without rotation */}
+              <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                <Shield className="w-24 h-24 text-primary neon-text relative z-10" />
-              </motion.div>
+                <Logo type="full" size="2xl" className="relative z-10 neon-text scale-125" />
+              </div>
               
               <h1 className="text-7xl md:text-8xl font-bold text-foreground neon-text tracking-tighter">
                 CHAMELEON
@@ -286,8 +277,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Integration Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 max-w-7xl mx-auto">
+            {/* Integration Grid - FIXED: All logos now properly visible */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6 max-w-7xl mx-auto">
               {integrations.map((integration, index) => {
                 const Icon = integration.icon
                 const isGlowing = index === glowingIndex
@@ -296,32 +287,47 @@ export default function HomePage() {
                   <motion.div
                     key={integration.id}
                     whileHover={{ scale: 1.1, rotate: 5 }}
-                    className={`relative aspect-square rounded-2xl p-4 flex flex-col items-center justify-center transition-all duration-500 ${
+                    className={`relative aspect-square rounded-2xl p-5 flex flex-col items-center justify-center transition-all duration-500 overflow-hidden group ${
                       integration.status === 'active' 
-                        ? 'bg-black/30 border border-primary/20' 
-                        : 'bg-black/20 border border-border/50 opacity-70'
+                        ? 'bg-black/40 border-2 border-primary/30 hover:border-primary' 
+                        : 'bg-black/30 border border-border hover:border-border/80'
                     } ${isGlowing && integration.status === 'active' ? 'glow-green' : ''}`}
                   >
                     {/* Connection lines */}
                     {index < integrations.length - 1 && (
-                      <div className="absolute top-1/2 -right-2 w-4 h-0.5 bg-border/30 hidden lg:block" />
+                      <div className="absolute top-1/2 -right-3 w-6 h-0.5 bg-border/30 hidden lg:block" />
                     )}
                     
                     {/* Status indicator */}
-                    <div className="absolute top-2 right-2">
-                      <div className={`w-2 h-2 rounded-full ${integration.status === 'active' ? 'bg-primary animate-pulse' : 'bg-muted-foreground'}`} />
+                    <div className="absolute top-3 right-3">
+                      <div className={`w-3 h-3 rounded-full ${integration.status === 'active' ? 'bg-primary animate-pulse' : 'bg-muted-foreground'}`} />
                     </div>
                     
+                    {/* Logo container - FIXED opacity issue */}
                     <div 
-                      className="mb-3"
-                      style={{ color: integration.color }}
+                      className="mb-4 transition-transform duration-300 group-hover:scale-110"
+                      style={{ 
+                        color: integration.color,
+                        opacity: integration.status === 'coming' ? 0.7 : 1
+                      }}
                     >
-                      <Icon className="w-8 h-8" />
+                      <Icon className="w-10 h-10" />
                     </div>
                     
-                    <h4 className="text-xs font-bold text-foreground text-center">
+                    <h4 className="text-sm font-bold text-foreground text-center mb-1">
                       {integration.name}
                     </h4>
+                    
+                    {/* Status badge */}
+                    <div className="absolute bottom-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        integration.status === 'active' 
+                          ? 'bg-primary/20 text-primary' 
+                          : 'bg-muted/20 text-muted-foreground'
+                      }`}>
+                        {integration.status === 'active' ? 'ACTIVE' : 'COMING SOON'}
+                      </span>
+                    </div>
                     
                     {integration.status === 'active' && (
                       <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
@@ -334,14 +340,14 @@ export default function HomePage() {
             </div>
 
             {/* Active vs Coming Soon */}
-            <div className="flex justify-center gap-8 mt-8">
-              <div className="flex items-center gap-2">
+            <div className="flex justify-center gap-8 mt-10">
+              <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm text-foreground">Active Integration</span>
+                <span className="text-sm font-medium text-foreground">Active Integration</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Coming Soon</span>
+                <span className="text-sm font-medium text-muted-foreground">Coming Soon</span>
               </div>
             </div>
           </div>
@@ -368,7 +374,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* CTA Section */}
+          {/* CTA Section - BIGGER TEXT */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -380,33 +386,40 @@ export default function HomePage() {
               {/* Animated border */}
               <div className="absolute inset-0 border-2 border-primary/30 rounded-3xl animate-pulse" />
               
-              <div className="relative glass border border-border rounded-3xl p-12 bg-gradient-to-br from-black/50 to-primary/5">
-                <ShieldCheck className="w-16 h-16 text-primary mx-auto mb-6" />
-                <h2 className="text-4xl font-bold text-foreground mb-4">
+              {/* Larger CTA section */}
+              <div className="relative glass border border-border rounded-3xl p-16 bg-gradient-to-br from-black/50 to-primary/5">
+                {/* Bigger logo */}
+                <Logo type="icon" size="xl" className="mx-auto mb-10 neon-text scale-125" />
+                
+                {/* Bigger heading */}
+                <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-8 leading-tight">
                   Ready to Analyze Threats?
                 </h2>
-                <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                
+                {/* Bigger paragraph text */}
+                <p className="text-2xl md:text-3xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed">
                   Upload any file, hash, IP, or domain for comprehensive malware analysis 
                   across multiple threat intelligence sources.
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {/* Bigger buttons */}
+                <div className="flex flex-col sm:flex-row gap-8 justify-center">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => router.push("/dashboard/upload")}
-                    className="px-8 py-4 bg-primary text-primary-foreground font-bold text-lg rounded-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group"
+                    className="px-12 py-6 bg-primary text-primary-foreground font-bold text-xl rounded-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-4 group"
                   >
-                    <Upload className="w-6 h-6" />
+                    <Upload className="w-8 h-8" />
                     START ANALYSIS
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                    <ChevronRight className="w-7 h-7 group-hover:translate-x-2 transition-transform" />
                   </motion.button>
                   
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => router.push("/dashboard/integrations")}
-                    className="px-8 py-4 bg-transparent border-2 border-primary text-primary font-bold text-lg rounded-xl hover:bg-primary/10 transition-all duration-300"
+                    className="px-12 py-6 bg-transparent border-2 border-primary text-primary font-bold text-xl rounded-xl hover:bg-primary/10 transition-all duration-300"
                   >
                     EXPLORE INTEGRATIONS
                   </motion.button>
@@ -421,7 +434,7 @@ export default function HomePage() {
           <div className="container mx-auto px-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <Shield className="w-8 h-8 text-primary neon-text" />
+                <Logo type="icon" size="md" className="neon-text" />
                 <div>
                   <h3 className="text-xl font-bold text-foreground">CHAMELEON</h3>
                   <p className="text-sm text-muted-foreground">Advanced Malware Analysis</p>
