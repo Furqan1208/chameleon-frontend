@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx
+// components/layout/Sidebar.tsx - UPDATED VERSION WITH HYBRID ANALYSIS
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
@@ -11,10 +11,13 @@ import {
   ChevronRight, 
   Plug, 
   Cpu,
+  Globe,
   Menu,
   X,
   ChevronLeft,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Database,
+  Cpu as CpuIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
@@ -30,6 +33,12 @@ const menuItems = [
     path: "/dashboard/threat-intel",
     submenu: [
       { icon: Cpu, label: "VirusTotal", path: "/dashboard/threat-intel/virustotal" },
+      { icon: CpuIcon, label: "Hybrid Analysis", path: "/dashboard/threat-intel/hybridanalysis" },
+      { icon: Globe, label: "AbuseIPDB", path: "/dashboard/threat-intel/abuseipdb" },
+      { icon: Database, label: "Abuse.ch", path: "/dashboard/threat-intel/abusech" },
+      { icon: Database, label: "AlienVault OTX", path: "/dashboard/threat-intel/alienvault" },
+      { icon: Shield, label: "MalwareBazaar", path: "/dashboard/threat-intel/malwarebazaar" },
+      { icon: Shield, label: "Filescan.io", path: "/dashboard/threat-intel/filescan" },
     ]
   },
   { 
@@ -45,9 +54,11 @@ export function Sidebar() {
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({})
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // Check for mobile
+  // Check for mobile - only on client side
   useEffect(() => {
+    setMounted(true)
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
@@ -56,6 +67,13 @@ export function Sidebar() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Auto-expand Threat Intel menu when on any threat intel page
+  useEffect(() => {
+    if (pathname?.startsWith('/dashboard/threat-intel')) {
+      setExpandedMenus(prev => ({ ...prev, 'Threat Intel': true }))
+    }
+  }, [pathname])
 
   const toggleSubmenu = (label: string) => {
     setExpandedMenus(prev => ({
@@ -70,6 +88,8 @@ export function Sidebar() {
 
   // Fixed isActive function
   const isActive = (itemPath: string, hasSubmenu = false) => {
+    if (!mounted) return false;
+    
     // For dashboard, only match exact path
     if (itemPath === "/dashboard") {
       return pathname === "/dashboard"
@@ -133,9 +153,36 @@ export function Sidebar() {
 
         {hasSubmenu && isExpanded && !isCollapsed && (
           <div className="mt-1 space-y-1">
-            {item.submenu.map((subItem: any) => renderMenuItem(subItem, depth + 1))}
+            {item.submenu.map((subItem: any) => {
+              // Add badge for Hybrid Analysis
+              const showBadge = subItem.label === "Hybrid Analysis";
+              return (
+                <div key={subItem.path} className="relative">
+                  {renderMenuItem(subItem, depth + 1)}
+                  {showBadge && !isCollapsed && (
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <span className="px-1.5 py-0.5 text-xs bg-purple-500/20 text-purple-500 rounded">
+                        New
+                      </span>
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
+      </div>
+    )
+  }
+
+  // Don't render sidebar until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="glass border-r border-border flex flex-col w-16 md:w-64 h-screen z-40 bg-background">
+        {/* Skeleton loader */}
+        <div className="border-b border-border p-4">
+          <div className="h-8 bg-muted rounded animate-pulse" />
+        </div>
       </div>
     )
   }
@@ -163,7 +210,7 @@ export function Sidebar() {
         isMobile && isCollapsed && "-translate-x-full",
         isMobile && !isCollapsed && "translate-x-0"
       )}>
-        {/* Logo section - Clickable to go to home page */}
+        {/* Logo section */}
         <div className={cn(
           "border-b border-border flex items-center transition-all duration-300",
           isCollapsed ? "p-4 justify-center" : "p-4 justify-center"
@@ -208,7 +255,6 @@ export function Sidebar() {
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
-                {/* Fixed arrow direction: left arrow when expanded, right arrow when collapsed */}
                 {isCollapsed ? (
                   <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 ) : (

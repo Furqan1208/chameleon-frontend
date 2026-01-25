@@ -21,7 +21,7 @@ const threatIntelSources = [
     icon: Globe,
     path: '/dashboard/threat-intel/abuseipdb',
     color: 'blue',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'hybridanalysis',

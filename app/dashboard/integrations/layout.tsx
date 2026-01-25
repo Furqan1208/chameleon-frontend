@@ -32,7 +32,7 @@ const integrations = [
     description: 'IP reputation database with abuse reports and confidence scoring',
     icon: Globe,
     color: 'blue' as const,
-    status: 'planned' as const,
+    status: 'active' as const,
     category: 'IP Reputation' as const,
     apiKey: true,
     freeTier: true,
@@ -43,7 +43,7 @@ const integrations = [
       tier: 'Free Tier available'
     },
     docs: 'https://docs.abuseipdb.com/',
-    setup: null
+    setup: '/dashboard/threat-intel/abuseipdb'
   },
   {
     id: 'hybridanalysis',
@@ -51,7 +51,7 @@ const integrations = [
     description: 'Advanced sandbox malware analysis with dynamic execution',
     icon: Cpu,
     color: 'purple' as const,
-    status: 'planned' as const,
+    status: 'active' as const,
     category: 'Sandbox Analysis' as const,
     apiKey: true,
     freeTier: true,
@@ -62,7 +62,7 @@ const integrations = [
       tier: 'Free for research'
     },
     docs: 'https://www.hybrid-analysis.com/docs/api/v2',
-    setup: null
+    setup: "/dashboard/threat-intel/hybridanalysis"
   },
   {
     id: 'urlhaus',
@@ -70,7 +70,7 @@ const integrations = [
     description: 'Malicious URL database with malware distribution tracking',
     icon: Network,
     color: 'pink' as const,
-    status: 'planned' as const,
+    status: 'active' as const,
     category: 'URL Intelligence' as const,
     apiKey: false,
     freeTier: true,
@@ -81,7 +81,7 @@ const integrations = [
       tier: 'Free & Open'
     },
     docs: 'https://urlhaus-api.abuse.ch/',
-    setup: null
+    setup: "/dashboard/threat-intel/abusech"
   },
   {
     id: 'alienvault',
@@ -89,7 +89,7 @@ const integrations = [
     description: 'Open threat intelligence exchange with community contributions',
     icon: AlertTriangle,
     color: 'orange' as const,
-    status: 'planned' as const,
+    status: 'active' as const,
     category: 'Threat Intelligence' as const,
     apiKey: true,
     freeTier: true,
@@ -100,7 +100,7 @@ const integrations = [
       tier: 'Free tier available'
     },
     docs: 'https://otx.alienvault.com/api',
-    setup: null
+    setup: "/dashboard/threat-intel/alienvault"
   },
   {
     id: 'malwarebazaar',
@@ -119,7 +119,7 @@ const integrations = [
       tier: 'Free & Open'
     },
     docs: 'https://bazaar.abuse.ch/api/',
-    setup: null
+    setup: "/dashboard/threat-intel/malwarebazaar"
   }
 ]
 

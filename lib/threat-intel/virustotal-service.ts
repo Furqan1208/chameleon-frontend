@@ -333,6 +333,10 @@ export class VirusTotalService {
     const stats = attrs.last_analysis_stats || {};
     
     const total = Object.values(stats).reduce((sum: number, val: any) => sum + (val || 0), 0) as number;
+    
+    // FIXED: Calculate threat score properly from malicious and suspicious counts
+    const threatScore = this.calculateThreatScoreFromStats(stats);
+    
     const detectionStats: VTDetectionStats = {
       malicious: stats.malicious || 0,
       suspicious: stats.suspicious || 0,
@@ -341,11 +345,11 @@ export class VirusTotalService {
       timeout: stats.timeout || 0,
       total,
       detection_ratio: `${(stats.malicious || 0) + (stats.suspicious || 0)}/${total}`,
-      threat_score: this.calculateThreatScore(stats)
+      threat_score: threatScore  // Use the calculated score
     };
 
     const threatLevel = this.determineThreatLevel(detectionStats);
-    const threatScore = detectionStats.threat_score;
+    const threatScoreFinal = detectionStats.threat_score;
 
     const fileInfo: VTFileInfo = {
       hash,
@@ -364,7 +368,7 @@ export class VirusTotalService {
       found: true,
       detection_stats: detectionStats,
       threat_level: threatLevel,
-      threat_score: threatScore,
+      threat_score: threatScoreFinal,
       file_info: fileInfo,
       behavioral_indicators: [],
       relationships: {},
@@ -379,6 +383,8 @@ export class VirusTotalService {
     const stats = attrs.last_analysis_stats || {};
     
     const total = Object.values(stats).reduce((sum: number, val: any) => sum + (val || 0), 0) as number;
+    const threatScore = this.calculateThreatScoreFromStats(stats);  // Use the new calculation
+    
     const detectionStats: VTDetectionStats = {
       malicious: stats.malicious || 0,
       suspicious: stats.suspicious || 0,
@@ -387,11 +393,11 @@ export class VirusTotalService {
       timeout: stats.timeout || 0,
       total,
       detection_ratio: `${(stats.malicious || 0) + (stats.suspicious || 0)}/${total}`,
-      threat_score: this.calculateThreatScore(stats)
+      threat_score: threatScore  // Use calculated score
     };
 
     const threatLevel = this.determineThreatLevel(detectionStats);
-    const threatScore = detectionStats.threat_score;
+    const threatScoreFinal = detectionStats.threat_score;
 
     const networkInfo: VTNetworkInfo = {
       asn: attrs.asn,
@@ -408,7 +414,7 @@ export class VirusTotalService {
       found: true,
       detection_stats: detectionStats,
       threat_level: threatLevel,
-      threat_score: threatScore,
+      threat_score: threatScoreFinal,
       network_info: networkInfo,
       behavioral_indicators: [],
       relationships: {},
@@ -423,6 +429,8 @@ export class VirusTotalService {
     const stats = attrs.last_analysis_stats || {};
     
     const total = Object.values(stats).reduce((sum: number, val: any) => sum + (val || 0), 0) as number;
+    const threatScore = this.calculateThreatScoreFromStats(stats);  // Use the new calculation
+    
     const detectionStats: VTDetectionStats = {
       malicious: stats.malicious || 0,
       suspicious: stats.suspicious || 0,
@@ -431,11 +439,11 @@ export class VirusTotalService {
       timeout: stats.timeout || 0,
       total,
       detection_ratio: `${(stats.malicious || 0) + (stats.suspicious || 0)}/${total}`,
-      threat_score: this.calculateThreatScore(stats)
+      threat_score: threatScore  // Use calculated score
     };
 
     const threatLevel = this.determineThreatLevel(detectionStats);
-    const threatScore = detectionStats.threat_score;
+    const threatScoreFinal = detectionStats.threat_score;
 
     const networkInfo: VTNetworkInfo = {
       registrar: attrs.registrar,
@@ -452,7 +460,7 @@ export class VirusTotalService {
       found: true,
       detection_stats: detectionStats,
       threat_level: threatLevel,
-      threat_score: threatScore,
+      threat_score: threatScoreFinal,
       network_info: networkInfo,
       behavioral_indicators: [],
       relationships: {},
@@ -467,6 +475,8 @@ export class VirusTotalService {
     const stats = attrs.last_analysis_stats || {};
     
     const total = Object.values(stats).reduce((sum: number, val: any) => sum + (val || 0), 0) as number;
+    const threatScore = this.calculateThreatScoreFromStats(stats);  // Use the new calculation
+    
     const detectionStats: VTDetectionStats = {
       malicious: stats.malicious || 0,
       suspicious: stats.suspicious || 0,
@@ -475,11 +485,11 @@ export class VirusTotalService {
       timeout: stats.timeout || 0,
       total,
       detection_ratio: `${(stats.malicious || 0) + (stats.suspicious || 0)}/${total}`,
-      threat_score: this.calculateThreatScore(stats)
+      threat_score: threatScore  // Use calculated score
     };
 
     const threatLevel = this.determineThreatLevel(detectionStats);
-    const threatScore = detectionStats.threat_score;
+    const threatScoreFinal = detectionStats.threat_score;
 
     const urlId = Buffer.from(url).toString('base64').replace(/=/g, '');
 
@@ -489,7 +499,7 @@ export class VirusTotalService {
       found: true,
       detection_stats: detectionStats,
       threat_level: threatLevel,
-      threat_score: threatScore,
+      threat_score: threatScoreFinal,
       behavioral_indicators: [],
       relationships: {},
       vt_url: `https://www.virustotal.com/gui/url/${urlId}`,
@@ -533,19 +543,37 @@ export class VirusTotalService {
     if (stats.total === 0) return 'unknown';
     
     const maliciousRatio = stats.malicious / stats.total;
+    const threatScore = stats.threat_score;
     
-    if (maliciousRatio >= 0.1 || stats.malicious >= 5) return 'high';
-    if (maliciousRatio >= 0.05 || stats.malicious >= 2) return 'medium';
-    if (stats.suspicious > 0 || stats.malicious > 0) return 'low';
-    return 'clean';
+    // Use threat_score for more accurate determination
+    if (threatScore >= 70 || maliciousRatio >= 0.2) return 'high';
+    if (threatScore >= 40 || maliciousRatio >= 0.05) return 'medium';
+    if (threatScore >= 10 || stats.suspicious > 0) return 'low';
+    if (threatScore === 0 && stats.malicious === 0 && stats.suspicious === 0) return 'clean';
+    return 'unknown';
   }
 
-  private calculateThreatScore(stats: any): number {
-    if (!stats || stats.total === undefined || stats.total === 0) return 0;
+  // FIXED: Add this new method to calculate threat score from stats:
+  private calculateThreatScoreFromStats(stats: any): number {
+    const total = (stats.malicious || 0) + (stats.suspicious || 0) + (stats.harmless || 0) + (stats.undetected || 0);
     
-    const total = Object.values(stats).reduce((sum: number, val: any) => sum + (val || 0), 0) as number;
-    const score = ((stats.malicious || 0) * 1.0 + (stats.suspicious || 0) * 0.5) / total * 100;
-    return Math.min(score, 100);
+    if (total === 0) return 0;
+    
+    // Weight malicious detections heavily, suspicious moderately
+    const maliciousWeight = (stats.malicious || 0) * 10;
+    const suspiciousWeight = (stats.suspicious || 0) * 5;
+    const harmlessWeight = (stats.harmless || 0) * 0;
+    const undetectedWeight = (stats.undetected || 0) * 0;
+    
+    const rawScore = (maliciousWeight + suspiciousWeight) / total * 10;
+    
+    // Normalize to 0-100 scale
+    return Math.min(Math.round(rawScore * 10), 100);
+  }
+
+  // Keep the old method for backward compatibility but use the new one instead
+  private calculateThreatScore(stats: any): number {
+    return this.calculateThreatScoreFromStats(stats);
   }
 
   private extractBehavioralIndicators(behaviorData: any): string[] {

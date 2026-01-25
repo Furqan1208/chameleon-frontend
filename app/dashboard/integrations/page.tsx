@@ -59,7 +59,7 @@ const allIntegrations = [
     category: 'Threat Intelligence',
     icon: Globe,
     color: 'blue',
-    status: 'planned',
+    status: 'active',
     features: [
       'IP reputation scoring',
       'Abuse reports lookup',
@@ -102,7 +102,7 @@ const allIntegrations = [
     category: 'Threat Intelligence',
     icon: Network,
     color: 'pink',
-    status: 'planned',
+    status: 'active',
     features: [
       'Malware URL lookup',
       'Domain reputation',

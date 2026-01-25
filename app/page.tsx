@@ -40,7 +40,7 @@ const integrations = [
     description: 'IP reputation & abuse database',
     icon: Globe,
     color: '#0088ff',
-    status: 'coming'
+    status: 'active'
   },
   {
     id: 'hybridanalysis',
@@ -48,7 +48,7 @@ const integrations = [
     description: 'Advanced sandbox malware analysis',
     icon: Cpu,
     color: '#aa00ff',
-    status: 'coming'
+    status: 'active'
   },
   {
     id: 'urlhaus',
@@ -56,7 +56,7 @@ const integrations = [
     description: 'Malware URL database from abuse.ch',
     icon: Network,
     color: '#ff0088',
-    status: 'coming'
+    status: 'active'
   },
   {
     id: 'alienvault',
@@ -64,7 +64,7 @@ const integrations = [
     description: 'Open threat intelligence platform',
     icon: AlertTriangle,
     color: '#ff8800',
-    status: 'coming'
+    status: 'active'
   },
   {
     id: 'malwarebazaar',
@@ -72,7 +72,7 @@ const integrations = [
     description: 'Malware sample repository',
     icon: FileText,
     color: '#ff0000',
-    status: 'coming'
+    status: 'active'
   },
   {
     id: 'filescan',
@@ -88,7 +88,7 @@ const integrations = [
     description: 'IOC database & sharing',
     icon: Radar,
     color: '#8800ff',
-    status: 'coming'
+    status: 'active'
   }
 ]
 
