@@ -756,6 +756,12 @@ function TargetTab({ targetInfo, peInfo }: any) {
 }
 
 function BehaviorTab({ summary, processes, processCalls }: any) {
+  // Get correct counts from the summary object
+  const filesCount = Array.isArray(summary?.files) ? summary.files.length : 0;
+  const registryKeysCount = Array.isArray(summary?.keys) ? summary.keys.length : 0;
+  const commandsCount = Array.isArray(summary?.executed_commands) ? summary.executed_commands.length : 0;
+  const mutexesCount = Array.isArray(summary?.mutexes) ? summary.mutexes.length : 0;
+  
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
@@ -773,19 +779,19 @@ function BehaviorTab({ summary, processes, processCalls }: any) {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="text-center p-4 border border-border rounded-lg">
-              <div className="text-2xl font-bold text-foreground">{summary.files || 0}</div>
+              <div className="text-2xl font-bold text-foreground">{filesCount}</div>
               <div className="text-xs text-muted-foreground">File Operations</div>
             </div>
             <div className="text-center p-4 border border-border rounded-lg">
-              <div className="text-2xl font-bold text-foreground">{summary.registryKeys || 0}</div>
+              <div className="text-2xl font-bold text-foreground">{registryKeysCount}</div>
               <div className="text-xs text-muted-foreground">Registry Keys</div>
             </div>
             <div className="text-center p-4 border border-border rounded-lg">
-              <div className="text-2xl font-bold text-foreground">{summary.commands || 0}</div>
+              <div className="text-2xl font-bold text-foreground">{commandsCount}</div>
               <div className="text-xs text-muted-foreground">Commands</div>
             </div>
             <div className="text-center p-4 border border-border rounded-lg">
-              <div className="text-2xl font-bold text-foreground">{summary.mutexes || 0}</div>
+              <div className="text-2xl font-bold text-foreground">{mutexesCount}</div>
               <div className="text-xs text-muted-foreground">Mutexes</div>
             </div>
             <div className="text-center p-4 border border-border rounded-lg">
@@ -822,7 +828,7 @@ function BehaviorTab({ summary, processes, processCalls }: any) {
                     <div className="text-sm text-muted-foreground">
                       {proc.calls?.length || 0} API calls
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">
                       {proc.module_path}
                     </div>
                   </div>
@@ -836,7 +842,7 @@ function BehaviorTab({ summary, processes, processCalls }: any) {
                       {Object.entries(proc.environ[0] || {}).slice(0, 6).map(([key, value]: [string, any]) => (
                         <div key={key} className="flex">
                           <span className="text-muted-foreground min-w-[120px]">{key}:</span>
-                          <span className="text-foreground truncate ml-2">{String(value)}</span>
+                          <span className="text-foreground truncate ml-2 break-all">{String(value)}</span>
                         </div>
                       ))}
                     </div>
@@ -854,7 +860,7 @@ function BehaviorTab({ summary, processes, processCalls }: any) {
           <h3 className="text-lg font-semibold text-foreground mb-4">Mutexes Created</h3>
           <div className="flex flex-wrap gap-2">
             {summary.mutexes.map((mutex: string, idx: number) => (
-              <div key={idx} className="px-3 py-1.5 bg-muted/20 rounded-lg text-sm text-muted-foreground border border-border">
+              <div key={idx} className="px-3 py-1.5 bg-muted/20 rounded-lg text-sm text-muted-foreground border border-border break-all max-w-full">
                 {mutex}
               </div>
             ))}
@@ -870,8 +876,10 @@ function BehaviorTab({ summary, processes, processCalls }: any) {
             {summary.executed_commands.map((cmd: string, idx: number) => (
               <div key={idx} className="p-3 border border-border rounded-lg bg-muted/5">
                 <div className="flex items-start gap-2">
-                  <Terminal className="w-4 h-4 text-orange-500 mt-0.5" />
-                  <code className="text-sm text-foreground font-mono flex-1">{cmd}</code>
+                  <Terminal className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                  <code className="text-sm text-foreground font-mono flex-1 break-all">
+                    {cmd}
+                  </code>
                 </div>
               </div>
             ))}

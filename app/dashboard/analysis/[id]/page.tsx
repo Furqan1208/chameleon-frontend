@@ -1,3 +1,4 @@
+//D:\FYP\Chameleon Frontend\app\dashboard\analysis\[id]\page.tsx
 "use client"
 
 import { useParams } from "next/navigation"
@@ -27,10 +28,10 @@ import { formatDistanceToNow } from "date-fns"
 
 // Import modular components - UPDATED IMPORTS
 import {
-  OverviewDashboard,  // Updated from AnalysisOverview
+  OverviewDashboard,
   CapeAnalysisDashboard,
   ParsedAnalysisDashboard,
-  AIAnalysisViewer,
+  AIAnalysisDashboard,  // Using the new dashboard component
   extractFileHashes,
   getMalscore
 } from "@/components/analysis"
@@ -488,18 +489,26 @@ export default function AnalysisPage() {
                       </div>
                     </div>
 
-                    {loadingComponents ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader className="w-6 h-6 text-primary animate-spin" />
-                      </div>
-                    ) : aiData ? (
-                      <AIAnalysisViewer data={aiData} />
-                    ) : (
-                      <div className="text-center py-8">
-                        <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                        <p className="text-muted-foreground">No AI analysis available</p>
-                      </div>
-                    )}
+                    <div className="mt-6">
+                      {loadingComponents ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader className="w-6 h-6 text-primary animate-spin" />
+                        </div>
+                      ) : aiData ? (
+                        <AIAnalysisDashboard 
+                          data={aiData} 
+                          loading={loadingComponents}
+                          onCopyJson={() => handleCopyJson(aiData)}
+                          copied={copied}
+                          onDownload={handleDownload}
+                        />
+                      ) : (
+                        <div className="text-center py-8">
+                          <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                          <p className="text-muted-foreground">No AI analysis available</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
