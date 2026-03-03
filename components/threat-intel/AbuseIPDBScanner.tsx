@@ -1,26 +1,20 @@
-// components/threat-intel/AbuseIPDBScanner.tsx - ADD HISTORY TAB AND IMPROVED FEATURES
+// components/threat-intel/AbuseIPDBScanner.tsx - simplified scanner and blacklist only (no history)
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAbuseIPDB } from '@/hooks/useAbuseIPDB';
 import { AbuseIPDBResults } from './AbuseIPDBResults';
-import { AbuseIPDBStatsCards } from './AbuseIPDBStatsCards';
-import { AbuseIPDBHistory } from './AbuseIPDBHistory';
 import { 
   Globe, 
   AlertTriangle, 
   Shield, 
   RefreshCw, 
   Trash2, 
-  List, 
   Eye, 
   Download,
-  History,
   Database,
   Search,
-  Filter,
-  Clock,
-  FileText
+  Filter
 } from 'lucide-react';
 
 export function AbuseIPDBScanner() {
@@ -29,44 +23,27 @@ export function AbuseIPDBScanner() {
     error,
     results,
     blacklist,
-    history,
     checkIP,
     getBlacklist,
     clearResults,
     clearCache,
-    clearHistory,
-    clearAll,
-    loadFromStorage
+    clearAll
   } = useAbuseIPDB();
 
   const [ipInput, setIpInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'scanner' | 'blacklist' | 'history'>('scanner');
+  const [activeTab, setActiveTab] = useState<'scanner' | 'blacklist'>('scanner');
   const [blacklistConfidence, setBlacklistConfidence] = useState(90);
   const [blacklistLoading, setBlacklistLoading] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [maxAgeDays, setMaxAgeDays] = useState(30);
 
-  // Load search history from localStorage
-  useEffect(() => {
-    const savedSearches = localStorage.getItem('abuseipdb_search_history');
-    if (savedSearches) {
-      setSearchHistory(JSON.parse(savedSearches));
-    }
-  }, []);
 
-  const saveToSearchHistory = (ip: string) => {
-    const updatedHistory = [ip, ...searchHistory.filter(item => item !== ip)].slice(0, 10);
-    setSearchHistory(updatedHistory);
-    localStorage.setItem('abuseipdb_search_history', JSON.stringify(updatedHistory));
-  };
 
   const handleCheckIP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ipInput.trim() || checking) return;
 
     console.log(`Checking IP: ${ipInput.trim()}`);
-    saveToSearchHistory(ipInput.trim());
     
     try {
       const result = await checkIP(ipInput.trim(), maxAgeDays);
@@ -95,20 +72,10 @@ export function AbuseIPDBScanner() {
     alert('Cache cleared successfully!');
   };
 
-  const handleClearHistory = () => {
-    if (confirm('Are you sure you want to clear all search history? This action cannot be undone.')) {
-      clearHistory();
-      setSearchHistory([]);
-      localStorage.removeItem('abuseipdb_search_history');
-      alert('History cleared successfully!');
-    }
-  };
 
   const handleClearAll = () => {
-    if (confirm('Are you sure you want to clear ALL data (results, cache, history)? This action cannot be undone.')) {
+    if (confirm('Are you sure you want to clear ALL data (results and cache)? This action cannot be undone.')) {
       clearAll();
-      setSearchHistory([]);
-      localStorage.removeItem('abuseipdb_search_history');
       alert('All data cleared successfully!');
     }
   };
@@ -128,7 +95,7 @@ export function AbuseIPDBScanner() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">AbuseIPDB Scanner</h1>
             <p className="text-sm text-muted-foreground">
-              Persistent IP reputation database with history tracking
+              Persistent IP reputation database
             </p>
           </div>
         </div>
@@ -150,16 +117,6 @@ export function AbuseIPDBScanner() {
               Clear Cache
             </button>
             
-            {history.length > 0 && (
-              <button
-                onClick={handleClearHistory}
-                className="px-3 py-1.5 border border-yellow-500/30 text-yellow-500 rounded-lg hover:bg-yellow-500/10 transition-colors flex items-center gap-2 text-sm"
-                title="Clear search history"
-              >
-                <History className="w-4 h-4" />
-                Clear History
-              </button>
-            )}
             
             {(results.length > 0 || blacklist.length > 0) && (
               <button
@@ -175,8 +132,6 @@ export function AbuseIPDBScanner() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <AbuseIPDBStatsCards results={results} blacklist={blacklist} history={history} />
 
       {/* Scanner */}
       <div className="glass border border-border rounded-xl p-6">
@@ -203,17 +158,6 @@ export function AbuseIPDBScanner() {
             <AlertTriangle className="w-4 h-4 inline mr-2" />
             Blacklist ({blacklist.length})
           </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
-              activeTab === 'history'
-                ? 'bg-blue-500 text-white'
-                : 'hover:bg-muted/20 text-muted-foreground'
-            }`}
-          >
-            <History className="w-4 h-4 inline mr-2" />
-            History ({history.length})
-          </button>
         </div>
 
         {activeTab === 'scanner' && (
@@ -237,12 +181,7 @@ export function AbuseIPDBScanner() {
                   list="search-history"
                 />
                 
-                <datalist id="search-history">
-                  {searchHistory.map((ip, idx) => (
-                    <option key={idx} value={ip} />
-                  ))}
-                </datalist>
-                
+                    
                 <button
                   type="submit"
                   disabled={!ipInput.trim() || checking}
@@ -296,23 +235,6 @@ export function AbuseIPDBScanner() {
                 )}
               </div>
               
-              {/* Quick Search Buttons */}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Recent Searches:
-                </span>
-                {searchHistory.slice(0, 5).map((ip, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleQuickSearch(ip)}
-                    className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 rounded transition-colors"
-                  >
-                    {ip}
-                  </button>
-                ))}
-              </div>
               
               <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
                 <span className="font-medium">Test IPs:</span>
@@ -513,13 +435,6 @@ export function AbuseIPDBScanner() {
           </div>
         )}
 
-        {activeTab === 'history' && (
-          <AbuseIPDBHistory 
-            history={history} 
-            onSearch={handleQuickSearch}
-            onClear={handleClearHistory}
-          />
-        )}
       </div>
     </div>
   );

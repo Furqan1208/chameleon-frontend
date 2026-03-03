@@ -20,7 +20,6 @@ export function useAbuseCh() {
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<AbuseChCombinedResult[]>([]);
-  const [history, setHistory] = useState<AbuseChCombinedResult[]>([]);
 
   const checkIndicator = useCallback(async (
     indicator: string,
@@ -86,11 +85,6 @@ export function useAbuseCh() {
         return newResults.slice(0, 10);
       });
       
-      // Update history
-      setHistory(prev => {
-        const newHistory = [result, ...prev];
-        return newHistory.slice(0, 50);
-      });
       
       return result;
     } catch (err) {
@@ -109,10 +103,6 @@ export function useAbuseCh() {
     console.log('[useAbuseCh] Results cleared');
   }, []);
 
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    console.log('[useAbuseCh] History cleared');
-  }, []);
 
   const clearCache = useCallback(() => {
     urlhausService.clearCache();
@@ -134,10 +124,8 @@ export function useAbuseCh() {
     checking,
     error,
     results,
-    history,
     checkIndicator,
     clearResults,
-    clearHistory,
     clearCache,
     downloadMalware
   };

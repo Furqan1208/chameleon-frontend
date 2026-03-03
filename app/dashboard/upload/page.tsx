@@ -1,4 +1,4 @@
-// D:\FYP\Chameleon Frontend\app\dashboard\upload\page.tsx
+// app/dashboard/upload/page.tsx
 "use client"
 
 import { useState } from "react"
@@ -8,7 +8,8 @@ import { FilePreview } from "@/components/upload/FilePreview"
 import { UploadProgress } from "@/components/upload/UploadProgress"
 import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import { apiService } from "@/lib/api-service"
-import { FileText, Brain, Shield, Zap, Info, Layers } from "lucide-react"
+import { calculateFileHash, simpleHashExtraction } from "@/lib/hash-utils"
+import { FileText, Brain, Shield, Zap, Info, Layers, Globe } from "lucide-react"
 
 export default function UploadPage() {
   const router = useRouter()
@@ -19,10 +20,23 @@ export default function UploadPage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStage, setUploadStage] = useState<"idle" | "uploading" | "analyzing" | "complete">("idle")
   const [error, setError] = useState<string | null>(null)
+  const [fileHash, setFileHash] = useState<string | null>(null)
 
   const handleFileDrop = async (file: File) => {
     setSelectedFile(file)
     setError(null)
+    
+    // Calculate hash immediately for threat intel
+    try {
+      const hash = await calculateFileHash(file)
+      setFileHash(hash.sha256)
+      console.log(`[Upload] File SHA256: ${hash.sha256}`)
+    } catch (error) {
+      console.error('[Upload] Failed to calculate hash:', error)
+      // Fallback to simple extraction
+      const fallbackHash = await simpleHashExtraction(file)
+      setFileHash(fallbackHash)
+    }
     
     // Auto-detect analysis type based on file extension
     if (file.name.toLowerCase().endsWith('.json')) {
@@ -47,8 +61,41 @@ export default function UploadPage() {
 
       setUploadStage("analyzing")
       
-      // Call the API - use the correct analysisType
-      const response = await apiService.uploadFile(selectedFile, analysisType, aiModel)
+      // Call the API - include hash if available
+      const formData = new FormData()
+      formData.append("file", selectedFile)
+      formData.append("model_name", aiModel)
+      if (fileHash) {
+        formData.append("file_hash", fileHash)
+      }
+
+      let endpoint = ""
+      switch (analysisType) {
+        case "complete":
+          endpoint = "/complete"
+          break
+        case "parse":
+          endpoint = "/parse-only"
+          break
+        case "parse_and_ai":
+          endpoint = "/parse-and-ai"
+          break
+        case "ai":
+          endpoint = "/ai-only"
+          break
+      }
+
+      const response = await fetch(`${apiService['baseUrl']}/analysis${endpoint}`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: "Upload failed" }))
+        throw new Error(error.detail || `${analysisType} analysis failed`)
+      }
+
+      const result = await response.json()
       
       // Simulate analysis progress
       for (let i = 30; i < 90; i += Math.random() * 15) {
@@ -59,9 +106,9 @@ export default function UploadPage() {
       setUploadStage("complete")
       setUploadProgress(100)
 
-      // Redirect to analysis page after a short delay
+      // Redirect to analysis page with hash for immediate threat intel
       setTimeout(() => {
-        router.push(`/dashboard/analysis/${response.analysis_id}`)
+        router.push(`/dashboard/analysis/${result.analysis_id}?hash=${fileHash || ''}`)
       }, 1000)
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Upload failed"
@@ -153,6 +200,21 @@ export default function UploadPage() {
               <FilePreview file={selectedFile} onClear={() => setSelectedFile(null)} />
             )}
 
+            {selectedFile && fileHash && !isUploading && (
+              <div className="glass border border-primary/20 bg-primary/5 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span className="text-muted-foreground">File hash calculated:</span>
+                  <code className="font-mono text-xs bg-background px-2 py-1 rounded">
+                    {fileHash.substring(0, 16)}...
+                  </code>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    Will be used for immediate threat intelligence
+                  </span>
+                </div>
+              </div>
+            )}
+
             {isUploading && (
               <UploadProgress 
                 progress={uploadProgress} 
@@ -197,6 +259,23 @@ export default function UploadPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Threat Intel Notice */}
+                {fileHash && (
+                  <div className="glass border border-purple-500/20 bg-purple-500/5 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <Globe className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-foreground">Immediate Threat Intelligence</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          While your file is being analyzed, we'll immediately query threat intelligence sources 
+                          (VirusTotal, MalwareBazaar, Hybrid Analysis, AlienVault OTX) using the file hash. 
+                          Results will be available in the Threat Intel tab within seconds.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Advanced Options */}
                 {(analysisType === "complete" || analysisType === "parse_and_ai" || analysisType === "ai") && (

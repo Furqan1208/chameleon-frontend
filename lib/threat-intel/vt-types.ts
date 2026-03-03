@@ -54,12 +54,3 @@ export interface VTScanRequest {
   type: VTIndicatorType;
   include_relationships?: boolean;
 }
-
-export interface VTScanHistory {
-  id: string;
-  indicator: string;
-  type: VTIndicatorType;
-  result: VTAnalysisResult;
-  timestamp: string;
-  favorite?: boolean;
-}

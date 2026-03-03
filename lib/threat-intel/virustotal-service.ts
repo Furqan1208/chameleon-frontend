@@ -3,12 +3,11 @@ import type {
   VTIndicatorType, 
   VTAnalysisResult, 
   VTScanRequest,
-  VTScanHistory,
   VTDetectionStats,
   VTFileInfo,
   VTNetworkInfo
 } from './vt-types';
-import { vtCache, vtDatabase } from './vt-cache';
+import { vtCache } from './vt-cache';
 
 export class VirusTotalService {
   private apiKey: string;
@@ -124,21 +123,6 @@ export class VirusTotalService {
       // Cache the result
       vtCache.set(cacheKey, result);
 
-      // Save to history
-      const scanHistory: VTScanHistory = {
-        id: crypto.randomUUID(),
-        indicator,
-        type,
-        result,
-        timestamp: new Date().toISOString(),
-        favorite: false
-      };
-
-      try {
-        await vtDatabase.saveScan(scanHistory);
-      } catch (dbError) {
-        console.warn('Failed to save to database:', dbError);
-      }
 
       return result;
     } catch (error) {
@@ -635,14 +619,6 @@ export class VirusTotalService {
   }
 
   // Public methods
-  async getScanHistory(limit = 50): Promise<VTScanHistory[]> {
-    try {
-      return await vtDatabase.getScans(limit);
-    } catch {
-      return [];
-    }
-  }
-
   async clearCache(): Promise<void> {
     vtCache.clear();
   }

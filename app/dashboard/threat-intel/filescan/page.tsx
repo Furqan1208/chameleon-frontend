@@ -295,10 +295,10 @@ export default function FilescanScanner() {
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
           <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
-            <Cpu className="w-8 h-8 text-white" />
+            <Cpu className="w-8 h-8 text-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-foreground">
               Filescan.io Sandbox
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -309,13 +309,13 @@ export default function FilescanScanner() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 mb-6">
+      <div className="flex flex-wrap gap-2 border-b border-border mb-6">
         <button
           onClick={() => setActiveTab('upload')}
           className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'upload'
-              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+              ? 'bg-blue-500/10 text-blue-400 border-b-2 border-blue-600'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
           }`}
         >
           <Upload className="w-4 h-4" />
@@ -325,8 +325,8 @@ export default function FilescanScanner() {
           onClick={() => setActiveTab('url')}
           className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'url'
-              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+              ? 'bg-blue-500/10 text-blue-400 border-b-2 border-blue-600'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
           }`}
         >
           <Globe className="w-4 h-4" />
@@ -336,8 +336,8 @@ export default function FilescanScanner() {
           onClick={() => setActiveTab('results')}
           className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'results'
-              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+              ? 'bg-blue-500/10 text-blue-400 border-b-2 border-blue-600'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -346,7 +346,7 @@ export default function FilescanScanner() {
       </div>
 
       {/* Main Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+      <div className="bg-background rounded-xl border border-border p-4 md:p-6">
         {/* File Upload Tab */}
         {activeTab === 'upload' && (
           <div className="space-y-6">
@@ -355,38 +355,38 @@ export default function FilescanScanner() {
               {...getRootProps()} 
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                 isDragActive
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                  ? 'border-blue-500 bg-blue-500/10 scale-[1.02]'
+                  : 'border-border hover:border-blue-400 hover:bg-muted/30'
               }`}
             >
               <input {...getInputProps()} />
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-full mb-4">
                 <Upload className="w-8 h-8 text-blue-500" />
               </div>
-              <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <p className="text-lg font-medium text-foreground mb-2">
                 {isDragActive ? 'Drop the file here' : 'Drag & drop your file here'}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 or click to browse files
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Supports: EXE, DLL, PDF, DOC, XLS, ZIP, JS, etc. • Max 100MB
               </p>
             </div>
 
             {/* Selected File */}
             {uploadedFile && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <div className="bg-muted/5 rounded-lg p-4 border border-blue-800/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
+                    <div className="p-2 bg-background rounded-lg">
                       <File className="w-5 h-5 text-blue-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                      <p className="font-medium text-foreground truncate">
                         {uploadedFile.name}
                       </p>
-                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <span>{formatFileSize(uploadedFile.size)}</span>
                         <span>•</span>
                         <span>{uploadedFile.type || 'Unknown type'}</span>
@@ -395,7 +395,7 @@ export default function FilescanScanner() {
                   </div>
                   <button
                     onClick={clearUpload}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -443,24 +443,24 @@ export default function FilescanScanner() {
             </div>
 
             {/* Advanced Options */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div className="border-t border-border pt-6">
               <button
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center justify-between w-full p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex items-center justify-between w-full p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
-                  <span className="font-medium text-gray-900 dark:text-white">Advanced Options</span>
+                  <span className="font-medium text-foreground">Advanced Options</span>
                 </div>
                 {showAdvanced ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
 
               {showAdvanced && (
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-muted/20 p-4 rounded-lg">
                   {[
                     { key: 'osint', label: 'OSINT Lookups' },
                     { key: 'extracted_files_osint', label: 'OSINT on Extracted Files' },
@@ -485,7 +485,7 @@ export default function FilescanScanner() {
                         onChange={() => toggleScanOption(key as keyof FileScanOptions)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
-                      <span className="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                      <span className="text-foreground group-hover:text-foreground transition-colors">
                         {label}
                       </span>
                     </label>
@@ -499,7 +499,7 @@ export default function FilescanScanner() {
               <button
                 onClick={handleScanFile}
                 disabled={scanning || !uploadedFile}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-background rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl"
               >
                 {scanning ? (
                   <>
@@ -518,7 +518,7 @@ export default function FilescanScanner() {
                 <button
                   onClick={() => handleQuickTest('malicious')}
                   disabled={scanning}
-                  className="px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center gap-2"
+                  className="px-4 py-3 bg-red-500/10 text-red-400 border border-red-800/50 rounded-lg hover:bg-red-500/20 transition-colors flex items-center gap-2"
                 >
                   <AlertTriangle className="w-4 h-4" />
                   Test EICAR
@@ -526,7 +526,7 @@ export default function FilescanScanner() {
                 <button
                   onClick={() => handleQuickTest('benign')}
                   disabled={scanning}
-                  className="px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors flex items-center gap-2"
+                  className="px-4 py-3 bg-green-500/10 text-green-400 border border-green-800/50 rounded-lg hover:bg-green-500/20 transition-colors flex items-center gap-2"
                 >
                   <Shield className="w-4 h-4" />
                   Test Benign
@@ -547,20 +547,20 @@ export default function FilescanScanner() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       type="url"
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
                       placeholder="https://example.com/suspicious-file.exe"
-                      className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
                 <button
                   onClick={handleScanUrl}
                   disabled={scanning || !urlInput}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-background rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                 >
                   {scanning ? (
                     <>
@@ -579,11 +579,11 @@ export default function FilescanScanner() {
 
             {/* Quick Test Buttons */}
             <div className="flex flex-wrap gap-2">
-              <p className="text-sm text-gray-500 dark:text-gray-400 w-full">Quick test with known samples:</p>
+              <p className="text-sm text-muted-foreground w-full">Quick test with known samples:</p>
               <button
                 onClick={() => handleQuickTest('malicious')}
                 disabled={scanning}
-                className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-800/50 rounded-lg hover:bg-red-500/20 transition-colors flex items-center gap-2 text-sm"
               >
                 <AlertTriangle className="w-4 h-4" />
                 EICAR Test File
@@ -591,7 +591,7 @@ export default function FilescanScanner() {
               <button
                 onClick={() => handleQuickTest('benign')}
                 disabled={scanning}
-                className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-green-500/10 text-green-400 border border-green-800/50 rounded-lg hover:bg-green-500/20 transition-colors flex items-center gap-2 text-sm"
               >
                 <Shield className="w-4 h-4" />
                 Google Favicon
@@ -644,7 +644,7 @@ export default function FilescanScanner() {
           <div className="space-y-6">
             {/* Current Scan Status */}
             {polling && currentFlowId && (
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+              <div className="bg-blue-500/10 border border-blue-800/50 rounded-xl p-4">
                 <div className="flex items-center gap-3">
                   <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin" />
                   <div className="flex-1">
@@ -672,12 +672,12 @@ export default function FilescanScanner() {
             {results.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-foreground">
                     Scan Results ({results.length})
                   </h3>
                   <button
                     onClick={clearResults}
-                    className="px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-2"
+                    className="px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <X className="w-4 h-4" />
                     Clear All
@@ -697,15 +697,15 @@ export default function FilescanScanner() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-full mb-4">
                   <FileText className="w-8 h-8 text-blue-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   No Scan Results Yet
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   Upload a file or scan a URL to start analyzing with the Filescan.io sandbox
                 </p>
                 <button
                   onClick={() => setActiveTab('upload')}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-background rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
                 >
                   Start Your First Scan
                 </button>
@@ -716,7 +716,7 @@ export default function FilescanScanner() {
 
         {/* Status Messages */}
         {error && (
-          <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <div className="mt-6 p-4 bg-red-500/10 border border-red-800/50 rounded-xl">
             <div className="flex items-start gap-3">
               <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -728,7 +728,7 @@ export default function FilescanScanner() {
         )}
 
         {success && (
-          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+          <div className="mt-6 p-4 bg-green-500/10 border border-green-800/50 rounded-xl">
             <div className="flex items-start gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -768,11 +768,11 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
   if (!result || !result.verdict || !result.file) {
     console.error('Invalid result object passed to ResultCard:', result);
     return (
-      <div className="border border-red-300 rounded-lg p-4 bg-red-50 dark:bg-red-900/20">
+      <div className="border border-red-800/50 rounded-lg p-4 bg-red-500/10">
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500" />
           <div>
-            <p className="font-medium text-red-800 dark:text-red-300">Error displaying result</p>
+            <p className="text-sm text-red-400">Error displaying result</p>
             <p className="text-sm text-red-700 dark:text-red-400">
               Invalid or incomplete scan result data
             </p>
@@ -790,10 +790,10 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
 
   return (
     <div className={`border rounded-xl overflow-hidden transition-all duration-300 ${
-      result.verdict.verdict === 'MALICIOUS' ? 'border-red-200 dark:border-red-800' :
-      result.verdict.verdict === 'SUSPICIOUS' ? 'border-yellow-200 dark:border-yellow-800' :
-      result.verdict.verdict === 'LIKELY_MALICIOUS' ? 'border-orange-200 dark:border-orange-800' :
-      'border-gray-200 dark:border-gray-700'
+      result.verdict.verdict === 'MALICIOUS' ? 'border-red-800/50' :
+      result.verdict.verdict === 'SUSPICIOUS' ? 'border-yellow-800/50' :
+      result.verdict.verdict === 'LIKELY_MALICIOUS' ? 'border-orange-800/50' :
+      'border-border'
     }`}>
       {/* Header */}
       <div 
@@ -822,11 +822,11 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
               </div>
               
               <div className="space-y-1">
-                <p className="font-medium text-gray-900 dark:text-white truncate">
+                <p className="font-medium text-foreground truncate">
                   {result.file?.name || 'Unknown file'}
                 </p>
                 {result.file?.hash && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Hash className="w-3 h-3" />
                     <span className="font-mono">
                       {truncateHash(result.file.hash, 12)}
@@ -838,7 +838,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                 )}
               </div>
               
-              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-2">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-2">
                 <div className="flex items-center gap-1">
                   <span className={fileTypeColor}>
                     {getFileTypeIcon(result.file?.type || 'unknown')}
@@ -905,7 +905,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
 
       {/* Expanded Details */}
       {expanded && (
-        <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 p-6">
+        <div className="border-t border-border bg-muted/20 p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* File Information */}
             <div className="space-y-4">
@@ -939,7 +939,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Verdict</p>
+                      <p className="text-sm text-muted-foreground">Verdict</p>
                       <p className={`font-bold ${verdictInfo.color}`}>{verdictInfo.label}</p>
                     </div>
                   </div>
@@ -951,9 +951,9 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Threat Level</p>
+                      <p className="text-sm text-muted-foreground">Threat Level</p>
                       <p className={`font-bold ${threatLevelInfo.color}`}>{threatLevelInfo.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {threatLevelInfo.description}
                       </p>
                     </div>
@@ -966,7 +966,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                       <BarChart3 className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Confidence</p>
+                      <p className="text-sm text-muted-foreground">Confidence</p>
                       <p className={`font-bold ${confidenceColor}`}>
                         {confidenceLabel} ({(result.verdict.confidence * 100).toFixed(0)}%)
                       </p>
@@ -998,7 +998,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                     e.stopPropagation();
                     onViewDetailedReport(result.scanId, result.file.hash);
                   }}
-                  className="w-full flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-green-600 to-emerald-600 text-background rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors"
                 >
                   <Eye className="w-4 h-4" />
                   View Detailed Report
@@ -1007,7 +1007,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                 {result.file?.hash && (
                   <button
                     onClick={() => navigator.clipboard.writeText(result.file.hash)}
-                    className="w-full flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 p-3 bg-muted/20 text-muted-foreground rounded-lg hover:bg-muted/30 transition-colors"
                   >
                     <Copy className="w-4 h-4" />
                     Copy File Hash
@@ -1030,15 +1030,15 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
               {/* Additional Info */}
               {result.chatGptSummary && (
                 <div className="mt-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
                     <Activity className="w-4 h-4" />
                     AI Analysis Summary
                   </h4>
-                  <div className="p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-800/50 rounded-lg">
                     <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                       {result.chatGptSummary.data}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    <p className="text-xs text-muted-foreground mt-2">
                       Generated: {formatDate(result.chatGptSummary.created_date)}
                     </p>
                   </div>
@@ -1050,7 +1050,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
           {/* Extracted Files */}
           {result.extractedFiles && result.extractedFiles.length > 0 && (
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+              <h4 className="font-semibold text-foreground mb-4">
                 Extracted Files ({result.extractedFiles.length})
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1061,15 +1061,15 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                         <File className="w-4 h-4 text-gray-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-medium text-foreground truncate">
                           {file.name || `File_${idx + 1}`}
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>{formatFileSize(file.size)}</span>
                           <span>•</span>
                           <span className="truncate">{file.mediaType}</span>
                         </div>
-                        <p className="text-xs font-mono text-gray-400 dark:text-gray-500 truncate mt-1">
+                        <p className="text-xs font-mono text-muted-foreground truncate mt-1">
                           {truncateHash(file.hash, 10)}
                         </p>
                       </div>
@@ -1077,7 +1077,7 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                   </div>
                 ))}
                 {result.extractedFiles.length > 6 && (
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
+                  <div className="p-3 bg-muted/20 rounded-lg border border-border text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       +{result.extractedFiles.length - 6} more files
                     </p>
@@ -1109,11 +1109,11 @@ function InfoField({ label, value, copyable = false }: {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="text-sm text-muted-foreground">{label}</p>
         {copyable && (
           <button
             onClick={handleCopy}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded"
+            className="p-1 text-muted-foreground hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded"
             title="Copy"
           >
             {copied ? (
@@ -1124,7 +1124,7 @@ function InfoField({ label, value, copyable = false }: {
           </button>
         )}
       </div>
-      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+      <p className="text-sm font-medium text-foreground truncate">
         {value}
       </p>
     </div>

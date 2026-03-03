@@ -1,7 +1,7 @@
-//D:\FYP\Chameleon Frontend\app\dashboard\analysis\[id]\page.tsx
+// app/dashboard/analysis/[id]/page.tsx
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useAnalysis } from "@/hooks/useAnalysis"
 import { useAnalysisData } from "@/hooks/useAnalysisData"
@@ -21,17 +21,19 @@ import {
   Shield,
   File,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  Globe
 } from "lucide-react"
 import { apiService } from "@/lib/api-service"
 import { formatDistanceToNow } from "date-fns"
 
-// Import modular components - UPDATED IMPORTS
+// Import modular components
 import {
   OverviewDashboard,
   CapeAnalysisDashboard,
   ParsedAnalysisDashboard,
-  AIAnalysisDashboard,  // Using the new dashboard component
+  AIAnalysisDashboard,
+  ThreatIntelDashboard,  // New import
   extractFileHashes,
   getMalscore
 } from "@/components/analysis"
@@ -42,12 +44,14 @@ import StatCard from "@/components/shared/StatCard"
 
 export default function AnalysisPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const analysisId = params.id as string
+  const initialHash = searchParams.get('hash')
 
   const { analysis: originalAnalysis, loading: originalLoading, error: originalError } = useAnalysis(analysisId)
   const { overviewData, loading: overviewLoading, error: overviewError } = useAnalysisData(analysisId)
 
-  const [activeView, setActiveView] = useState<"overview" | "cape" | "parsed" | "ai">("overview")
+  const [activeView, setActiveView] = useState<"overview" | "cape" | "parsed" | "ai" | "threat-intel">("overview")
   const [components, setComponents] = useState<any>(null)
   const [capeData, setCapeData] = useState<any>(null)
   const [parsedData, setParsedData] = useState<any>(null)
@@ -72,6 +76,7 @@ export default function AnalysisPage() {
       const comps = await apiService.getAnalysisComponents(analysisId)
       setComponents(comps)
 
+      // Load CAPE data if available
       if (comps.components?.cape) {
         try {
           const cape = await apiService.getCapeReport(analysisId)
@@ -81,6 +86,7 @@ export default function AnalysisPage() {
         }
       }
 
+      // Load parsed data if available
       if (comps.components?.parsed) {
         try {
           const parsed = await apiService.getParsedSection(analysisId, "all")
@@ -90,6 +96,7 @@ export default function AnalysisPage() {
         }
       }
 
+      // Load AI data if available
       if (comps.components?.ai_analysis) {
         try {
           const ai = await apiService.getAiAnalysis(analysisId, "summary")
@@ -173,7 +180,14 @@ export default function AnalysisPage() {
     }
   }
 
-  const fileHashes = extractFileHashes(parsedData)
+  // Extract file hashes from parsed data or use initial hash from upload
+  const fileHashes = extractFileHashes(parsedData) || (initialHash ? {
+    sha256: initialHash,
+    md5: '',
+    sha1: '',
+    filename: originalAnalysis?.filename || 'Unknown'
+  } : null)
+  
   const malscore = getMalscore(capeData, overviewData, originalAnalysis, parsedData)
 
   const combinedAnalysis = originalAnalysis || overviewData ? {
@@ -189,6 +203,12 @@ export default function AnalysisPage() {
       sections: parsedData?.sections || {}
     }
   } : null
+
+  // Determine which components are available
+  const hasCape = components?.components?.cape || false
+  const hasParsed = components?.components?.parsed || false
+  const hasAi = components?.components?.ai_analysis || false
+  const hasThreatIntel = !!fileHashes // Threat intel is available if we have hashes
 
   return (
     <div className="relative min-h-full bg-background">
@@ -271,7 +291,7 @@ export default function AnalysisPage() {
           {combinedAnalysis && !loading && (
             <>
               {/* View Selector Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <ViewCard
                   icon={<Layers className="w-4 h-4" />}
                   label="Overview"
@@ -281,7 +301,18 @@ export default function AnalysisPage() {
                   description="Summary & visualizations"
                 />
 
-                {components?.components?.cape && (
+                {hasThreatIntel && (
+                  <ViewCard
+                    icon={<Globe className="w-4 h-4" />}
+                    label="Threat Intel"
+                    active={activeView === "threat-intel"}
+                    onClick={() => setActiveView("threat-intel")}
+                    color="purple"
+                    description="Real-time threat intelligence"
+                  />
+                )}
+
+                {hasCape && (
                   <ViewCard
                     icon={<FileJson className="w-4 h-4" />}
                     label="Cape Report"
@@ -292,7 +323,7 @@ export default function AnalysisPage() {
                   />
                 )}
 
-                {components?.components?.parsed && (
+                {hasParsed && (
                   <ViewCard
                     icon={<FileText className="w-4 h-4" />}
                     label="Parsed"
@@ -303,7 +334,7 @@ export default function AnalysisPage() {
                   />
                 )}
 
-                {components?.components?.ai_analysis && (
+                {hasAi && (
                   <ViewCard
                     icon={<Brain className="w-4 h-4" />}
                     label="AI Analysis"
@@ -320,6 +351,12 @@ export default function AnalysisPage() {
                 <div className="glass border border-border rounded-xl p-4 bg-muted/5">
                   <p className="text-sm text-muted-foreground mb-3">Analysis Components</p>
                   <div className="flex flex-wrap gap-2">
+                    {hasThreatIntel && (
+                      <div className="px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>Threat Intel</span>
+                      </div>
+                    )}
                     {Object.entries(components.components || {}).map(([key, value]) => (
                       <div
                         key={key}
@@ -365,6 +402,44 @@ export default function AnalysisPage() {
                       parsedData={parsedData}
                       aiData={aiData}
                     />
+                  </div>
+                )}
+
+                {activeView === "threat-intel" && (
+                  <div className="glass border border-border rounded-xl p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500/10 rounded-lg">
+                          <Globe className="w-5 h-5 text-purple-500" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-semibold text-foreground">Threat Intelligence</h2>
+                          <p className="text-sm text-muted-foreground">
+                            Real-time threat intelligence from multiple sources
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      {fileHashes ? (
+                        <ThreatIntelDashboard 
+                          fileHashes={fileHashes}
+                          onCopyJson={() => handleCopyJson({
+                            virustotal: null, // We'll implement this later if needed
+                            malwarebazaar: null,
+                            hybridanalysis: null,
+                            alienvault: null
+                          })}
+                          copied={copied}
+                        />
+                      ) : (
+                        <div className="text-center py-8">
+                          <Globe className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                          <p className="text-muted-foreground">No file hashes available for threat intelligence lookup</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 

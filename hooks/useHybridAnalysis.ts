@@ -13,18 +13,6 @@ export function useHybridAnalysis() {
   const [feedLoading, setFeedLoading] = useState(false);
   const [cache, setCache] = useState<Record<string, HAAnalysisResult>>({});
 
-  const stats = {
-    totalScans: results.length,
-    maliciousCount: results.filter(r => r.threat_level === 'malicious').length,
-    suspiciousCount: results.filter(r => r.threat_level === 'suspicious').length,
-    cleanCount: results.filter(r => r.threat_level === 'whitelisted').length,
-    avgThreatScore: results.length > 0 
-      ? results.reduce((sum, r) => sum + r.threat_score_computed, 0) / results.length 
-      : 0,
-    detectionRate: results.length > 0
-      ? ((results.filter(r => r.threat_level === 'malicious' || r.threat_level === 'suspicious').length) / results.length) * 100
-      : 0
-  };
 
   const rateLimit = hybridAnalysisService.getRateLimitInfo();
 
@@ -139,7 +127,6 @@ export function useHybridAnalysis() {
     results,
     threatFeed,
     feedLoading,
-    stats,
     rateLimit,
     scanIndicator,
     loadThreatFeed,

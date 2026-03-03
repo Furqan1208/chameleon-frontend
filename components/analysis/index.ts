@@ -6,4 +6,5 @@ export { default as OverviewDashboard } from './OverviewDashboard'
 export { default as CustomJSONViewer } from './CustomJSONViewer'
 export { default as FormattedJSONViewer } from './FormattedJSONViewer'
 export { default as CapeAnalysisDashboard } from './CapeAnalysisDashboard'
+export { default as ThreatIntelDashboard } from './ThreatIntelDashboard' // Add this
 export * from './utils'

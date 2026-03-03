@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx - UPDATED VERSION WITH HYBRID ANALYSIS
+// components/layout/Sidebar.tsx - IMPROVED VERSION
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
@@ -17,36 +17,167 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   Database,
-  Cpu as CpuIcon
+  Cpu as CpuIcon,
+  Activity,
+  Zap,
+  Sparkles,
+  ShieldCheck,
+  ShieldAlert,
+  Lock,
+  Fingerprint,
+  Brain,
+  Network,
+  Cloud,
+  Radar,
+  Bot,
+  Scan,
+  Eye,
+  AlertOctagon,
+  Gauge,
+  Layers,
+  Workflow,
+  Compass,
+  Box,
+  Server,
+  Shield as ShieldIcon,
+  Target,
+  Radio,
+  Satellite,
+  Atom
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
 import { Logo } from "@/components/ui/Logo"
+import { motion, AnimatePresence } from "framer-motion"
 
+// Enhanced menu items with better icons
 const menuItems = [
-  { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Upload, label: "Upload & Analyze", path: "/dashboard/upload" },
-  { icon: FileText, label: "Reports", path: "/dashboard/reports" },
+  { 
+    icon: Home, 
+    label: "Dashboard", 
+    path: "/dashboard",
+    description: "Overview & stats",
+    color: "from-blue-500 to-cyan-500"
+  },
+  { 
+    icon: Upload, 
+    label: "Upload & Analyze", 
+    path: "/dashboard/upload",
+    description: "Submit new files",
+    color: "from-green-500 to-emerald-500"
+  },
+  { 
+    icon: FileText, 
+    label: "Reports", 
+    path: "/dashboard/reports",
+    description: "View analysis results",
+    color: "from-orange-500 to-amber-500"
+  },
   { 
     icon: Shield, 
     label: "Threat Intel", 
     path: "/dashboard/threat-intel",
+    description: "Multi-source scanning",
+    color: "from-purple-500 to-pink-500",
     submenu: [
-      { icon: Cpu, label: "VirusTotal", path: "/dashboard/threat-intel/virustotal" },
-      { icon: CpuIcon, label: "Hybrid Analysis", path: "/dashboard/threat-intel/hybridanalysis" },
-      { icon: Globe, label: "AbuseIPDB", path: "/dashboard/threat-intel/abuseipdb" },
-      { icon: Database, label: "Abuse.ch", path: "/dashboard/threat-intel/abusech" },
-      { icon: Database, label: "AlienVault OTX", path: "/dashboard/threat-intel/alienvault" },
-      { icon: Shield, label: "MalwareBazaar", path: "/dashboard/threat-intel/malwarebazaar" },
-      { icon: Shield, label: "Filescan.io", path: "/dashboard/threat-intel/filescan" },
+      { 
+        icon: Cpu, 
+        label: "VirusTotal", 
+        path: "/dashboard/threat-intel/virustotal",
+        description: "70+ AV engines",
+        color: "from-blue-500 to-indigo-500",
+        badge: "Popular"
+      },
+      { 
+        icon: Brain, 
+        label: "Hybrid Analysis", 
+        path: "/dashboard/threat-intel/hybridanalysis",
+        description: "Sandbox analysis",
+        color: "from-purple-500 to-violet-500",
+        badge: "New",
+        badgeColor: "purple"
+      },
+      { 
+        icon: Radar, 
+        label: "AbuseIPDB", 
+        path: "/dashboard/threat-intel/abuseipdb",
+        description: "IP reputation",
+        color: "from-red-500 to-orange-500"
+      },
+      { 
+        icon: Network, 
+        label: "Abuse.ch", 
+        path: "/dashboard/threat-intel/abusech",
+        description: "URLhaus & ThreatFox",
+        color: "from-cyan-500 to-blue-500"
+      },
+      { 
+        icon: Satellite, 
+        label: "AlienVault OTX", 
+        path: "/dashboard/threat-intel/alienvault",
+        description: "Community pulses",
+        color: "from-teal-500 to-green-500",
+        badge: "OTX"
+      },
+      { 
+        icon: Database, 
+        label: "MalwareBazaar", 
+        path: "/dashboard/threat-intel/malwarebazaar",
+        description: "Malware samples",
+        color: "from-yellow-500 to-amber-500"
+      },
+      { 
+        icon: Scan, 
+        label: "Filescan.io", 
+        path: "/dashboard/threat-intel/filescan",
+        description: "Deep file analysis",
+        color: "from-indigo-500 to-purple-500"
+      },
+      {
+        icon: Zap,
+        label: "Unified Scanner",
+        path: "/dashboard/threat-intel/unified",
+        description: "Search all sources",
+        color: "from-pink-500 to-rose-500",
+        badge: "New",
+        badgeColor: "pink"
+      }
     ]
   },
   { 
-    icon: Plug, 
+    icon: Workflow, 
     label: "Integrations", 
     path: "/dashboard/integrations",
+    description: "Connect services",
+    color: "from-gray-500 to-slate-500"
+  },
+  { 
+    icon: Layers, 
+    label: "Frameworks", 
+    path: "/dashboard/frameworks",
+    description: "TTP frameworks & analysis",
+    color: "from-indigo-500 to-violet-500",
+    submenu: [
+      {
+        icon: ShieldCheck,
+        label: "MITRE ATT&CK",
+        path: "/dashboard/frameworks/mitre-attack",
+        description: "Tactics & techniques",
+        color: "from-red-500 to-rose-500"
+      }
+    ]
   },
 ]
+
+// Animation variants
+const sidebarVariants = {
+  expanded: { width: 256 },
+  collapsed: { width: 72 }
+}
+
+const menuItemVariants = {
+  hover: { scale: 1.02, x: 4, transition: { duration: 0.2 } }
+}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -55,12 +186,17 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
   // Check for mobile - only on client side
   useEffect(() => {
     setMounted(true)
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
+      // Auto collapse on mobile
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true)
+      }
     }
     
     checkMobile()
@@ -109,14 +245,36 @@ export function Sidebar() {
     const hasSubmenu = item.submenu && item.submenu.length > 0
     const isItemActive = isActive(item.path, hasSubmenu)
     const isExpanded = expandedMenus[item.label] || false
+    const isHovered = hoveredItem === item.path
 
     return (
-      <div key={item.path} className="space-y-1">
+      <motion.div
+        key={item.path}
+        variants={menuItemVariants}
+        whileHover="hover"
+        className="relative"
+        onHoverStart={() => setHoveredItem(item.path)}
+        onHoverEnd={() => setHoveredItem(null)}
+      >
+        {/* Active indicator */}
+        {isItemActive && !isCollapsed && (
+          <motion.div
+            layoutId="activeIndicator"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-primary to-purple-500 rounded-r-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+
         <button
           onClick={() => {
             if (hasSubmenu) {
               if (!isCollapsed) {
                 toggleSubmenu(item.label)
+              } else {
+                // On collapsed, just go to the main path
+                router.push(item.path)
               }
             } else {
               router.push(item.path)
@@ -126,62 +284,120 @@ export function Sidebar() {
             }
           }}
           className={cn(
-            "w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-200 group",
+            "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
             isItemActive
-              ? "bg-primary/10 text-primary border border-primary/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted",
-            depth > 0 && "ml-4",
-            isCollapsed && "justify-center px-3"
+              ? "bg-gradient-to-r from-primary/15 via-primary/10 to-transparent text-primary border border-primary/20 shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+            depth > 0 && "ml-3",
+            isCollapsed && "justify-center px-2"
           )}
           title={isCollapsed ? item.label : undefined}
         >
-          <div className="flex items-center gap-3">
-            <Icon className="w-5 h-5 flex-shrink-0" />
+          {/* Background glow on hover */}
+          {isHovered && !isItemActive && (
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            />
+          )}
+
+          <div className="flex items-center gap-3 min-w-0 relative z-10">
+            <div className={cn(
+              "relative",
+              isCollapsed ? "flex-shrink-0" : "flex-shrink-0"
+            )}>
+              {/* Icon with gradient background */}
+              <div className={cn(
+                "p-1.5 rounded-lg transition-all duration-200",
+                isItemActive 
+                  ? "bg-primary/20 text-primary"
+                  : "text-inherit group-hover:scale-110"
+              )}>
+                <Icon className="w-5 h-5" />
+              </div>
+              
+              {/* Status dot for active items */}
+              {isItemActive && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+                </span>
+              )}
+            </div>
+            
             {!isCollapsed && (
-              <span className="font-medium whitespace-nowrap">{item.label}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium truncate text-sm">{item.label}</span>
+                  
+                  {/* Badge for new items */}
+                  {item.badge && (
+                    <span className={cn(
+                      "px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r shadow-lg",
+                      item.badgeColor === "purple" ? "from-purple-500 to-pink-500 text-white" :
+                      item.badgeColor === "pink" ? "from-pink-500 to-rose-500 text-white" :
+                      "from-primary to-purple-500 text-white"
+                    )}>
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                
+                {/* Description */}
+                {item.description && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {item.description}
+                  </p>
+                )}
+              </div>
             )}
           </div>
           
           {hasSubmenu && !isCollapsed && (
-            isExpanded ? (
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative z-10"
+            >
               <ChevronDown className="w-4 h-4 flex-shrink-0" />
-            ) : (
-              <ChevronRight className="w-4 h-4 flex-shrink-0" />
-            )
+            </motion.div>
           )}
         </button>
 
-        {hasSubmenu && isExpanded && !isCollapsed && (
-          <div className="mt-1 space-y-1">
-            {item.submenu.map((subItem: any) => {
-              // Add badge for Hybrid Analysis
-              const showBadge = subItem.label === "Hybrid Analysis";
-              return (
-                <div key={subItem.path} className="relative">
+        {/* Submenu */}
+        <AnimatePresence initial={false}>
+          {hasSubmenu && isExpanded && !isCollapsed && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="mt-1 space-y-1 overflow-hidden"
+            >
+              {item.submenu.map((subItem: any) => (
+                <motion.div
+                  key={subItem.path}
+                  className="relative"
+                  whileHover={{ x: 4 }}
+                >
                   {renderMenuItem(subItem, depth + 1)}
-                  {showBadge && !isCollapsed && (
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <span className="px-1.5 py-0.5 text-xs bg-purple-500/20 text-purple-500 rounded">
-                        New
-                      </span>
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     )
   }
 
   // Don't render sidebar until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <div className="glass border-r border-border flex flex-col w-16 md:w-64 h-screen z-40 bg-background">
-        {/* Skeleton loader */}
-        <div className="border-b border-border p-4">
-          <div className="h-8 bg-muted rounded animate-pulse" />
+      <div className="glass border-r border-border flex flex-col w-16 md:w-64 h-screen z-40 bg-background/95 backdrop-blur-xl">
+        <div className="border-b border-border/50 p-4">
+          <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse" />
         </div>
       </div>
     )
@@ -191,66 +407,106 @@ export function Sidebar() {
     <>
       {/* Mobile toggle button */}
       {isMobile && (
-        <button
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2 bg-primary text-primary-foreground rounded-lg md:hidden shadow-lg"
+          className="fixed top-4 left-4 z-50 p-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-xl md:hidden shadow-xl"
         >
           {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
-        </button>
+        </motion.button>
       )}
 
       {/* Sidebar */}
-      <div className={cn(
-        "glass border-r border-border flex flex-col transition-all duration-300 overflow-hidden",
-        isCollapsed 
-          ? "w-16" 
-          : "w-64",
-        "fixed md:relative h-screen z-40 bg-background",
-        "md:translate-x-0 transition-transform",
-        isMobile && isCollapsed && "-translate-x-full",
-        isMobile && !isCollapsed && "translate-x-0"
-      )}>
+      <motion.div
+        variants={sidebarVariants}
+        initial="expanded"
+        animate={isCollapsed ? "collapsed" : "expanded"}
+        transition={{ duration: 0.3 }}
+        className={cn(
+          "glass border-r border-border/50 flex flex-col h-screen z-40 bg-background/95 backdrop-blur-xl",
+          "fixed md:relative shadow-2xl md:shadow-none",
+          "md:translate-x-0 transition-transform",
+          isMobile && isCollapsed && "-translate-x-full",
+          isMobile && !isCollapsed && "translate-x-0"
+        )}
+      >
+        {/* Gradient background effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+        
         {/* Logo section */}
-        <div className={cn(
-          "border-b border-border flex items-center transition-all duration-300",
-          isCollapsed ? "p-4 justify-center" : "p-4 justify-center"
-        )}>
-          {/* Clickable logo to go to home page */}
-          <button 
+        <motion.div 
+          className={cn(
+            "border-b border-border/50 flex items-center relative overflow-hidden",
+            isCollapsed ? "p-4 justify-center" : "p-4 justify-center"
+          )}
+        >
+          {/* Decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent" />
+          <div className="absolute -right-10 -top-10 w-20 h-20 bg-primary/20 rounded-full blur-2xl" />
+          
+          {/* Clickable logo */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => router.push("/")}
             className={cn(
-              "flex items-center gap-3 transition-all duration-300 group cursor-pointer hover:opacity-80",
+              "flex items-center gap-3 transition-all duration-300 group cursor-pointer relative z-10",
               isCollapsed ? "justify-center" : ""
             )}
             title="Go to Home"
           >
-            <Logo type="icon" size="md" className="text-primary neon-text flex-shrink-0" />
+            <div className="relative">
+              <Logo type="icon" size="md" className="text-primary neon-text flex-shrink-0" />
+              <motion.div
+                className="absolute inset-0 bg-primary/20 blur-lg rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
+            
             {!isCollapsed && (
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold text-foreground truncate">Chameleon</h1>
-                <p className="text-xs text-muted-foreground truncate">Malware Analysis</p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="min-w-0"
+              >
+                <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent truncate">
+                  Chameleon
+                </h1>
+                <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                  <Zap className="w-3 h-3" />
+                  Malware Analysis
+                </p>
+              </motion.div>
             )}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-2">
+        <nav className="flex-1 p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted/50 hover:scrollbar-thumb-muted">
+          <div className="space-y-1">
             {menuItems.map((item) => renderMenuItem(item))}
           </div>
         </nav>
 
-        {/* Footer section with toggle button */}
-        <div className="p-4 border-t border-border">
+        {/* Footer section */}
+        <div className="p-4 border-t border-border/50 relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
+          
           {/* Desktop toggle button */}
           {!isMobile && (
-            <div className="flex justify-end">
-              <button
+            <div className="flex justify-end relative z-10">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={toggleSidebar}
                 className={cn(
-                  "p-2 rounded-lg hover:bg-muted transition-all duration-200 flex items-center justify-center group relative",
-                  "border border-border hover:border-primary/30",
+                  "p-2 rounded-xl hover:bg-muted/50 transition-all duration-200 flex items-center justify-center group relative",
+                  "border border-border/50 hover:border-primary/50",
+                  "bg-gradient-to-r from-transparent to-transparent hover:from-primary/5 hover:to-purple-500/5",
                   isCollapsed ? "w-10 h-10" : "w-10 h-10"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -261,39 +517,59 @@ export function Sidebar() {
                   <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 )}
                 
-                {/* Tooltip for collapsed state */}
+                {/* Tooltip */}
                 {isCollapsed && (
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-foreground text-background text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Expand
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    whileHover={{ opacity: 1, x: 0 }}
+                    className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-foreground text-background text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg"
+                  >
+                    {isCollapsed ? "Expand" : "Collapse"}
+                  </motion.div>
                 )}
-              </button>
+              </motion.button>
             </div>
           )}
 
           {/* Version info */}
           {!isCollapsed && !isMobile && (
-            <div className="mt-4 text-center">
-              <p className="text-xs text-muted-foreground">v1.0.0</p>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 text-center relative z-10"
+            >
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-muted/30 rounded-full">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <p className="text-xs text-muted-foreground">v2.0.0</p>
+              </div>
+            </motion.div>
           )}
           
           {/* Minimal version info for collapsed state */}
           {isCollapsed && !isMobile && (
-            <div className="mt-4 text-center">
-              <p className="text-xs text-muted-foreground rotate-90 whitespace-nowrap">v1.0</p>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 text-center relative z-10"
+            >
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse mx-auto" />
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Overlay for mobile */}
-      {isMobile && !isCollapsed && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setIsCollapsed(true)}
-        />
-      )}
+      <AnimatePresence>
+        {isMobile && !isCollapsed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden"
+            onClick={() => setIsCollapsed(true)}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }

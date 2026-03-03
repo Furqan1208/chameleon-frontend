@@ -5,12 +5,19 @@ import Script from 'next/script'
 export const metadata = {
   title: 'Chameleon Dashboard',
   description: 'Malware Analysis Dashboard',
+  icons: {
+    icon: '/Logo_wo_bg.ico',
+    shortcut: '/Logo_wo_bg.ico',
+    apple: '/apple-icon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/Logo_wo_bg.ico" />
+        <link rel="shortcut icon" href="/Logo_wo_bg.ico" />
         <Script
           id="suppress-browser-extensions"
           strategy="beforeInteractive"

@@ -3,8 +3,6 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { HAResults } from './HAResults';
-import { HAStatsCards } from './HAStatsCards';
-import { HAAnalysisDashboard } from './HAAnalysisDashboard';
 import { HATopThreats } from './HATopThreats';
 import { useHybridAnalysis } from '@/hooks/useHybridAnalysis';
 import { 
@@ -41,7 +39,6 @@ export function HAScanner() {
     scanning,
     error,
     results,
-    stats,
     rateLimit,
     threatFeed,
     feedLoading,
@@ -51,7 +48,7 @@ export function HAScanner() {
     loadThreatFeed
   } = useHybridAnalysis();
 
-  const [activeTab, setActiveTab] = useState<'scanner' | 'threats' | 'analysis'>('scanner');
+  const [activeTab, setActiveTab] = useState<'scanner' | 'threats'>('scanner');
   const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
   const [hashInput, setHashInput] = useState('');
   const [selectedHash, setSelectedHash] = useState<string | null>(null);
@@ -296,8 +293,6 @@ export function HAScanner() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <HAStatsCards results={results} threatFeed={threatFeed} />
 
       {/* Main Content */}
       <div className="glass border border-border rounded-xl p-6">
@@ -334,20 +329,9 @@ export function HAScanner() {
               </span>
             )}
           </button>
-          <button
-            onClick={() => setActiveTab('analysis')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
-              activeTab === 'analysis'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted/20 text-muted-foreground'
-            }`}
-          >
-            <BarChart className="w-4 h-4" />
-            Analysis
-          </button>
         </div>
 
-        {activeTab === 'scanner' ? (
+        {activeTab === 'scanner' && (
           <div className="space-y-6">
             {/* File Upload Section */}
             <div 
@@ -595,16 +579,13 @@ export function HAScanner() {
               </div>
             )}
           </div>
-        ) : activeTab === 'threats' ? (
+        )}
+
+        {activeTab === 'threats' && (
           <HATopThreats 
             threats={threatFeed}
             loading={feedLoading}
             onRefresh={loadThreatFeed}
-          />
-        ) : (
-          <HAAnalysisDashboard 
-            results={results}
-            threatFeed={threatFeed}
           />
         )}
       </div>
