@@ -3,7 +3,7 @@
 
 import { FileText, AlertTriangle, CheckCircle, Clock, AlertOctagon } from "lucide-react"
 import { useEffect, useState } from "react"
-import { apiService } from "@/lib/api-service"
+import { apiService } from "@/services/api/api.service"
 
 // minimal interface for reports returned by API (expand as needed)
 interface Report {

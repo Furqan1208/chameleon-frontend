@@ -179,6 +179,14 @@ export default function HomePage() {
       </div>
 
       <div className="relative z-10">
+        <div className="absolute top-6 right-6">
+          <button
+            onClick={() => router.push("/login")}
+            className="px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary/10 transition"
+          >
+            Login
+          </button>
+        </div>
         {/* Hero Section */}
         <div className="container mx-auto px-6 py-20">
           <motion.div

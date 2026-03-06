@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { NetworkBackground } from "@/components/3d/NetworkBackground"
-import { apiService } from "@/lib/api-service"
+import { apiService } from "@/services/api/api.service"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   FileText, 

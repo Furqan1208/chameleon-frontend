@@ -7,7 +7,7 @@ import { DropZone } from "@/components/upload/DropZone"
 import { FilePreview } from "@/components/upload/FilePreview"
 import { UploadProgress } from "@/components/upload/UploadProgress"
 import { NetworkBackground } from "@/components/3d/NetworkBackground"
-import { apiService } from "@/lib/api-service"
+import { apiService } from "@/services/api/api.service"
 import { calculateFileHash, simpleHashExtraction } from "@/lib/hash-utils"
 import { FileText, Brain, Shield, Zap, Info, Layers, Globe } from "lucide-react"
 
@@ -25,21 +25,18 @@ export default function UploadPage() {
   const handleFileDrop = async (file: File) => {
     setSelectedFile(file)
     setError(null)
-    
-    // Calculate hash immediately for threat intel
+
     try {
       const hash = await calculateFileHash(file)
       setFileHash(hash.sha256)
       console.log(`[Upload] File SHA256: ${hash.sha256}`)
     } catch (error) {
-      console.error('[Upload] Failed to calculate hash:', error)
-      // Fallback to simple extraction
+      console.error("[Upload] Failed to calculate hash:", error)
       const fallbackHash = await simpleHashExtraction(file)
       setFileHash(fallbackHash)
     }
-    
-    // Auto-detect analysis type based on file extension
-    if (file.name.toLowerCase().endsWith('.json')) {
+
+    if (file.name.toLowerCase().endsWith(".json")) {
       setAnalysisType("parse_and_ai")
     }
   }
@@ -53,51 +50,18 @@ export default function UploadPage() {
     setError(null)
 
     try {
-      // Start progress animation
+      // Upload progress animation — phase 1
       for (let i = 0; i < 30; i += Math.random() * 10) {
         setUploadProgress(Math.min(i, 30))
         await new Promise((resolve) => setTimeout(resolve, 100))
       }
 
       setUploadStage("analyzing")
-      
-      // Call the API - include hash if available
-      const formData = new FormData()
-      formData.append("file", selectedFile)
-      formData.append("model_name", aiModel)
-      if (fileHash) {
-        formData.append("file_hash", fileHash)
-      }
 
-      let endpoint = ""
-      switch (analysisType) {
-        case "complete":
-          endpoint = "/complete"
-          break
-        case "parse":
-          endpoint = "/parse-only"
-          break
-        case "parse_and_ai":
-          endpoint = "/parse-and-ai"
-          break
-        case "ai":
-          endpoint = "/ai-only"
-          break
-      }
+      // ✅ Use apiService.uploadFile — automatically attaches Bearer token
+      const result = await apiService.uploadFile(selectedFile, analysisType, aiModel)
 
-      const response = await fetch(`${apiService['baseUrl']}/analysis${endpoint}`, {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: "Upload failed" }))
-        throw new Error(error.detail || `${analysisType} analysis failed`)
-      }
-
-      const result = await response.json()
-      
-      // Simulate analysis progress
+      // Upload progress animation — phase 2
       for (let i = 30; i < 90; i += Math.random() * 15) {
         setUploadProgress(Math.min(i, 90))
         await new Promise((resolve) => setTimeout(resolve, 150))
@@ -106,9 +70,8 @@ export default function UploadPage() {
       setUploadStage("complete")
       setUploadProgress(100)
 
-      // Redirect to analysis page with hash for immediate threat intel
       setTimeout(() => {
-        router.push(`/dashboard/analysis/${result.analysis_id}?hash=${fileHash || ''}`)
+        router.push(`/dashboard/analysis/${result.analysis_id}?hash=${fileHash || ""}`)
       }, 1000)
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Upload failed"
@@ -135,46 +98,31 @@ export default function UploadPage() {
 
   const getAnalysisTypeIcon = (type: string) => {
     switch (type) {
-      case "complete":
-        return <Zap className="w-5 h-5" />
-      case "parse":
-        return <FileText className="w-5 h-5" />
-      case "parse_and_ai":
-        return <Layers className="w-5 h-5" />
-      case "ai":
-        return <Brain className="w-5 h-5" />
-      default:
-        return <Zap className="w-5 h-5" />
+      case "complete": return <Zap className="w-5 h-5" />
+      case "parse":    return <FileText className="w-5 h-5" />
+      case "parse_and_ai": return <Layers className="w-5 h-5" />
+      case "ai":       return <Brain className="w-5 h-5" />
+      default:         return <Zap className="w-5 h-5" />
     }
   }
 
   const getAnalysisTypeTitle = (type: string) => {
     switch (type) {
-      case "complete":
-        return "Complete Analysis"
-      case "parse":
-        return "Parse Only"
-      case "parse_and_ai":
-        return "Parse + AI Analysis"
-      case "ai":
-        return "AI Only"
-      default:
-        return "Complete Analysis"
+      case "complete":     return "Complete Analysis"
+      case "parse":        return "Parse Only"
+      case "parse_and_ai": return "Parse + AI Analysis"
+      case "ai":           return "AI Only"
+      default:             return "Complete Analysis"
     }
   }
 
   const getAnalysisTypeDescriptionCard = (type: string) => {
     switch (type) {
-      case "complete":
-        return "File → CAPE → Parse → AI"
-      case "parse":
-        return "CAPE JSON → Parse"
-      case "parse_and_ai":
-        return "CAPE JSON → Parse → AI"
-      case "ai":
-        return "Parsed JSON → AI"
-      default:
-        return "File → CAPE → Parse → AI"
+      case "complete":     return "File → CAPE → Parse → AI"
+      case "parse":        return "CAPE JSON → Parse"
+      case "parse_and_ai": return "CAPE JSON → Parse → AI"
+      case "ai":           return "Parsed JSON → AI"
+      default:             return "File → CAPE → Parse → AI"
     }
   }
 
@@ -186,12 +134,16 @@ export default function UploadPage() {
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Upload & Analyze</h1>
-            <p className="text-muted-foreground">Choose analysis type and submit file for comprehensive malware analysis</p>
+            <p className="text-muted-foreground">
+              Choose analysis type and submit file for comprehensive malware analysis
+            </p>
           </div>
 
           <div className="max-w-4xl mx-auto space-y-6">
             {error && (
-              <div className="glass border border-destructive rounded-lg p-4 text-destructive text-sm">{error}</div>
+              <div className="glass border border-destructive rounded-lg p-4 text-destructive text-sm">
+                {error}
+              </div>
             )}
 
             <DropZone onFileDrop={handleFileDrop} selectedFile={selectedFile} />
@@ -216,10 +168,10 @@ export default function UploadPage() {
             )}
 
             {isUploading && (
-              <UploadProgress 
-                progress={uploadProgress} 
-                stage={uploadStage} 
-                fileName={selectedFile?.name || ""} 
+              <UploadProgress
+                progress={uploadProgress}
+                stage={uploadStage}
+                fileName={selectedFile?.name || ""}
               />
             )}
 
@@ -228,7 +180,7 @@ export default function UploadPage() {
                 {/* Analysis Type Selection */}
                 <div className="glass border border-border rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Analysis Type</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {(["complete", "parse", "parse_and_ai", "ai"] as const).map((type) => (
                       <AnalysisTypeCard
@@ -245,16 +197,16 @@ export default function UploadPage() {
                           type === "parse_and_ai" ? "pink" : "accent"
                         }
                         recommended={
-                          (type === "complete" && !selectedFile.name.toLowerCase().endsWith('.json')) ||
-                          (type === "parse_and_ai" && selectedFile.name.toLowerCase().endsWith('.json'))
+                          (type === "complete" && !selectedFile.name.toLowerCase().endsWith(".json")) ||
+                          (type === "parse_and_ai" && selectedFile.name.toLowerCase().endsWith(".json"))
                         }
                       />
                     ))}
                   </div>
-                  
+
                   <div className="mt-4 p-3 bg-muted/20 rounded-lg">
                     <div className="flex items-start gap-2">
-                      <Info className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <p className="text-sm text-muted-foreground">{getAnalysisTypeDescription()}</p>
                     </div>
                   </div>
@@ -264,20 +216,20 @@ export default function UploadPage() {
                 {fileHash && (
                   <div className="glass border border-purple-500/20 bg-purple-500/5 rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <Globe className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                      <Globe className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium text-foreground">Immediate Threat Intelligence</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          While your file is being analyzed, we'll immediately query threat intelligence sources 
-                          (VirusTotal, MalwareBazaar, Hybrid Analysis, AlienVault OTX) using the file hash. 
-                          Results will be available in the Threat Intel tab within seconds.
+                          While your file is being analyzed, we'll immediately query threat intelligence
+                          sources (VirusTotal, MalwareBazaar, Hybrid Analysis, AlienVault OTX) using the
+                          file hash. Results will be available in the Threat Intel tab within seconds.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Advanced Options */}
+                {/* AI Model Selection */}
                 {(analysisType === "complete" || analysisType === "parse_and_ai" || analysisType === "ai") && (
                   <div className="glass border border-border rounded-lg p-6">
                     <details className="cursor-pointer group" open>
@@ -288,10 +240,12 @@ export default function UploadPage() {
                         </div>
                         <span className="group-open:rotate-90 transition-transform">→</span>
                       </summary>
-                      
+
                       <div className="mt-4 space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">AI Model</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            AI Model
+                          </label>
                           <select
                             value={aiModel}
                             onChange={(e) => setAiModel(e.target.value)}
@@ -338,7 +292,6 @@ export default function UploadPage() {
   )
 }
 
-// Helper component for analysis type cards
 function AnalysisTypeCard({
   type,
   icon,
@@ -347,7 +300,7 @@ function AnalysisTypeCard({
   selected,
   onSelect,
   color,
-  recommended = false
+  recommended = false,
 }: {
   type: string
   icon: React.ReactNode
@@ -358,33 +311,25 @@ function AnalysisTypeCard({
   color: "green" | "blue" | "pink" | "accent"
   recommended?: boolean
 }) {
-  const borderColor = selected 
-    ? color === "green" 
-      ? "border-primary" 
-      : color === "blue" 
-        ? "border-secondary" 
-        : color === "pink"
-          ? "border-accent"
-          : "border-primary"
+  const borderColor = selected
+    ? color === "green" ? "border-primary"
+    : color === "blue"  ? "border-secondary"
+    : color === "pink"  ? "border-accent"
+    : "border-primary"
     : "border-border"
-  
-  const glowClass = selected 
-    ? color === "green" 
-      ? "glow-green" 
-      : color === "blue" 
-        ? "glow-blue" 
-        : color === "pink"
-          ? "glow-pink"
-          : "glow-green"
+
+  const glowClass = selected
+    ? color === "green" ? "glow-green"
+    : color === "blue"  ? "glow-blue"
+    : color === "pink"  ? "glow-pink"
+    : "glow-green"
     : ""
-  
-  const iconColor = color === "green" 
-    ? "text-primary" 
-    : color === "blue" 
-      ? "text-secondary" 
-      : color === "pink"
-        ? "text-accent"
-        : "text-primary"
+
+  const iconColor =
+    color === "green" ? "text-primary"
+    : color === "blue"  ? "text-secondary"
+    : color === "pink"  ? "text-accent"
+    : "text-primary"
 
   return (
     <button
@@ -398,17 +343,13 @@ function AnalysisTypeCard({
           Recommended
         </span>
       )}
-      
+
       <div className="flex items-start gap-3">
-        <div className={`${iconColor}`}>
-          {icon}
-        </div>
+        <div className={iconColor}>{icon}</div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-semibold text-foreground">{title}</h4>
-            {selected && (
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            )}
+            {selected && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
           </div>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>

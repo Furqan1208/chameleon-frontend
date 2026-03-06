@@ -158,7 +158,7 @@ import {
   Loader,
   Brain
 } from "lucide-react"
-import { apiService } from "@/lib/api-service"
+import { apiService } from "@/services/api/api.service"
 
 // Animation variants
 const containerVariants = {

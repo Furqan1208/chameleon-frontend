@@ -19,13 +19,9 @@ import {
   EyeOff,
   Copy,
   Shield,
-  File,
-  ExternalLink,
-  AlertCircle,
   Globe
 } from "lucide-react"
-import { apiService } from "@/lib/api-service"
-import { formatDistanceToNow } from "date-fns"
+import {apiService } from "@/services/api/api.service"
 
 // Import modular components
 import {
@@ -40,7 +36,6 @@ import {
 
 // Import helper components
 import ViewCard from "@/components/shared/ViewCard"
-import StatCard from "@/components/shared/StatCard"
 
 export default function AnalysisPage() {
   const params = useParams()

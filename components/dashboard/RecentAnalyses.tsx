@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { apiService } from "@/lib/api-service"
+import { apiService } from "@/services/api/api.service"
 import { FileText, Clock, Loader } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 
