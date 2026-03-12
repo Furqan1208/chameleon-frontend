@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import type { AbuseIPDBAnalysisResult } from '@/lib/threat-intel/abuseipdb-types';
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -26,7 +25,7 @@ import {
 } from 'lucide-react';
 
 interface AbuseIPDBResultsProps {
-  results: AbuseIPDBAnalysisResult[];
+  results: any[]; // Backend response format
 }
 
 export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
@@ -43,7 +42,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
     setExpandedResult(expandedResult === ip ? null : ip);
   };
 
-  const getThreatColor = (threatLevel: AbuseIPDBAnalysisResult['threat_level']) => {
+  const getThreatColor = (threatLevel: string) => {
     switch (threatLevel) {
       case 'high':
         return 'text-destructive border-destructive/30 bg-destructive/5';
@@ -58,7 +57,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
     }
   };
 
-  const getThreatIcon = (threatLevel: AbuseIPDBAnalysisResult['threat_level']) => {
+  const getThreatIcon = (threatLevel: string) => {
     switch (threatLevel) {
       case 'high':
         return <AlertTriangle className="w-5 h-5 text-destructive" />;
@@ -104,16 +103,16 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
       </div>
 
       {results.map((result, index) => {
-        const isExpanded = expandedResult === result.ip;
+        const isExpanded = expandedResult === result.ioc;
         const threatColor = getThreatColor(result.threat_level);
         
         return (
           <div
-            key={`${result.ip}-${index}`}
+            key={`${result.ioc}-${index}`}
             className={`glass border rounded-xl overflow-hidden transition-all duration-300 ${threatColor}`}
           >
             {/* Result Header */}
-            <div className="p-4 cursor-pointer" onClick={() => toggleExpand(result.ip)}>
+            <div className="p-4 cursor-pointer" onClick={() => toggleExpand(result.ioc)}>
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="p-2 rounded-lg bg-black/10">
@@ -137,7 +136,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                     </div>
                     
                     <p className="font-mono text-sm break-all mb-1">
-                      {result.ip}
+                      {result.ioc}
                     </p>
                     
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -147,11 +146,11 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
-                        <span>{result.total_reports} reports</span>
+                        <span>{result.total_reports || 0} reports</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Globe className="w-3 h-3" />
-                        <span>{result.country}</span>
+                        <span>{result.country_name || result.country_code || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -165,7 +164,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleCopy(result.ip, `copy-ip-${index}`);
+                      handleCopy(result.ioc, `copy-ip-${index}`);
                     }}
                     className="p-1.5 rounded hover:bg-black/10 transition-colors"
                     title="Copy IP"
@@ -173,7 +172,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                     <Copy className="w-4 h-4" />
                   </button>
                   <a
-                    href={`https://www.abuseipdb.com/check/${result.ip}`}
+                    href={`https://www.abuseipdb.com/check/${result.ioc}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
@@ -186,7 +185,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                     className="p-1.5 rounded hover:bg-black/10 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleExpand(result.ip);
+                      toggleExpand(result.ioc);
                     }}
                   >
                     {isExpanded ? (
@@ -216,12 +215,12 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                       IP Information
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <InfoItem label="ISP" value={result.isp} icon={<Building className="w-3 h-3" />} />
-                      <InfoItem label="Domain" value={result.domain} icon={<Network className="w-3 h-3" />} />
-                      <InfoItem label="Usage Type" value={result.usage_type} icon={<Tag className="w-3 h-3" />} />
-                      <InfoItem label="Country" value={result.country} icon={<Flag className="w-3 h-3" />} />
+                      <InfoItem label="ISP" value={result.isp || 'N/A'} icon={<Building className="w-3 h-3" />} />
+                      <InfoItem label="Domain" value={result.domain || 'N/A'} icon={<Network className="w-3 h-3" />} />
+                      <InfoItem label="Usage Type" value={result.usage_type || 'N/A'} icon={<Tag className="w-3 h-3" />} />
+                      <InfoItem label="Country" value={result.country_name || result.country_code || 'N/A'} icon={<Flag className="w-3 h-3" />} />
                       <InfoItem label="Is Tor" value={result.is_tor ? 'Yes' : 'No'} icon={<EyeOff className="w-3 h-3" />} />
-                      <InfoItem label="Whitelisted" value={result.is_whitelisted ? 'Yes' : 'No'} icon={<Shield className="w-3 h-3" />} />
+                      <InfoItem label="Public IP" value={result.is_public ? 'Yes' : 'No'} icon={<Shield className="w-3 h-3" />} />
                     </div>
                   </div>
 
@@ -241,17 +240,14 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                           result.confidence_score >= 50 ? 'yellow' : 'primary'
                         } 
                       />
-                      <StatItem label="Total Reports" value={result.total_reports.toString()} color="blue" />
-                      <StatItem label="Distinct Users" value={result.distinct_users.toString()} color="green" />
-                      <StatItem label="First Reported" value={formatDate(result.first_reported)} color="muted" />
-                    </div>
-                    <div className="mt-3">
-                      <StatItem label="Last Reported" value={formatDate(result.last_reported)} color="muted" />
+                                            <StatItem label="Total Reports" value={(result.total_reports || 0).toString()} color="blue" />
+                                            <StatItem label="Distinct Users" value={(result.num_distinct_users || 0).toString()} color="green" />
+                                            <StatItem label="Last Reported" value={formatDate(result.last_reported_at)} color="muted" />
                     </div>
                   </div>
 
                   {/* Categories */}
-                  {result.categories.length > 0 && (
+                  {result.categories && result.categories.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Tag className="w-4 h-4" />
@@ -276,7 +272,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                   )}
 
                   {/* Recent Reports */}
-                  {result.reports.length > 0 && (
+                  {result.reports && result.reports.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4" />
@@ -319,7 +315,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
                   )}
 
                   {/* Hostnames */}
-                  {result.hostnames.length > 0 && (
+                  {result.hostnames && result.hostnames.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Network className="w-4 h-4" />

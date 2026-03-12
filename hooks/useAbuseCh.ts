@@ -1,17 +1,15 @@
-// hooks/useAbuseCh.ts - COMPLETE FIX
+// hooks/useAbuseCh.ts
 'use client';
 
 import { useState, useCallback } from 'react';
-import { urlhausService } from '@/lib/threat-intel/urlhaus-service';
-import { threatFoxService } from '@/lib/threat-intel/threatfox-service';
-import type { URLhausAnalysisResult } from '@/lib/threat-intel/urlhaus-types';
-import type { ThreatFoxAnalysisResult } from '@/lib/threat-intel/threatfox-types';
+import { urlhausApi } from '@/services/api/threat-intel/urlhaus.api';
+import { threatFoxApi } from '@/services/api/threat-intel/threatFox.api';
 
 type ServiceType = 'urlhaus' | 'threatfox' | 'both';
 
 export interface AbuseChCombinedResult {
-  urlhaus?: URLhausAnalysisResult;
-  threatfox?: ThreatFoxAnalysisResult;
+  urlhaus?: any;
+  threatfox?: any;
   timestamp: string;
   indicator: string;
 }
@@ -40,16 +38,18 @@ export function useAbuseCh() {
       if (service === 'both' || service === 'urlhaus') {
         try {
           console.log(`[useAbuseCh] Calling URLhaus for: ${indicator}`);
-          const urlhausResult = await urlhausService.checkIndicator(indicator);
+          const urlhausResult = await urlhausApi.checkIndicator(indicator);
           console.log(`[useAbuseCh] URLhaus returned:`, urlhausResult);
           result.urlhaus = urlhausResult;
         } catch (urlhausError) {
           console.error(`[useAbuseCh] URLhaus check failed for ${indicator}:`, urlhausError);
           result.urlhaus = {
-            query_status: 'unknown',
-            raw_data: { error: urlhausError instanceof Error ? urlhausError.message : 'Unknown error' },
+            ioc: indicator,
+            found: false,
+            query_status: 'error',
+            error: urlhausError instanceof Error ? urlhausError.message : 'Unknown error',
             timestamp: new Date().toISOString()
-          } as URLhausAnalysisResult;
+          };
         }
       }
       
@@ -57,27 +57,20 @@ export function useAbuseCh() {
       if (service === 'both' || service === 'threatfox') {
         try {
           console.log(`[useAbuseCh] Calling ThreatFox for: ${indicator}`);
-          const threatfoxResult = await threatFoxService.searchIndicator(indicator);
+          const threatfoxResult = await threatFoxApi.search(indicator);
           console.log(`[useAbuseCh] ThreatFox returned:`, threatfoxResult);
           result.threatfox = threatfoxResult;
         } catch (threatfoxError) {
           console.error(`[useAbuseCh] ThreatFox check failed for ${indicator}:`, threatfoxError);
           result.threatfox = {
-            query_status: 'unknown',
-            raw_data: { error: threatfoxError instanceof Error ? threatfoxError.message : 'Unknown error' },
+            ioc: indicator,
+            found: false,
+            query_status: 'error',
+            error: threatfoxError instanceof Error ? threatfoxError.message : 'Unknown error',
             timestamp: new Date().toISOString()
-          } as ThreatFoxAnalysisResult;
+          };
         }
       }
-      
-      // Debug: Check if raw_data is present
-      console.log(`[useAbuseCh] Final result structure:`, {
-        indicator: result.indicator,
-        urlhausRawData: result.urlhaus?.raw_data,
-        threatfoxRawData: result.threatfox?.raw_data,
-        urlhausKeys: result.urlhaus ? Object.keys(result.urlhaus) : [],
-        threatfoxKeys: result.threatfox ? Object.keys(result.threatfox) : []
-      });
       
       // Update results state
       setResults(prev => {
@@ -85,6 +78,7 @@ export function useAbuseCh() {
         return newResults.slice(0, 10);
       });
       
+      console.log(`[useAbuseCh] Final result for ${indicator}:`, result);
       
       return result;
     } catch (err) {
@@ -103,30 +97,11 @@ export function useAbuseCh() {
     console.log('[useAbuseCh] Results cleared');
   }, []);
 
-
-  const clearCache = useCallback(() => {
-    urlhausService.clearCache();
-    threatFoxService.clearCache();
-    console.log('[useAbuseCh] Cache cleared');
-  }, []);
-
-  const downloadMalware = useCallback(async (sha256: string) => {
-    try {
-      const blob = await urlhausService.downloadMalware(sha256);
-      return blob;
-    } catch (err) {
-      console.error(`[useAbuseCh] Download failed:`, err);
-      throw err;
-    }
-  }, []);
-
   return {
     checking,
     error,
     results,
     checkIndicator,
     clearResults,
-    clearCache,
-    downloadMalware
   };
 }

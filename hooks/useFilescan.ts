@@ -1,12 +1,13 @@
+// hooks/useFilescan.ts
 'use client';
 
-import { useState, useCallback } from 'react';
-import { filescanService } from '@/lib/threat-intel/filescan-service';
+import { useState } from 'react';
+import { fileScanApi } from '@/services/api/threat-intel/fileScan.api';
 import type { 
   AnalysisResult, 
   FileScanUploadResponse,
   FileScanOptions 
-} from '@/lib/threat-intel/filescan-types';
+} from '@/lib/types/filescan.types';
 
 export function useFilescan() {
   const [scanning, setScanning] = useState(false);
@@ -17,12 +18,40 @@ export function useFilescan() {
   const [polling, setPolling] = useState(false);
   const [pollingProgress, setPollingProgress] = useState(0);
 
-  const uploadFile = useCallback(async (
+  /**
+   * Poll for scan completion, with progress updates
+   */
+  const pollUntilComplete = async (flowId: string): Promise<AnalysisResult> => {
+    const maxAttempts = 60; // 5 minutes max (5s intervals)
+    const pollInterval = 5000;
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const progress = Math.min(95, (attempt / maxAttempts) * 100);
+      setPollingProgress(progress);
+      
+      const status = await fileScanApi.getStatus(flowId);
+      console.log(`[useFilescan] Poll attempt ${attempt + 1}/${maxAttempts}: state=${status.state}, allFinished=${status.allFinished}`);
+      
+      // BOTH state and allFinished must be true for completion
+      if (status.state === 'finished' && status.allFinished === true) {
+        setPollingProgress(100);
+        console.log('[useFilescan] Scan complete, fetching full analysis...');
+        return await fileScanApi.getFullAnalysis(flowId);
+      }
+      
+      if (status.state === 'failed') {
+        throw new Error('Scan failed');
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+    
+    throw new Error('Polling timeout - scan did not complete');
+  };
+
+  const uploadFile = async (
     file: File,
-    options?: Partial<FileScanOptions>,
-    description?: string,
-    tags?: string[],
-    propagateTags?: boolean
+    options?: Partial<FileScanOptions>
   ): Promise<FileScanUploadResponse> => {
     setScanning(true);
     setError(null);
@@ -32,40 +61,24 @@ export function useFilescan() {
 
     try {
       console.log('[useFilescan] Starting file upload...');
-      const response = await filescanService.uploadFile(
-        file,
-        options,
-        description,
-        tags,
-        propagateTags
-      );
+      const response = await fileScanApi.uploadFile(file, options);
 
       setSuccess(`File uploaded successfully! Flow ID: ${response.flow_id}`);
       setCurrentFlowId(response.flow_id);
       setPolling(true);
 
-      // Start polling for results with progress updates
-      const startTime = Date.now();
-      const maxTime = 5 * 60 * 1000; // 5 minutes max
-      
-      const pollInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(95, (elapsed / maxTime) * 100);
-        setPollingProgress(progress);
-      }, 1000);
-
       try {
-        const result = await filescanService.pollUntilComplete(response.flow_id);
+        const result = await pollUntilComplete(response.flow_id);
         setResults(prev => [result, ...prev]);
-        setPollingProgress(100);
+        console.log('[useFilescan] Analysis complete');
       } finally {
-        clearInterval(pollInterval);
         setPolling(false);
       }
 
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to upload file';
+      console.error('[useFilescan] Upload failed:', err);
       setError(errorMessage);
       setPolling(false);
       setPollingProgress(0);
@@ -73,14 +86,11 @@ export function useFilescan() {
     } finally {
       setScanning(false);
     }
-  }, []);
+  };
 
-  const scanUrl = useCallback(async (
+  const scanUrl = async (
     url: string,
-    options?: Partial<FileScanOptions>,
-    description?: string,
-    tags?: string[],
-    propagateTags?: boolean
+    options?: FileScanOptions
   ): Promise<FileScanUploadResponse> => {
     setScanning(true);
     setError(null);
@@ -90,40 +100,32 @@ export function useFilescan() {
 
     try {
       console.log('[useFilescan] Starting URL scan...');
-      const response = await filescanService.scanUrl(
+      const response = await fileScanApi.scanUrl({
         url,
-        options,
-        description,
-        tags,
-        propagateTags
-      );
+        description: options?.description,
+        osint: options?.osint,
+        extended_osint: options?.extended_osint,
+        url_analysis: options?.url_analysis,
+        resolve_domains: options?.resolve_domains,
+        whois: options?.whois
+      });
 
       setSuccess(`URL scan started! Flow ID: ${response.flow_id}`);
       setCurrentFlowId(response.flow_id);
       setPolling(true);
 
-      // Start polling for results with progress updates
-      const startTime = Date.now();
-      const maxTime = 5 * 60 * 1000; // 5 minutes max
-      
-      const pollInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(95, (elapsed / maxTime) * 100);
-        setPollingProgress(progress);
-      }, 1000);
-
       try {
-        const result = await filescanService.pollUntilComplete(response.flow_id);
+        const result = await pollUntilComplete(response.flow_id);
         setResults(prev => [result, ...prev]);
-        setPollingProgress(100);
+        console.log('[useFilescan] URL scan complete');
       } finally {
-        clearInterval(pollInterval);
         setPolling(false);
       }
 
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to scan URL';
+      console.error('[useFilescan] URL scan failed:', err);
       setError(errorMessage);
       setPolling(false);
       setPollingProgress(0);
@@ -131,30 +133,56 @@ export function useFilescan() {
     } finally {
       setScanning(false);
     }
-  }, []);
+  };
 
-  const clearResults = useCallback(() => {
+  const clearResults = () => {
     setResults([]);
     setError(null);
     setSuccess(null);
     setCurrentFlowId(null);
     setPolling(false);
     setPollingProgress(0);
-  }, []);
+    console.log('[useFilescan] Session results cleared');
+  };
 
-  const getResultStats = useCallback(() => {
+  const checkFlowId = async (flowId: string): Promise<void> => {
+    setScanning(true);
+    setError(null);
+    setSuccess(null);
+    setCurrentFlowId(flowId);
+    setPolling(true);
+    setPollingProgress(0);
+
+    try {
+      console.log(`[useFilescan] Checking flow ID: ${flowId}`);
+      const result = await pollUntilComplete(flowId);
+      setResults(prev => [result, ...prev]);
+      setSuccess(`Analysis retrieved successfully for Flow ID: ${flowId}`);
+      console.log('[useFilescan] Flow ID check complete');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to retrieve scan results';
+      console.error('[useFilescan] Flow ID check failed:', err);
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setScanning(false);
+      setPolling(false);
+    }
+  };
+
+  const getResultStats = () => {
     const stats = {
       total: results.length,
-      malicious: results.filter(r => r.verdict.verdict === 'MALICIOUS').length,
-      suspicious: results.filter(r => r.verdict.verdict === 'SUSPICIOUS').length,
-      likelyMalicious: results.filter(r => r.verdict.verdict === 'LIKELY_MALICIOUS').length,
-      benign: results.filter(r => r.verdict.verdict === 'BENIGN' || r.verdict.verdict === 'NO_THREAT').length,
-      informational: results.filter(r => r.verdict.verdict === 'INFORMATIONAL').length,
-      unknown: results.filter(r => r.verdict.verdict === 'UNKNOWN').length,
+      malicious: results.filter(r => r.verdict?.verdict === 'MALICIOUS').length,
+      suspicious: results.filter(r => r.verdict?.verdict === 'SUSPICIOUS').length,
+      likelyMalicious: results.filter(r => r.verdict?.verdict === 'LIKELY_MALICIOUS').length,
+      benign: results.filter(r => r.verdict?.verdict === 'BENIGN' || r.verdict?.verdict === 'NO_THREAT').length,
+      informational: results.filter(r => r.verdict?.verdict === 'INFORMATIONAL').length,
+      unknown: results.filter(r => r.verdict?.verdict === 'UNKNOWN').length,
     };
 
     return stats;
-  }, [results]);
+  };
 
   return {
     // State
@@ -172,10 +200,10 @@ export function useFilescan() {
     // Actions
     uploadFile,
     scanUrl,
+    checkFlowId,
     clearResults,
     
     // Utilities
-    hasResults: results.length > 0,
-    isReady: typeof process !== 'undefined' && !!process.env.NEXT_PUBLIC_FILESCAN_API_KEY,
+    hasResults: results.length > 0
   };
 }

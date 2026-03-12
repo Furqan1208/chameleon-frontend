@@ -26,8 +26,8 @@ import {
   Users,
   Calendar
 } from 'lucide-react';
-import type { HAThreatFeedItem } from '@/lib/threat-intel/ha-types';
-import { formatDate, getVerdictInfo, formatFileSize } from '@/lib/threat-intel/ha-utils';
+import type { HAThreatFeedItem } from '@/lib/types/hybrid-analysis.types';
+import { formatDate, getVerdictInfo, formatFileSize } from '@/lib/utils/hybrid-analysis.utils';
 
 interface HATopThreatsProps {
   threats: HAThreatFeedItem[];

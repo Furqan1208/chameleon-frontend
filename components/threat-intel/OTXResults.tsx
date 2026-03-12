@@ -44,7 +44,7 @@ import {
   TrendingDown,
   PieChart
 } from 'lucide-react';
-import type { OTXResult } from '@/lib/threat-intel/otx-types';
+import type { OTXResult } from '@/lib/types/alienvault.types';
 
 interface OTXResultsProps {
   results: OTXResult[];
@@ -279,7 +279,8 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
         const showAllMalwareForResult = showAllMalware[resultId] || false;
         const showAllURLsForResult = showAllURLs[resultId] || false;
         
-        const malwareDetectionStats = result.sections.malware?.data?.reduce((stats, malware) => {
+        // Defensive check for malware data
+        const malwareDetectionStats = result.sections?.malware?.data?.reduce((stats, malware) => {
           const detectionCount = getMalwareDetectionCount(malware.detections);
           if (detectionCount >= 10) stats.high++;
           else if (detectionCount >= 5) stats.medium++;
@@ -357,19 +358,19 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                         <span className="font-medium">
                           Threat Score: 
                           <span className={`ml-1 ${
-                            result.threat_score >= 70 ? 'text-destructive' :
-                            result.threat_score >= 50 ? 'text-accent' :
-                            result.threat_score >= 30 ? 'text-yellow-500' :
-                            result.threat_score >= 10 ? 'text-primary' :
+                            (result.threat_score ?? 0) >= 70 ? 'text-destructive' :
+                            (result.threat_score ?? 0) >= 50 ? 'text-accent' :
+                            (result.threat_score ?? 0) >= 30 ? 'text-yellow-500' :
+                            (result.threat_score ?? 0) >= 10 ? 'text-primary' :
                             'text-green-500'
                           }`}>
-                            {result.threat_score.toFixed(1)}/100
+                            {(result.threat_score ?? 0).toFixed(1)}/100
                           </span>
                         </span>
                       </div>
                       
                       {/* ASN */}
-                      {result.sections.general?.asn && (
+                      {result.sections?.general?.asn && (
                         <div className="flex items-center gap-1">
                           <Network className="w-3 h-3" />
                           <span>{result.sections.general.asn}</span>
@@ -385,7 +386,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                       )}
                       
                       {/* Location */}
-                      {(result.sections.general?.latitude && result.sections.general?.longitude) && (
+                      {(result.sections?.general?.latitude && result.sections?.general?.longitude) && (
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           <span>
@@ -453,7 +454,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
               <div className="border-t border-border/50 bg-black/5">
                 <div className="p-4 space-y-6">
                   {/* General Information */}
-                  {result.sections.general && (
+                  {result.sections?.general && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Globe className="w-4 h-4" />
@@ -511,13 +512,13 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="p-3 border border-border rounded-lg bg-background/50 text-center">
                         <div className={`text-2xl font-bold ${
-                          result.threat_score >= 70 ? 'text-destructive' :
-                          result.threat_score >= 50 ? 'text-accent' :
-                          result.threat_score >= 30 ? 'text-yellow-500' :
-                          result.threat_score >= 10 ? 'text-primary' :
+                          (result.threat_score ?? 0) >= 70 ? 'text-destructive' :
+                          (result.threat_score ?? 0) >= 50 ? 'text-accent' :
+                          (result.threat_score ?? 0) >= 30 ? 'text-yellow-500' :
+                          (result.threat_score ?? 0) >= 10 ? 'text-primary' :
                           'text-green-500'
                         }`}>
-                          {result.threat_score.toFixed(1)}
+                          {(result.threat_score ?? 0).toFixed(1)}
                         </div>
                         <div className="text-xs text-muted-foreground">Threat Score</div>
                       </div>
@@ -573,7 +574,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   </div>
 
                   {/* Pulse Information */}
-                  {result.sections.general?.pulse_info && result.pulse_count > 0 && (
+                  {result.sections?.general?.pulse_info && result.pulse_count > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Activity className="w-4 h-4" />
@@ -639,7 +640,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* Malware Data */}
-                  {result.sections.malware?.data && result.malware_count > 0 && (
+                  {result.sections?.malware?.data && result.malware_count > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Bug className="w-4 h-4 text-destructive" />
@@ -776,7 +777,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* URL List */}
-                  {result.sections.url_list?.url_list && result.url_count > 0 && (
+                  {result.sections?.url_list?.url_list && result.url_count > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <LinkIcon className="w-4 h-4" />
@@ -865,7 +866,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* Passive DNS */}
-                  {result.sections.passive_dns?.passive_dns && result.passive_dns_count > 0 && (
+                  {result.sections?.passive_dns?.passive_dns && result.passive_dns_count > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Database className="w-4 h-4" />
@@ -916,7 +917,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* HTTP Scans */}
-                  {result.sections.http_scans?.data && result.sections.http_scans.data.length > 0 && (
+                  {result.sections?.http_scans?.data && result.sections.http_scans.data.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Activity className="w-4 h-4" />
@@ -939,7 +940,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* File Analysis */}
-                  {result.sections.analysis?.analysis && Object.keys(result.sections.analysis.analysis).length > 0 && (
+                  {result.sections?.analysis?.analysis && Object.keys(result.sections.analysis.analysis).length > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Search className="w-4 h-4" />

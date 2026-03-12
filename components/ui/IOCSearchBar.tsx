@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Search, Hash, Globe, Link, FileText, Cpu, Loader } from 'lucide-react';
-import type { VTIndicatorType } from '@/lib/threat-intel/vt-types';
+import type { VTIndicatorType } from '@/lib/types/virustotal.types';
 
 interface IOCSearchBarProps {
   onSearch: (indicator: string, type: VTIndicatorType) => void;

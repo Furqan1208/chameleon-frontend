@@ -32,8 +32,8 @@ import {
   Target,
   Activity
 } from 'lucide-react';
-import { filescanService } from '@/lib/threat-intel/filescan-service';
-import type { AnalysisResult, FileScanOptions } from '@/lib/threat-intel/filescan-types';
+import { useFilescan } from '@/hooks/useFilescan';
+import type { AnalysisResult, FileScanOptions } from '@/lib/types/filescan.types';
 import DetailedReportViewer from '@/components/threat-intel/DetailedReportViewer';
 import {
   formatFileSize,
@@ -49,21 +49,28 @@ import {
   getSimilarityColor,
   formatSimilarity,
   calculateProgress
-} from '@/lib/threat-intel/filescan-utils';
+} from '@/lib/utils/filescan.utils';
 
 export default function FilescanScanner() {
-  // State
-  const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [results, setResults] = useState<AnalysisResult[]>([]);
+  // Use hook
+  const {
+    scanning,
+    error,
+    success,
+    results,
+    currentFlowId,
+    polling,
+    pollingProgress,
+    uploadFile,
+    scanUrl: scanUrlFromHook,
+    clearResults
+  } = useFilescan();
+  
+  // Local UI state
   const [activeTab, setActiveTab] = useState<'upload' | 'url' | 'results'>('upload');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [urlInput, setUrlInput] = useState('');
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-  const [polling, setPolling] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [pollingProgress, setPollingProgress] = useState(0);
   
   // Detailed Report State
   const [showDetailedReport, setShowDetailedReport] = useState(false);
@@ -81,13 +88,12 @@ export default function FilescanScanner() {
   });
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
-  const [propagateTags, setPropagateTags] = useState(true);
+  const [propagateTags, setPropagateTags] = useState(false);
 
   // Drag and drop with correct MIME types
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setUploadedFile(acceptedFiles[0]);
-      setError(null);
     }
   }, []);
 
@@ -127,130 +133,48 @@ export default function FilescanScanner() {
     const files = event.target.files;
     if (files && files.length > 0) {
       setUploadedFile(files[0]);
-      setError(null);
     }
   };
 
   const handleScanFile = async () => {
     if (!uploadedFile) {
-      setError('Please select a file to scan');
       return;
     }
 
-    setScanning(true);
-    setError(null);
-    setSuccess(null);
-    setCurrentFlowId(null);
-    setPollingProgress(0);
-
     try {
-      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const options: Partial<FileScanOptions> = {
+        ...scanOptions,
+        description: description || uploadedFile.name
+      };
       
-      console.log('Starting file upload...');
-      const response = await filescanService.uploadFile(
-        uploadedFile,
-        scanOptions,
-        description || uploadedFile.name,
-        tagsArray.length > 0 ? tagsArray : undefined,
-        propagateTags
-      );
-
-      setSuccess(`File uploaded successfully! Flow ID: ${response.flow_id}`);
-      setCurrentFlowId(response.flow_id);
-      setPolling(true);
-
-      // Start polling for results with progress updates
-      const startTime = Date.now();
-      const maxTime = 5 * 60 * 1000; // 5 minutes max
-      
-      const pollInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(95, (elapsed / maxTime) * 100);
-        setPollingProgress(progress);
-      }, 1000);
-
-      try {
-        const result = await filescanService.pollUntilComplete(response.flow_id);
-        setResults(prev => [result, ...prev]);
-        setPolling(false);
-        setPollingProgress(100);
-        setActiveTab('results');
-      } finally {
-        clearInterval(pollInterval);
-      }
-      
+      await uploadFile(uploadedFile, options);
+      setActiveTab('results');
     } catch (err) {
-      console.error('Scan error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload file');
-      setPolling(false);
-      setPollingProgress(0);
-    } finally {
-      setScanning(false);
+      console.error('File scan error:', err);
     }
   };
 
   const handleScanUrl = async () => {
     if (!urlInput.trim()) {
-      setError('Please enter a URL to scan');
       return;
     }
 
     try {
       new URL(urlInput);
     } catch {
-      setError('Please enter a valid URL');
       return;
     }
 
-    setScanning(true);
-    setError(null);
-    setSuccess(null);
-    setCurrentFlowId(null);
-    setPollingProgress(0);
-
     try {
-      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const options: FileScanOptions = {
+        description: description || urlInput,
+        ...scanOptions
+      };
       
-      console.log('Starting URL scan...');
-      const response = await filescanService.scanUrl(
-        urlInput,
-        scanOptions,
-        description || urlInput,
-        tagsArray.length > 0 ? tagsArray : undefined,
-        propagateTags
-      );
-
-      setSuccess(`URL scan started! Flow ID: ${response.flow_id}`);
-      setCurrentFlowId(response.flow_id);
-      setPolling(true);
-
-      // Start polling for results with progress updates
-      const startTime = Date.now();
-      const maxTime = 5 * 60 * 1000; // 5 minutes max
-      
-      const pollInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(95, (elapsed / maxTime) * 100);
-        setPollingProgress(progress);
-      }, 1000);
-
-      try {
-        const result = await filescanService.pollUntilComplete(response.flow_id);
-        setResults(prev => [result, ...prev]);
-        setPolling(false);
-        setPollingProgress(100);
-        setActiveTab('results');
-      } finally {
-        clearInterval(pollInterval);
-      }
-      
+      await scanUrlFromHook(urlInput, options);
+      setActiveTab('results');
     } catch (err) {
       console.error('URL scan error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to scan URL');
-      setPolling(false);
-      setPollingProgress(0);
-    } finally {
-      setScanning(false);
     }
   };
 
@@ -264,22 +188,22 @@ export default function FilescanScanner() {
   };
 
   const handleViewDetailedReport = (reportId: string, fileHash: string) => {
+    console.log('[FilescanScanner] Opening detailed report:', { reportId, fileHash });
+    
+    if (!reportId || !fileHash) {
+      console.error('[FilescanScanner] Missing data for detailed report:', { reportId, fileHash });
+      return;
+    }
+    
     setSelectedReport({ reportId, fileHash });
     setShowDetailedReport(true);
   };
 
   const clearUpload = () => {
     setUploadedFile(null);
-    setError(null);
     setDescription('');
     setTags('');
-  };
-
-  const clearResults = () => {
-    setResults([]);
-    setError(null);
-    setSuccess(null);
-    setCurrentFlowId(null);
+    setPropagateTags(false);
   };
 
   const toggleScanOption = (option: keyof FileScanOptions) => {
@@ -799,6 +723,15 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
   const fileType = result.file?.type || 'unknown';
   const fileSize = result.file?.size;
 
+  // Log the values for debugging
+  console.log('[ResultCard] File data:', {
+    scanId: result.scanId,
+    fileName,
+    fileHash,
+    fileFromResult: result.file,
+    hasHash: !!result.file?.hash
+  });
+
   return (
     <div className={`border rounded-xl overflow-hidden transition-all duration-300 ${
       result.verdict.verdict === 'MALICIOUS' ? 'border-red-200 dark:border-red-800' :
@@ -1010,6 +943,11 @@ function ResultCard({ result, onViewDetailedReport }: ResultCardProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      console.log('[ResultCard] View Detailed Report clicked:', { 
+                        scanId: result.scanId, 
+                        fileHash,
+                        fileFromResult: result.file
+                      });
                       onViewDetailedReport(result.scanId, fileHash);
                     }}
                     className="w-full flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors"

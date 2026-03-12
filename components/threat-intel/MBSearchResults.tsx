@@ -31,7 +31,15 @@ import {
   Upload,
   Link as LinkIcon
 } from 'lucide-react';
-import type { MBAnalysisResult } from '@/lib/threat-intel/malwarebazaar-types';
+import type { MBAnalysisResult, MBSample } from '@/lib/types/malwarebazaar.types';
+import {
+  formatFileSize,
+  formatDate,
+  getSignatureColor,
+  getThreatLevel,
+  getFileTypeIcon,
+  timeAgo
+} from '@/lib/utils/malwarebazaar.utils';
 
 interface MBSearchResultsProps {
   results: MBAnalysisResult[];
@@ -159,7 +167,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
     }
   };
 
-  const getTags = (sample: MBAnalysisResult['sample']): string[] => {
+  const getTags = (sample: MBSample | undefined): string[] => {
     if (sample?.tags == null) return [];
     if (Array.isArray(sample.tags)) {
       return sample.tags.map(tag => getStringValue(tag));
@@ -170,7 +178,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
     return tagStr.split(',').map(tag => tag.trim()).filter(Boolean);
   };
 
-  const getIntelligenceData = (sample: MBAnalysisResult['sample']) => {
+  const getIntelligenceData = (sample: MBSample | undefined) => {
     if (!sample?.intelligence) return null;
     
     const intel = sample.intelligence;
@@ -182,7 +190,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
     };
   };
 
-  const getYaraRules = (sample: MBAnalysisResult['sample']) => {
+  const getYaraRules = (sample: MBSample | undefined) => {
     if (!sample?.yara_rules) return [];
     if (!Array.isArray(sample.yara_rules)) return [];
     
@@ -224,7 +232,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
         
         const isExpanded = expandedResult === `result-${index}`;
         const statusColor = getStatusColor(result.found);
-        const sample = result.sample;
+        const sample = result.samples?.[0]; // Get first sample from array
         const tags = getTags(sample);
         const intelligenceData = getIntelligenceData(sample);
         const yaraRules = getYaraRules(sample);
@@ -266,7 +274,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                           ? 'bg-primary/20 text-primary'
                           : 'bg-muted text-muted-foreground'
                       }`}>
-                        {result.found ? 'Sample Found' : 'Not Found'}
+                        {result.found ? `${result.total || result.samples?.length || 1} Sample${result.total > 1 ? 's' : ''} Found` : 'Not Found'}
                       </span>
                       {sample?.signature && (
                         <span className="px-2 py-0.5 bg-accent/20 text-accent rounded text-xs font-medium">
@@ -283,7 +291,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                         <div className="flex items-center gap-1">
                           <FileText className="w-3 h-3" />
-                          <span>{getStringValue(sample.file_name)}</span>
+                          <span>{getStringValue(sample.filename)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
@@ -293,12 +301,6 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                           <Download className="w-3 h-3" />
                           <span>{formatBytes(sample.file_size)}</span>
                         </div>
-                        {sample.origin_country && (
-                          <div className="flex items-center gap-1">
-                            <Globe className="w-3 h-3" />
-                            <span>{getStringValue(sample.origin_country)}</span>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -316,9 +318,9 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                   >
                     <Copy className="w-4 h-4" />
                   </button>
-                  {sample?.sha256_hash && (
+                  {sample?.sha256 && (
                     <a
-                      href={`https://bazaar.abuse.ch/sample/${getStringValue(sample.sha256_hash)}/`}
+                      href={`https://bazaar.abuse.ch/sample/${getStringValue(sample.sha256)}/`}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
@@ -363,15 +365,13 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                       Sample Information
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <InfoItem label="Filename" value={getStringValue(sample.file_name)} icon={<FileText className="w-3 h-3" />} />
+                      <InfoItem label="Filename" value={getStringValue(sample.filename)} icon={<FileText className="w-3 h-3" />} />
                       <InfoItem label="File Size" value={formatBytes(sample.file_size)} icon={<Download className="w-3 h-3" />} />
                       <InfoItem label="File Type" value={getStringValue(sample.file_type)} icon={<FileCode className="w-3 h-3" />} />
                       <InfoItem label="MIME Type" value={getStringValue(sample.file_type_mime)} icon={<Cpu className="w-3 h-3" />} />
                       <InfoItem label="First Seen" value={formatDate(sample.first_seen)} icon={<Calendar className="w-3 h-3" />} />
                       <InfoItem label="Last Seen" value={formatDate(sample.last_seen)} icon={<Clock className="w-3 h-3" />} />
                       <InfoItem label="Reporter" value={getStringValue(sample.reporter)} icon={<User className="w-3 h-3" />} />
-                      <InfoItem label="Anonymous" value={sample.anonymous ? 'Yes' : 'No'} icon={<EyeOff className="w-3 h-3" />} />
-                      <InfoItem label="Origin Country" value={getStringValue(sample.origin_country)} icon={<Globe className="w-3 h-3" />} />
                     </div>
                   </div>
 
@@ -382,21 +382,15 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                       File Hashes
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <HashItem label="SHA256" value={getStringValue(sample.sha256_hash)} onCopy={() => handleCopy(getStringValue(sample.sha256_hash), `sha256-${index}`)} />
-                      <HashItem label="SHA1" value={getStringValue(sample.sha1_hash)} onCopy={() => handleCopy(getStringValue(sample.sha1_hash), `sha1-${index}`)} />
-                      <HashItem label="MD5" value={getStringValue(sample.md5_hash)} onCopy={() => handleCopy(getStringValue(sample.md5_hash), `md5-${index}`)} />
+                      <HashItem label="SHA256" value={getStringValue(sample.sha256)} onCopy={() => handleCopy(getStringValue(sample.sha256), `sha256-${index}`)} />
+                      <HashItem label="SHA1" value={getStringValue(sample.sha1)} onCopy={() => handleCopy(getStringValue(sample.sha1), `sha1-${index}`)} />
+                      <HashItem label="MD5" value={getStringValue(sample.md5)} onCopy={() => handleCopy(getStringValue(sample.md5), `md5-${index}`)} />
                       <HashItem label="SSDEEP" value={getStringValue(sample.ssdeep)} onCopy={() => handleCopy(getStringValue(sample.ssdeep), `ssdeep-${index}`)} />
                       {sample.imphash && (
                         <HashItem label="Imphash" value={getStringValue(sample.imphash)} onCopy={() => handleCopy(getStringValue(sample.imphash), `imphash-${index}`)} />
                       )}
                       {sample.tlsh && (
                         <HashItem label="TLSH" value={getStringValue(sample.tlsh)} onCopy={() => handleCopy(getStringValue(sample.tlsh), `tlsh-${index}`)} />
-                      )}
-                      {sample.telfhash && (
-                        <HashItem label="Telfhash" value={getStringValue(sample.telfhash)} onCopy={() => handleCopy(getStringValue(sample.telfhash), `telfhash-${index}`)} />
-                      )}
-                      {sample.dhash_icon && (
-                        <HashItem label="Icon Hash" value={getStringValue(sample.dhash_icon)} onCopy={() => handleCopy(getStringValue(sample.dhash_icon), `icon-${index}`)} />
                       )}
                     </div>
                   </div>
@@ -563,9 +557,9 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
 
                   {/* Actions */}
                   <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
-                    {sample.sha256_hash && (
+                    {sample.sha256 && (
                       <a
-                        href={`https://bazaar.abuse.ch/sample/${getStringValue(sample.sha256_hash)}/`}
+                        href={`https://bazaar.abuse.ch/sample/${getStringValue(sample.sha256)}/`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
@@ -577,14 +571,12 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                     <button
                       onClick={() => {
                         const allHashes = [
-                          `SHA256: ${getStringValue(sample.sha256_hash)}`,
-                          `SHA1: ${getStringValue(sample.sha1_hash)}`,
-                          `MD5: ${getStringValue(sample.md5_hash)}`,
+                          `SHA256: ${getStringValue(sample.sha256)}`,
+                          `SHA1: ${getStringValue(sample.sha1)}`,
+                          `MD5: ${getStringValue(sample.md5)}`,
                           `SSDEEP: ${getStringValue(sample.ssdeep)}`,
                           sample.imphash ? `Imphash: ${getStringValue(sample.imphash)}` : '',
-                          sample.tlsh ? `TLSH: ${getStringValue(sample.tlsh)}` : '',
-                          sample.telfhash ? `Telfhash: ${getStringValue(sample.telfhash)}` : '',
-                          sample.dhash_icon ? `Icon Hash: ${getStringValue(sample.dhash_icon)}` : ''
+                          sample.tlsh ? `TLSH: ${getStringValue(sample.tlsh)}` : ''
                         ].filter(Boolean).join('\n');
                         handleCopy(allHashes, `full-copy-${index}`);
                       }}

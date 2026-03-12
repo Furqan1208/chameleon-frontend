@@ -43,8 +43,8 @@ import {
   XCircle,
   RefreshCw
 } from 'lucide-react';
-import type { DetailedAnalysisResult } from '@/lib/threat-intel/filescan-types';
-import { filescanService } from '@/lib/threat-intel/filescan-service';
+import type { DetailedAnalysisResult } from '@/lib/types/filescan.types';
+import { fileScanApi } from '@/services/api/threat-intel/fileScan.api';
 import {
   formatFileSize,
   formatDate,
@@ -56,7 +56,7 @@ import {
   getHashType,
   getFileTypeIcon,
   getFileTypeColor
-} from '@/lib/threat-intel/filescan-utils';
+} from '@/lib/utils/filescan.utils';
 
 interface DetailedReportViewerProps {
   reportId: string;
@@ -71,6 +71,31 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
   const [activeSection, setActiveSection] = useState<string>('overview');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
+  // Safety check for required props
+  if (!reportId || !fileHash) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full p-6">
+          <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+            <AlertCircle className="w-6 h-6" />
+            <div>
+              <h3 className="font-bold">Invalid Report Data</h3>
+              <p className="text-sm">Report ID and File Hash are required.</p>
+            </div>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="mt-4 px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
+              Close
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const loadDetailedReport = async () => {
     setLoading(true);
     setError(null);
@@ -78,8 +103,8 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
     try {
       console.log('Loading detailed report for:', reportId, fileHash);
       
-      // Use the service to get detailed analysis
-      const report = await filescanService.getDetailedAnalysis(reportId, fileHash);
+      // Use the API service to get detailed analysis
+      const report = await fileScanApi.getReport(reportId, fileHash);
       setDetailedReport(report);
       
       console.log('Detailed report loaded successfully:', report);
@@ -584,7 +609,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Detailed Analysis Report</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {reportId.substring(0, 8)}... • {truncateHash(fileHash, 12)}
+                {reportId?.substring(0, 8) || 'N/A'}... • {fileHash ? truncateHash(fileHash, 12) : 'N/A'}
               </p>
             </div>
           </div>

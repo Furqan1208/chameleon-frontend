@@ -1,7 +1,7 @@
 // components/threat-intel/HAScanner.tsx
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { HAResults } from './HAResults';
 import { HATopThreats } from './HATopThreats';
 import { useHybridAnalysis } from '@/hooks/useHybridAnalysis';
@@ -11,7 +11,6 @@ import {
   CheckCircle, 
   Trash2,
   RefreshCw,
-  Zap,
   Database,
   Info,
   FileText,
@@ -31,25 +30,21 @@ import {
   FileUp,
   File
 } from 'lucide-react';
-import type { HAIndicatorType } from '@/lib/threat-intel/ha-types';
-import { calculateFileHash, validateHash } from '@/lib/threat-intel/ha-utils';
+import { calculateFileHash, validateHash } from '@/lib/utils/hybrid-analysis.utils';
 
 export function HAScanner() {
   const {
     scanning,
     error,
     results,
-    rateLimit,
     threatFeed,
     feedLoading,
     scanIndicator,
     clearResults,
-    clearCache,
     loadThreatFeed
   } = useHybridAnalysis();
 
   const [activeTab, setActiveTab] = useState<'scanner' | 'threats'>('scanner');
-  const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
   const [hashInput, setHashInput] = useState('');
   const [selectedHash, setSelectedHash] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -171,12 +166,6 @@ export function HAScanner() {
     await handleHashScan(hashToTest);
   };
 
-  const handleClearCache = () => {
-    if (confirm('Clear all cached Hybrid Analysis data?')) {
-      clearCache();
-    }
-  };
-
   const removeUploadedFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
@@ -188,18 +177,6 @@ export function HAScanner() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const formatTimeUntilReset = () => {
-    if (rateLimit.minutesUntilReset <= 0) return 'Resets now';
-    const minutes = Math.ceil(rateLimit.minutesUntilReset);
-    return `Resets in ${minutes}m`;
-  };
-
-  const getRateLimitColor = () => {
-    if (rateLimit.remaining === 0) return 'bg-destructive/10 text-destructive border-destructive/20';
-    if (rateLimit.remaining <= 1) return 'bg-accent/10 text-accent border-accent/20';
-    return 'bg-primary/10 text-primary border-primary/20';
   };
 
   return (
@@ -217,64 +194,7 @@ export function HAScanner() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          {/* Rate Limit Indicator */}
-          <div className="relative">
-            <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg ${getRateLimitColor()}`}>
-              <Zap className="w-4 h-4" />
-              <div className="text-xs">
-                <div className="font-medium">
-                  {rateLimit.remaining} / {rateLimit.limit} req
-                </div>
-                <div className="text-xs opacity-80">
-                  {formatTimeUntilReset()}
-                </div>
-              </div>
-              <button
-                onClick={() => setShowRateLimitInfo(!showRateLimitInfo)}
-                className="ml-1"
-              >
-                <Info className="w-3 h-3" />
-              </button>
-            </div>
-            
-            {/* Rate limit tooltip */}
-            {showRateLimitInfo && (
-              <div className="absolute right-0 top-full mt-2 w-64 p-3 glass border border-border rounded-lg shadow-lg z-10">
-                <h4 className="font-semibold text-foreground mb-2">Rate Limit</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5"></div>
-                    <span><strong>Free Tier:</strong> 4 requests/minute</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5"></div>
-                    <span><strong>Current:</strong> {rateLimit.remaining} remaining</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5"></div>
-                    <span>Results cached for 1 hour</span>
-                  </li>
-                </ul>
-                <button
-                  onClick={() => setShowRateLimitInfo(false)}
-                  className="mt-3 w-full text-xs text-primary hover:underline"
-                >
-                  Close
-                </button>
-              </div>
-            )}
-          </div>
-          
           {/* Action Buttons */}
-          <button
-            onClick={handleClearCache}
-            className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
-            title="Clear cached API responses"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Clear Cache
-          </button>
-          
           {results.length > 0 && (
             <button
               onClick={() => {

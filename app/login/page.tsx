@@ -144,7 +144,7 @@ export default function LoginPage() {
           className="space-y-10"
         >
           <div className="space-y-4">
-            <Logo type="full" size="xl" className="neon-text" />
+            {/* Logo removed from here */}
             <h2 className="text-5xl font-bold text-foreground leading-tight">
               Threat Intelligence
               <br />

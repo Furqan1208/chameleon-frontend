@@ -89,7 +89,8 @@ import {
   getVerdictInfo, 
   getThreatLevelColor, 
   getThreatLevelLabel 
-} from '@/lib/threat-intel/ha-utils';
+} from '@/lib/utils/hybrid-analysis.utils';
+import { hybridAnalysisApi } from '@/services/api/threat-intel/hybridAnalysis.api';
 
 interface DetailedReport {
   job_id?: string;
@@ -342,69 +343,10 @@ export default function DetailedReportPage() {
       
       console.log('Fetching report for ID:', id);
       
-      let apiResponse;
-      
-      try {
-        const queryParams1 = new URLSearchParams({
-          endpoint: 'report-summary',
-          jobId: id
-        });
-        
-        console.log('Trying with jobId:', id);
-        apiResponse = await fetch(`/api/hybrid-analysis?${queryParams1.toString()}`);
-        
-        if (!apiResponse.ok) {
-          const queryParams2 = new URLSearchParams({
-            endpoint: 'report-summary',
-            hash: id
-          });
-          
-          apiResponse = await fetch(`/api/hybrid-analysis?${queryParams2.toString()}`);
-        }
-        
-        if (!apiResponse.ok) {
-          if (id.length === 64 && /^[a-fA-F0-9]{64}$/.test(id)) {
-            console.log('Trying to get overview for hash to find jobId');
-            const overviewResponse = await fetch(`/api/hybrid-analysis?endpoint=overview&hash=${id}`);
-            
-            if (overviewResponse.ok) {
-              const overviewData = await overviewResponse.json();
-              console.log('Overview data:', overviewData);
-              
-              if (overviewData.reports && overviewData.reports.length > 0) {
-                for (const report of overviewData.reports) {
-                  if (report.id) {
-                    const queryParams3 = new URLSearchParams({
-                      endpoint: 'report-summary',
-                      jobId: report.id
-                    });
-                    
-                    console.log('Trying with report ID:', report.id);
-                    apiResponse = await fetch(`/api/hybrid-analysis?${queryParams3.toString()}`);
-                    
-                    if (apiResponse.ok) {
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        
-        if (!apiResponse.ok) {
-          const errorData = await apiResponse.json().catch(() => ({}));
-          throw new Error(errorData.error || `Failed to fetch report: ${apiResponse.status}`);
-        }
-        
-        const data = await apiResponse.json();
-        console.log('Report data received:', data);
-        setReport(data);
-        
-      } catch (apiError) {
-        console.error('API error:', apiError);
-        throw apiError;
-      }
+      // Try to fetch report summary using the report ID
+      const data = await hybridAnalysisApi.getReportSummary(id);
+      console.log('Report data received:', data);
+      setReport(data);
       
     } catch (err) {
       console.error('Error fetching report:', err);

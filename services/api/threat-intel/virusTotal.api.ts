@@ -1,9 +1,10 @@
 import { BaseApi } from "../base.api";
+import type { VTIndicatorType } from "@/lib/types/virustotal.types";
 
 export class VirusTotalApi extends BaseApi {
   async scan(request: {
     indicator: string;
-    type: "hash" | "ip" | "domain" | "url";
+    type: VTIndicatorType;
     include_relationships?: boolean;
   }) {
     const result = await this.request("/threat-intel/virustotal/scan", {

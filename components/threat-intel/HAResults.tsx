@@ -50,8 +50,8 @@ import {
   TrendingUp,
   TrendingDown
 } from 'lucide-react';
-import type { HAAnalysisResult } from '@/lib/threat-intel/ha-types';
-import { formatFileSize, formatDate, getVerdictInfo, getThreatLevelColor, getThreatLevelLabel, getMimeType } from '@/lib/threat-intel/ha-utils';
+import type { HAAnalysisResult } from '@/lib/types/hybrid-analysis.types';
+import { formatFileSize, formatDate, getVerdictInfo, getThreatLevelColor, getThreatLevelLabel, getMimeType } from '@/lib/utils/hybrid-analysis.utils';
 
 interface HAResultsProps {
   results: HAAnalysisResult[];
@@ -485,39 +485,47 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                         <Cpu className="w-5 h-5 text-purple-500" />
                         Sandbox Environments ({(result.reports || []).length})
                       </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {(result.reports || []).slice(0, 6).map((report, idx) => (
-                          <div key={idx} className="p-3 border border-border rounded-lg hover:border-primary/30 transition-colors">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium text-foreground text-sm">
-                                {report.environment_description || `Env ${report.environment_id}`}
-                              </span>
-                              <span className={`text-xs px-2 py-1 rounded capitalize ${
-                                report.verdict === 'malicious' ? 'bg-destructive/20 text-destructive' :
-                                report.verdict === 'suspicious' ? 'bg-accent/20 text-accent' :
-                                report.verdict === 'whitelisted' ? 'bg-green-500/20 text-green-500' :
-                                report.verdict === 'no specific threat' || report.verdict === 'no_specific_threat' ? 'bg-yellow-500/20 text-yellow-600' :
-                                'bg-muted text-muted-foreground'
-                              }`}>
-                                {report.verdict || report.state}
-                              </span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[28rem] overflow-y-auto pr-1">
+                        {(result.reports || []).map((report, idx) => {
+                          const reportId = report.id;
+                          const submissionId = report.submission_id;
+                          const displayId = reportId || submissionId || null;
+
+                          return (
+                            <div key={displayId || idx} className="p-3 border border-border rounded-lg hover:border-primary/30 transition-colors">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-foreground text-sm">
+                                  {report.environment_description || `Env ${report.environment_id}`}
+                                </span>
+                                <span className={`text-xs px-2 py-1 rounded capitalize ${
+                                  report.verdict === 'malicious' ? 'bg-destructive/20 text-destructive' :
+                                  report.verdict === 'suspicious' ? 'bg-accent/20 text-accent' :
+                                  report.verdict === 'whitelisted' ? 'bg-green-500/20 text-green-500' :
+                                  report.verdict === 'no specific threat' || report.verdict === 'no_specific_threat' ? 'bg-yellow-500/20 text-yellow-600' :
+                                  'bg-muted text-muted-foreground'
+                                }`}>
+                                  {report.verdict || report.state}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-muted-foreground gap-2">
+                                <span>
+                                  {displayId ? `ID: ${displayId.substring(0, 8)}...` : 'ID: N/A'}
+                                </span>
+                                {report.state === 'SUCCESS' && reportId && (
+                                  <a
+                                    href={`/dashboard/threat-intel/hybridanalysis/report/${reportId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline flex items-center gap-1 whitespace-nowrap"
+                                  >
+                                    View Details
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>ID: {report.id?.substring(0, 8)}...</span>
-                              {report.state === 'SUCCESS' && report.id && (
-                                <a
-                                  href={`/dashboard/threat-intel/hybridanalysis/report/${report.id}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-primary hover:underline flex items-center gap-1"
-                                >
-                                  View Details
-                                  <ExternalLink className="w-3 h-3" />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}

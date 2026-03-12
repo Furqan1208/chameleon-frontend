@@ -2,8 +2,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { HAScanRequest, HAAnalysisResult, HAThreatFeedItem } from '@/lib/threat-intel/ha-types';
-import { hybridAnalysisService } from '@/lib/threat-intel/hybrid-analysis-service';
+import type { HAScanRequest, HAAnalysisResult, HAThreatFeedItem } from '@/lib/types/hybrid-analysis.types';
+import { hybridAnalysisApi } from '@/services/api/threat-intel/hybridAnalysis.api';
 
 export function useHybridAnalysis() {
   const [scanning, setScanning] = useState(false);
@@ -11,10 +11,6 @@ export function useHybridAnalysis() {
   const [results, setResults] = useState<HAAnalysisResult[]>([]);
   const [threatFeed, setThreatFeed] = useState<HAThreatFeedItem[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
-  const [cache, setCache] = useState<Record<string, HAAnalysisResult>>({});
-
-
-  const rateLimit = hybridAnalysisService.getRateLimitInfo();
 
   const scanIndicator = useCallback(async (request: HAScanRequest) => {
     setScanning(true);
@@ -23,22 +19,13 @@ export function useHybridAnalysis() {
     try {
       console.log(`[useHybridAnalysis] Scanning indicator: ${request.indicator}`);
       
-      // Check cache first
-      const cacheKey = `ha:${request.indicator}`;
-      if (cache[cacheKey]) {
-        console.log(`[useHybridAnalysis] Using cached result for ${request.indicator}`);
-        const cachedResult = cache[cacheKey];
-        setResults(prev => [cachedResult, ...prev.filter(r => r.ioc !== request.indicator)]);
-        return cachedResult;
-      }
-
-      const result = await hybridAnalysisService.scanIndicator(request);
+      const result = await hybridAnalysisApi.scan(request);
       
-      // Cache the result
-      setCache(prev => ({ ...prev, [cacheKey]: result }));
-      
-      // Add to results (prepend, keep last 20)
-      setResults(prev => [result, ...prev.filter(r => r.ioc !== request.indicator)].slice(0, 20));
+      // Add to results (prepend, filter duplicates, keep last 20)
+      setResults(prev => {
+        const filtered = prev.filter(r => r.ioc !== request.indicator);
+        return [result, ...filtered].slice(0, 20);
+      });
       
       console.log(`[useHybridAnalysis] Scan completed for ${request.indicator}`, {
         found: result.found,
@@ -55,15 +42,15 @@ export function useHybridAnalysis() {
     } finally {
       setScanning(false);
     }
-  }, [cache]);
+  }, []);
 
-  const loadThreatFeed = useCallback(async (limit: number = 50) => {
+  const loadThreatFeed = useCallback(async (limit = 50) => {
     setFeedLoading(true);
     setError(null);
     
     try {
       console.log(`[useHybridAnalysis] Loading threat feed...`);
-      const threats = await hybridAnalysisService.getThreatFeed(limit);
+      const threats = await hybridAnalysisApi.getThreatFeed(limit);
       setThreatFeed(threats);
       console.log(`[useHybridAnalysis] Loaded ${threats.length} threats from feed`);
     } catch (err) {
@@ -75,12 +62,12 @@ export function useHybridAnalysis() {
     }
   }, []);
 
-  const loadQuickScanFeed = useCallback(async (limit: number = 50) => {
+  const loadQuickScanFeed = useCallback(async (limit = 50) => {
     setFeedLoading(true);
     setError(null);
     
     try {
-      const threats = await hybridAnalysisService.getQuickScanFeed(limit);
+      const threats = await hybridAnalysisApi.getQuickScanFeed(limit);
       setThreatFeed(threats);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load quick scan feed';
@@ -97,43 +84,15 @@ export function useHybridAnalysis() {
     console.log('[useHybridAnalysis] Results cleared');
   }, []);
 
-  const clearCache = useCallback(() => {
-    setCache({});
-    setError(null);
-    console.log('[useHybridAnalysis] Cache cleared');
-  }, []);
-
-  const getReportSummary = useCallback(async (reportId: string) => {
-    try {
-      return await hybridAnalysisService.getReportSummary(reportId);
-    } catch (err) {
-      console.error(`[useHybridAnalysis] Failed to get report summary for ${reportId}:`, err);
-      return null;
-    }
-  }, []);
-
-  const getReportState = useCallback(async (reportId: string) => {
-    try {
-      return await hybridAnalysisService.getReportState(reportId);
-    } catch (err) {
-      console.error(`[useHybridAnalysis] Failed to get report state for ${reportId}:`, err);
-      return null;
-    }
-  }, []);
-
   return {
     scanning,
     error,
     results,
     threatFeed,
     feedLoading,
-    rateLimit,
     scanIndicator,
     loadThreatFeed,
     loadQuickScanFeed,
-    clearResults,
-    clearCache,
-    getReportSummary,
-    getReportState
+    clearResults
   };
 }

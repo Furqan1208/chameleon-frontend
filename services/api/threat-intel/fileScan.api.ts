@@ -49,7 +49,13 @@ export class FileScanApi extends BaseApi {
       method: "POST",
       body: formData,
     });
-    return result.data;
+    
+    // Normalize response
+    const data = result.data;
+    return {
+      flow_id: data.flow_id || data.flowId,
+      priority: data.priority
+    };
   }
 
   /**
@@ -62,7 +68,13 @@ export class FileScanApi extends BaseApi {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     });
-    return result.data;
+    
+    // Normalize response
+    const data = result.data;
+    return {
+      flow_id: data.flow_id || data.flowId,
+      priority: data.priority
+    };
   }
 
   /**
@@ -75,7 +87,18 @@ export class FileScanApi extends BaseApi {
     const result = await this.request(
       `/threat-intel/filescan/status/${flowId}${qs}`,
     );
-    return result.data;
+    
+    const data = result.data;
+    
+    // Ensure consistent camelCase naming
+    return {
+      flowId: data.flowId || data.flow_id,
+      allFinished: data.allFinished ?? data.all_finished,
+      state: data.state,
+      scanStartedDate: data.scanStartedDate || data.scan_started_date,
+      reports: data.reports,
+      ...data
+    };
   }
 
   /**
@@ -88,7 +111,54 @@ export class FileScanApi extends BaseApi {
     const result = await this.request(
       `/threat-intel/filescan/report/${reportId}/${fileHash}${qs}`,
     );
-    return result.data;
+    
+    const data = result.data;
+    console.log('[FileScanApi] getReport raw response:', data);
+    
+    // The backend returns a structure like { reports: { [reportId]: {...} } }
+    // We need to extract and flatten the actual report data
+    const reports = data.reports || {};
+    const report = reports[reportId] || {};
+    
+    console.log('[FileScanApi] Extracted report:', report);
+    
+    // Normalize to match what DetailedReportViewer expects
+    const normalized = {
+      reportId,
+      fileHash,
+      file: report.file || data.file || { name: 'Unknown', hash: fileHash, type: 'unknown' },
+      verdict: report.finalVerdict || report.verdict || { verdict: 'UNKNOWN', threatLevel: 0, confidence: 0 },
+      scanOptions: report.scanOptions || report.scan_options || {},
+      scanEngine: report.scanEngine || report.scan_engine,
+      created_date: report.created_date || data.created_date,
+      yaraMatches: report.yaraMatches || report.yara_matches || [],
+      extractedFiles: report.extractedFiles || report.extracted_files || [],
+      networkConnections: report.networkConnections || report.network_connections || [],
+      extractedUrls: report.extractedUrls || report.extracted_urls || [],
+      extractedDomains: report.extractedDomains || report.extracted_domains || [],
+      extractedIps: report.extractedIps || report.extracted_ips || [],
+      strings: report.strings || [],
+      resources: report.resources || [],
+      osintResults: report.osintResults || report.osint_results,
+      visualization: report.visualization,
+      signalGroups: report.allSignalGroups || report.signal_groups || [],
+      tags: report.allTags || report.tags || [],
+      mitreTechniques: report.mitreTechniques || report.mitre_techniques || [],
+      behavioralAnalysis: report.behavioralAnalysis || report.behavioral_analysis,
+      peInfo: report.peInfo || report.pe_info,
+      imports: report.imports || [],
+      exports: report.exports || [],
+      sections: report.sections || [],
+      taskReference: report.taskReference || report.task_reference,
+      subtaskReferences: report.subtaskReferences || report.subtask_references || [],
+      raw_detailed_data: report,
+      report_url: `https://www.filescan.io/reports/${reportId}/${fileHash}`,
+      timestamp: new Date().toISOString(),
+    };
+    
+    console.log('[FileScanApi] Normalized detailed report:', normalized);
+    
+    return normalized;
   }
 
   /**
@@ -99,7 +169,31 @@ export class FileScanApi extends BaseApi {
     const result = await this.request(
       `/threat-intel/filescan/analysis/${flowId}`,
     );
-    return result.data;
+    
+    const data = result.data;
+    console.log('[FileScanApi] getFullAnalysis raw response:', data);
+    
+    // Transform snake_case from backend to camelCase for frontend
+    const normalized = {
+      flowId: data.flow_id || data.flowId,
+      scanId: data.scan_id || data.scanId,
+      file: data.file,
+      state: data.state,
+      verdict: data.verdict,
+      interestingScore: data.interesting_score ?? data.interestingScore,
+      vtRate: data.vt_rate ?? data.vtRate,
+      created_date: data.created_date,
+      scanOptions: data.scan_options || data.scanOptions || {},
+      report_url: data.report_url,
+      scan_url: data.scan_url,
+      timestamp: data.timestamp,
+    };
+    
+    console.log('[FileScanApi] Normalized result:', normalized);
+    console.log('[FileScanApi] scanId:', normalized.scanId);
+    console.log('[FileScanApi] file.hash:', normalized.file?.hash);
+    
+    return normalized;
   }
 
   /**

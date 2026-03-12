@@ -97,9 +97,10 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
   // Check if ThreatFox has actual data
   const hasThreatFoxData = (result: AbuseChCombinedResult) => {
     if (!result.threatfox) return false;
-    
-    // Check if data exists directly on threatfox object
-    if (result.threatfox.id || result.threatfox.ioc) {
+
+    // Backend format: found + iocs[]
+    if (result.threatfox.found === true) return true;
+    if (Array.isArray(result.threatfox.iocs) && result.threatfox.iocs.length > 0) {
       return true;
     }
     
@@ -133,6 +134,11 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
   // Get the correct ThreatFox data object
   const getThreatFoxDisplayData = (result: AbuseChCombinedResult) => {
     if (!result.threatfox) return null;
+
+    // Backend format: parsed IOCs array
+    if (Array.isArray(result.threatfox.iocs) && result.threatfox.iocs.length > 0) {
+      return result.threatfox.iocs[0];
+    }
     
     // Priority 1: Data is directly on threatfox object
     if (result.threatfox.id || result.threatfox.ioc) {
@@ -393,7 +399,7 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
                               />
                               <InfoItem 
                                 label="ID" 
-                                value={urlhausData.id || 'N/A'} 
+                                value={urlhausData.id || urlhausData.url_id || 'N/A'} 
                                 icon={<Tag className="w-3 h-3" />} 
                               />
                             </div>

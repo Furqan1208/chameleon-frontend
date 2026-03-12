@@ -36,8 +36,8 @@ import {
   Binary,
   Package
 } from 'lucide-react';
-import type { HAAnalysisResult } from '@/lib/threat-intel/ha-types';
-import { formatFileSize, formatDate } from '@/lib/threat-intel/ha-utils';
+import type { HAAnalysisResult } from '@/lib/types/hybrid-analysis.types';
+import { formatFileSize, formatDate } from '@/lib/utils/hybrid-analysis.utils';
 
 interface HAMetadataPanelProps {
   result: HAAnalysisResult;

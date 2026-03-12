@@ -1,17 +1,13 @@
-// D:\FYP\Chameleon Frontend\hooks\useVirusTotal.ts - COMPLETE FIXED VERSION
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { VTScanRequest, VTAnalysisResult } from '@/lib/threat-intel/vt-types';
-import { virusTotalService } from '@/lib/threat-intel/virustotal-service';
+import type { VTScanRequest, VTAnalysisResult } from '@/lib/types/virustotal.types';
+import { virusTotalApi } from '@/services/api/threat-intel/virusTotal.api';
 
 export function useVirusTotal() {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<VTAnalysisResult[]>([]);
-  const [rateLimit, setRateLimit] = useState(virusTotalService.getRateLimitInfo());
-
-
 
   const scanIndicator = useCallback(async (request: VTScanRequest) => {
     setScanning(true);
@@ -19,16 +15,13 @@ export function useVirusTotal() {
     
     try {
       console.log(`[useVirusTotal] Scanning indicator: ${request.indicator}`);
-      const result = await virusTotalService.scanIndicator(request);
+      const result = await virusTotalApi.scan(request);
       
       // Add to current session results
       setResults(prev => {
         const newResults = [result, ...prev.filter(r => r.ioc !== request.indicator)];
         return newResults.slice(0, 10); // Keep last 10 in session
       });
-      
-      // Update rate limit info
-      setRateLimit(virusTotalService.getRateLimitInfo());
       
       console.log(`[useVirusTotal] Scan completed for ${request.indicator}`);
       return result;
@@ -51,14 +44,8 @@ export function useVirusTotal() {
     for (const request of requests) {
       try {
         console.log(`[useVirusTotal] Scanning ${request.indicator}...`);
-        const result = await virusTotalService.scanIndicator(request);
+        const result = await virusTotalApi.scan(request);
         results.push(result);
-        
-        // Update rate limit after each request
-        setRateLimit(virusTotalService.getRateLimitInfo());
-        
-        // Rate limit: 4 requests/minute = 15 seconds between requests
-        await new Promise(resolve => setTimeout(resolve, 15000));
         
         console.log(`[useVirusTotal] Completed scan for ${request.indicator}`);
       } catch (err) {
@@ -82,27 +69,12 @@ export function useVirusTotal() {
     console.log('[useVirusTotal] Session results cleared');
   }, []);
 
-
-  const clearCache = useCallback(async () => {
-    try {
-      await virusTotalService.clearCache();
-      setRateLimit(virusTotalService.getRateLimitInfo());
-      console.log('[useVirusTotal] Cache cleared');
-    } catch (err) {
-      console.error('[useVirusTotal] Failed to clear cache:', err);
-    }
-  }, []);
-
-
-
   return {
     scanning,
     error,
     results,
-    rateLimit,
     scanIndicator,
     scanMultiple,
     clearResults,
-    clearCache
   };
 }

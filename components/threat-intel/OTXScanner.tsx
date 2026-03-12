@@ -6,26 +6,20 @@ import { OTXResults } from './OTXResults';
 import { useAlienVaultOTX } from '../../hooks/useAlienVaultOTX';
 import { 
   Globe,
-  Activity,
-  RefreshCw,
   Trash2,
   Loader2,
   AlertTriangle
 } from 'lucide-react';
-import type { VTIndicatorType } from '@/lib/threat-intel/vt-types';
-import type { OTXIndicatorType } from '@/lib/threat-intel/otx-types';
+import type { VTIndicatorType } from '@/lib/types/virustotal.types';
+import type { OTXIndicatorType } from '@/lib/types/alienvault.types';
 
 export function OTXScanner() {
   const {
     scanning,
     error,
     results,
-    rateLimit,
-    apiKeyValid,
     scanIndicator,
-    clearResults,
-    clearCache,
-    validateApiKey
+    clearResults
   } = useAlienVaultOTX();
 
   // helper functions copied from original implementation
@@ -92,11 +86,7 @@ export function OTXScanner() {
     }
   };
 
-  const handleClearCache = () => {
-    if (confirm('Clear all cached AlienVault OTX data? This will not delete your results.')) {
-      clearCache();
-    }
-  };
+
 
   return (
     <div className="space-y-6">
@@ -112,42 +102,17 @@ export function OTXScanner() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {rateLimit && (
-            <div className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg text-sm">
-              <Activity className="w-4 h-4 text-orange-500" />
-              <span className="text-foreground">{rateLimit.remaining}</span>
-              <span className="text-muted-foreground">/ {rateLimit.limit} requests</span>
-              {rateLimit.isLimited && (
-                <span className="text-destructive text-xs">
-                  (reset in {Math.ceil(rateLimit.minutesUntilReset)} min)
-                </span>
-              )}
-            </div>
-          )}
-
+        {results.length > 0 && (
           <button
-            onClick={handleClearCache}
+            onClick={() => clearResults()}
             disabled={scanning}
-            className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 text-sm"
-            title="Clear cached API responses"
+            className="px-3 py-1.5 border border-destructive/30 text-destructive rounded-lg hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 text-sm"
+            title="Clear current results"
           >
-            <RefreshCw className="w-4 h-4" />
-            Clear Cache
+            <Trash2 className="w-4 h-4" />
+            Clear Results
           </button>
-
-          {results.length > 0 && (
-            <button
-              onClick={() => clearResults()}
-              disabled={scanning}
-              className="px-3 py-1.5 border border-destructive/30 text-destructive rounded-lg hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 text-sm"
-              title="Clear current results"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear Results
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Scanner Section */}
@@ -165,15 +130,7 @@ export function OTXScanner() {
               <div className="flex-1">
                 <p className="font-medium text-destructive mb-1">Scan Failed</p>
                 <p className="text-sm text-foreground/80">{error}</p>
-                {error.includes('Rate limit') && (
-                  <div className="mt-2 p-2 bg-black/5 rounded text-xs">
-                    <p className="font-medium">Rate Limit Information:</p>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      <div>Remaining: <span className="font-bold">{rateLimit.remaining}</span></div>
-                      <div>Reset in: <span className="font-bold">{Math.ceil(rateLimit.minutesUntilReset)} min</span></div>
-                    </div>
-                  </div>
-                )}
+
               </div>
             </div>
           </div>

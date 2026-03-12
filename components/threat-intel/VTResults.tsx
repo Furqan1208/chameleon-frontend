@@ -23,7 +23,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import type { VTAnalysisResult } from '@/lib/threat-intel/vt-types';
+import type { VTAnalysisResult } from '@/lib/types/virustotal.types';
 
 interface VTResultsProps {
   results: VTAnalysisResult[];

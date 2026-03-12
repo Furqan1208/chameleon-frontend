@@ -30,11 +30,12 @@ import {
   X,
   Zap,
   Target,
-  Activity
+  Activity,
+  Search
 } from 'lucide-react';
-import { filescanService } from '@/lib/threat-intel/filescan-service';
-import type { AnalysisResult, FileScanOptions } from '@/lib/threat-intel/filescan-types';
-import DetailedReportViewer from '@/components/threat-intel/DetailedReportViewer'; // Add this import
+import { useFilescan } from '@/hooks/useFilescan';
+import type { AnalysisResult, FileScanOptions } from '@/lib/types/filescan.types';
+import DetailedReportViewer from '@/components/threat-intel/DetailedReportViewer';
 import {
   formatFileSize,
   formatDate,
@@ -49,21 +50,30 @@ import {
   getSimilarityColor,
   formatSimilarity,
   calculateProgress
-} from '@/lib/threat-intel/filescan-utils';
+} from '@/lib/utils/filescan.utils';
 
 export default function FilescanScanner() {
-  // State
-  const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [results, setResults] = useState<AnalysisResult[]>([]);
-  const [activeTab, setActiveTab] = useState<'upload' | 'url' | 'results'>('upload');
+  // Use hook
+  const {
+    scanning,
+    error,
+    success,
+    results,
+    currentFlowId,
+    polling,
+    pollingProgress,
+    uploadFile,
+    scanUrl: scanUrlFromHook,
+    checkFlowId,
+    clearResults
+  } = useFilescan();
+  
+  // Local UI state
+  const [activeTab, setActiveTab] = useState<'upload' | 'url' | 'lookup' | 'results'>('upload');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [urlInput, setUrlInput] = useState('');
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-  const [polling, setPolling] = useState(false);
+  const [flowIdInput, setFlowIdInput] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [pollingProgress, setPollingProgress] = useState(0);
   
   // Detailed Report State
   const [showDetailedReport, setShowDetailedReport] = useState(false);
@@ -80,8 +90,6 @@ export default function FilescanScanner() {
     phishing_detection: true,
   });
   const [description, setDescription] = useState('');
-  const [tags, setTags] = useState('');
-  const [propagateTags, setPropagateTags] = useState(true);
 
   // Drag and drop with correct MIME types
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -127,130 +135,48 @@ export default function FilescanScanner() {
     const files = event.target.files;
     if (files && files.length > 0) {
       setUploadedFile(files[0]);
-      setError(null);
     }
   };
 
   const handleScanFile = async () => {
     if (!uploadedFile) {
-      setError('Please select a file to scan');
       return;
     }
 
-    setScanning(true);
-    setError(null);
-    setSuccess(null);
-    setCurrentFlowId(null);
-    setPollingProgress(0);
-
     try {
-      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const options: Partial<FileScanOptions> = {
+        ...scanOptions,
+        description: description || uploadedFile.name
+      };
       
-      console.log('Starting file upload...');
-      const response = await filescanService.uploadFile(
-        uploadedFile,
-        scanOptions,
-        description || uploadedFile.name,
-        tagsArray.length > 0 ? tagsArray : undefined,
-        propagateTags
-      );
-
-      setSuccess(`File uploaded successfully! Flow ID: ${response.flow_id}`);
-      setCurrentFlowId(response.flow_id);
-      setPolling(true);
-
-      // Start polling for results with progress updates
-      const startTime = Date.now();
-      const maxTime = 5 * 60 * 1000; // 5 minutes max
-      
-      const pollInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(95, (elapsed / maxTime) * 100);
-        setPollingProgress(progress);
-      }, 1000);
-
-      try {
-        const result = await filescanService.pollUntilComplete(response.flow_id);
-        setResults(prev => [result, ...prev]);
-        setPolling(false);
-        setPollingProgress(100);
-        setActiveTab('results');
-      } finally {
-        clearInterval(pollInterval);
-      }
-      
+      await uploadFile(uploadedFile, options);
+      setActiveTab('results');
     } catch (err) {
-      console.error('Scan error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload file');
-      setPolling(false);
-      setPollingProgress(0);
-    } finally {
-      setScanning(false);
+      console.error('File scan error:', err);
     }
   };
 
   const handleScanUrl = async () => {
     if (!urlInput.trim()) {
-      setError('Please enter a URL to scan');
       return;
     }
 
     try {
       new URL(urlInput);
     } catch {
-      setError('Please enter a valid URL');
       return;
     }
 
-    setScanning(true);
-    setError(null);
-    setSuccess(null);
-    setCurrentFlowId(null);
-    setPollingProgress(0);
-
     try {
-      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const options: FileScanOptions = {
+        description: description || urlInput,
+        ...scanOptions
+      };
       
-      console.log('Starting URL scan...');
-      const response = await filescanService.scanUrl(
-        urlInput,
-        scanOptions,
-        description || urlInput,
-        tagsArray.length > 0 ? tagsArray : undefined,
-        propagateTags
-      );
-
-      setSuccess(`URL scan started! Flow ID: ${response.flow_id}`);
-      setCurrentFlowId(response.flow_id);
-      setPolling(true);
-
-      // Start polling for results with progress updates
-      const startTime = Date.now();
-      const maxTime = 5 * 60 * 1000; // 5 minutes max
-      
-      const pollInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(95, (elapsed / maxTime) * 100);
-        setPollingProgress(progress);
-      }, 1000);
-
-      try {
-        const result = await filescanService.pollUntilComplete(response.flow_id);
-        setResults(prev => [result, ...prev]);
-        setPolling(false);
-        setPollingProgress(100);
-        setActiveTab('results');
-      } finally {
-        clearInterval(pollInterval);
-      }
-      
+      await scanUrlFromHook(urlInput, options);
+      setActiveTab('results');
     } catch (err) {
       console.error('URL scan error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to scan URL');
-      setPolling(false);
-      setPollingProgress(0);
-    } finally {
-      setScanning(false);
     }
   };
 
@@ -270,16 +196,7 @@ export default function FilescanScanner() {
 
   const clearUpload = () => {
     setUploadedFile(null);
-    setError(null);
     setDescription('');
-    setTags('');
-  };
-
-  const clearResults = () => {
-    setResults([]);
-    setError(null);
-    setSuccess(null);
-    setCurrentFlowId(null);
   };
 
   const toggleScanOption = (option: keyof FileScanOptions) => {
@@ -342,6 +259,17 @@ export default function FilescanScanner() {
         >
           <FileText className="w-4 h-4" />
           Results {results.length > 0 && `(${results.length})`}
+        </button>
+        <button
+          onClick={() => setActiveTab('lookup')}
+          className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
+            activeTab === 'lookup'
+              ? 'bg-blue-500/10 text-blue-400 border-b-2 border-blue-600'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+          }`}
+        >
+          <Search className="w-4 h-4" />
+          Lookup Flow ID
         </button>
       </div>
 
@@ -417,29 +345,6 @@ export default function FilescanScanner() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tags (Optional, comma-separated)
-                </label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="malware, suspicious, analysis"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={propagateTags}
-                  onChange={(e) => setPropagateTags(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Propagate tags to report</span>
-              </label>
             </div>
 
             {/* Advanced Options */}
@@ -612,29 +517,83 @@ export default function FilescanScanner() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+            </div>
+          </div>
+        )}
 
+        {/* Lookup Flow ID Tab */}
+        {activeTab === 'lookup' && (
+          <div className="space-y-6">
+            <div className="bg-blue-500/10 border border-blue-800/50 rounded-xl p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <Info className="w-5 h-5 text-blue-400 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-400 mb-2">Check Flow ID Status</h3>
+                  <p className="text-sm text-gray-300">
+                    If your scan timed out or you want to check the status of a previous scan, 
+                    enter the Flow ID below. The system will poll the scan until it completes.
+                  </p>
+                  {currentFlowId && (
+                    <p className="text-sm text-gray-400 mt-2">
+                      Current Flow ID: <code className="px-2 py-1 bg-black/30 rounded text-blue-300">{currentFlowId}</code>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tags (Optional, comma-separated)
+                  Flow ID
                 </label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="phishing, malware, suspicious"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={flowIdInput}
+                    onChange={(e) => setFlowIdInput(e.target.value)}
+                    placeholder="Enter Flow ID (e.g., 69ad650197feb4afd674b0cb)"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    disabled={scanning || polling}
+                  />
+                  <button
+                    onClick={async () => {
+                      if (flowIdInput.trim()) {
+                        try {
+                          await checkFlowId(flowIdInput.trim());
+                          setActiveTab('results');
+                        } catch (err) {
+                          console.error('Lookup failed:', err);
+                        }
+                      }
+                    }}
+                    disabled={scanning || polling || !flowIdInput.trim()}
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 font-medium"
+                  >
+                    {scanning || polling ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Checking...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        Check Status
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={propagateTags}
-                  onChange={(e) => setPropagateTags(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Propagate tags to report</span>
-              </label>
+              {currentFlowId && currentFlowId !== flowIdInput && (
+                <button
+                  onClick={() => setFlowIdInput(currentFlowId)}
+                  className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-2"
+                >
+                  <Copy className="w-3 h-3" />
+                  Use current Flow ID: {currentFlowId}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -722,6 +681,37 @@ export default function FilescanScanner() {
               <div className="flex-1">
                 <p className="font-medium text-red-800 dark:text-red-300 mb-1">Error</p>
                 <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+                {error.includes('timeout') && currentFlowId && (
+                  <div className="mt-3 pt-3 border-t border-red-800/30">
+                    <p className="text-xs text-red-600 dark:text-red-400 mb-2">
+                      The scan is still processing. You can check it later using the Lookup tab:
+                    </p>
+                    <div className="flex gap-2 items-center">
+                      <code className="px-2 py-1 bg-red-900/30 rounded text-red-300 text-xs font-mono">
+                        {currentFlowId}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(currentFlowId);
+                        }}
+                        className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                        title="Copy Flow ID"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFlowIdInput(currentFlowId);
+                          setActiveTab('lookup');
+                        }}
+                        className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 ml-2"
+                      >
+                        <Search className="w-3 h-3" />
+                        Go to Lookup
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -734,6 +724,37 @@ export default function FilescanScanner() {
               <div className="flex-1">
                 <p className="font-medium text-green-800 dark:text-green-300 mb-1">Success</p>
                 <p className="text-sm text-green-700 dark:text-green-400">{success}</p>
+                {currentFlowId && (
+                  <div className="mt-3 pt-3 border-t border-green-800/30">
+                    <p className="text-xs text-green-600 dark:text-green-400 mb-2">
+                      If scan takes longer than expected, you can check it later:
+                    </p>
+                    <div className="flex gap-2 items-center">
+                      <code className="px-2 py-1 bg-green-900/30 rounded text-green-300 text-xs font-mono">
+                        {currentFlowId}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(currentFlowId);
+                        }}
+                        className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1"
+                        title="Copy Flow ID"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFlowIdInput(currentFlowId);
+                          setActiveTab('lookup');
+                        }}
+                        className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1 ml-2"
+                      >
+                        <Search className="w-3 h-3" />
+                        Go to Lookup
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

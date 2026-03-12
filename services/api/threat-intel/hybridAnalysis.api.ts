@@ -1,10 +1,5 @@
 import { BaseApi } from "../base.api";
-
-interface HAScanRequest {
-  indicator: string;
-  type?: "hash";
-  include_summary?: boolean;
-}
+import type { HAScanRequest } from "@/lib/types/hybrid-analysis.types";
 
 export class HybridAnalysisApi extends BaseApi {
   /**
@@ -41,6 +36,30 @@ export class HybridAnalysisApi extends BaseApi {
   async getQuickScanFeed(limit = 50) {
     const result = await this.request(
       `/threat-intel/hybrid-analysis/feed/quick-scan?limit=${limit}`,
+    );
+    return result.data;
+  }
+
+  /** Fetch detailed report summary by report/job ID. */
+  async getReportSummary(reportId: string) {
+    const result = await this.request(
+      `/threat-intel/hybrid-analysis/report/${reportId}/summary`,
+    );
+    return result.data;
+  }
+
+  /** Fetch report state by report/job ID. */
+  async getReportState(reportId: string) {
+    const result = await this.request(
+      `/threat-intel/hybrid-analysis/report/${reportId}/state`,
+    );
+    return result.data;
+  }
+
+  /** Fetch full report details by report/job ID. */
+  async getReportDetails(reportId: string) {
+    const result = await this.request(
+      `/threat-intel/hybrid-analysis/report/${reportId}`,
     );
     return result.data;
   }
