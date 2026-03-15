@@ -31,7 +31,7 @@ export class AuthApi extends BaseApi {
 
   logout(): void {
     this.clearSession();
-    if (typeof window !== "undefined") window.location.href = "/login";
+    if (typeof window !== "undefined") window.location.href = "/";
   }
 
   isAuthenticated(): boolean {

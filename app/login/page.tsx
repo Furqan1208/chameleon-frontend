@@ -26,9 +26,21 @@ export default function LoginPage() {
   const googleBtnRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (apiService.isAuthenticated()) {
-      router.replace("/dashboard")
+    const restoreSession = async () => {
+      if (!apiService.isAuthenticated()) return
+
+      try {
+        const me = await apiService.getMe()
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(me))
+        }
+        router.replace(me?.onboarding_completed ? "/dashboard" : "/onboarding")
+      } catch {
+        // BaseApi already handles expired sessions.
+      }
     }
+
+    restoreSession()
   }, [router])
 
   const handleCredentialResponse = async (response: { credential: string }) => {
@@ -37,7 +49,17 @@ export default function LoginPage() {
 
     try {
       await apiService.googleAuth(response.credential)
-      router.push("/dashboard")
+      const me = await apiService.getMe()
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(me))
+      }
+
+      if (me?.onboarding_completed) {
+        router.push("/dashboard")
+      } else {
+        router.push("/onboarding")
+      }
     } catch (authError: any) {
       setError(authError?.message || "Authentication failed. Please try again.")
       setIsLoading(false)

@@ -178,6 +178,7 @@ const itemVariants = {
 
 export default function DashboardPage() {
   const router = useRouter()
+  const [userName, setUserName] = useState("Analyst")
   const [recentActivity, setRecentActivity] = useState<any[]>([])
   const [stats, setStats] = useState({
     totalAnalyses: 0,
@@ -190,7 +191,35 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadDashboardData()
+    loadCurrentUser()
   }, [])
+
+  const loadCurrentUser = async () => {
+    try {
+      const me = await apiService.getMe()
+      const resolvedName = me?.name?.trim()
+      if (resolvedName) {
+        setUserName(resolvedName)
+      }
+      setStats((prev) => ({
+        ...prev,
+        threatIntelQueries: me?.threat_intel_queries_today ?? 0,
+      }))
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(me))
+      }
+    } catch {
+      const storedUser = apiService.getStoredUser()
+      const fallbackName = storedUser?.name?.trim()
+      if (fallbackName) {
+        setUserName(fallbackName)
+      }
+      setStats((prev) => ({
+        ...prev,
+        threatIntelQueries: storedUser?.threat_intel_queries_today ?? 0,
+      }))
+    }
+  }
 
   const loadDashboardData = async () => {
     try {
@@ -200,15 +229,15 @@ export default function DashboardPage() {
       setRecentActivity(reports.slice(0, 5))
       
       // Calculate stats
-      setStats({
+      setStats((prev) => ({
+        ...prev,
         totalAnalyses: reports.length,
-        threatIntelQueries: Math.floor(Math.random() * 100) + 50, // Mock data - replace with actual
         maliciousDetected: reports.filter((r: any) => (r.malscore || 0) >= 7).length,
-        pendingAnalyses: reports.filter((r: any) => 
+        pendingAnalyses: reports.filter((r: any) =>
           r.status === "created" || r.status === "pending" || r.status === "processing"
         ).length,
-        activeIntegrations: 8
-      })
+        activeIntegrations: 8,
+      }))
     } catch (error) {
       console.error("Failed to load dashboard data:", error)
     } finally {
@@ -242,7 +271,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Welcome back, Analyst
+                  Welcome back, {userName}
                 </h1>
                 <p className="text-muted-foreground mt-1 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
