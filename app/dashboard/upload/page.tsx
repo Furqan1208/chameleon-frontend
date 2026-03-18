@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { DropZone } from "@/components/upload/DropZone"
 import { FilePreview } from "@/components/upload/FilePreview"
 import { UploadProgress } from "@/components/upload/UploadProgress"
-import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import { apiService } from "@/services/api/api.service"
 import { calculateFileHash, simpleHashExtraction } from "@/lib/hash-utils"
 import { FileText, Brain, Shield, Zap, Info, Layers, Globe } from "lucide-react"
@@ -127,13 +126,17 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="relative min-h-full bg-background">
-      <NetworkBackground />
+    <div className="relative min-h-full bg-[#080808]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.028]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute -right-20 top-8 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+      </div>
 
-      <div className="relative z-10 p-6 lg:p-8">
+      <div className="relative z-10 p-6 max-w-7xl mx-auto">
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Upload & Analyze</h1>
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Intake</p>
+            <h1 className="text-2xl font-semibold text-white mb-2">Upload & Analyze</h1>
             <p className="text-muted-foreground">
               Choose analysis type and submit file for comprehensive malware analysis
             </p>
@@ -141,7 +144,7 @@ export default function UploadPage() {
 
           <div className="max-w-4xl mx-auto space-y-6">
             {error && (
-              <div className="glass border border-destructive rounded-lg p-4 text-destructive text-sm">
+              <div className="rounded-lg border border-destructive/40 bg-[#0d0d0d] p-4 text-destructive text-sm shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                 {error}
               </div>
             )}
@@ -153,7 +156,7 @@ export default function UploadPage() {
             )}
 
             {selectedFile && fileHash && !isUploading && (
-              <div className="glass border border-primary/20 bg-primary/5 rounded-lg p-4">
+              <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                 <div className="flex items-center gap-2 text-sm">
                   <Shield className="w-4 h-4 text-primary" />
                   <span className="text-muted-foreground">File hash calculated:</span>
@@ -178,7 +181,7 @@ export default function UploadPage() {
             {selectedFile && !isUploading && (
               <div className="space-y-6">
                 {/* Analysis Type Selection */}
-                <div className="glass border border-border rounded-lg p-6">
+                <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Analysis Type</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -204,7 +207,7 @@ export default function UploadPage() {
                     ))}
                   </div>
 
-                  <div className="mt-4 p-3 bg-muted/20 rounded-lg">
+                  <div className="mt-4 p-3 bg-black/20 border border-[#1a1a1a] rounded-lg">
                     <div className="flex items-start gap-2">
                       <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <p className="text-sm text-muted-foreground">{getAnalysisTypeDescription()}</p>
@@ -214,9 +217,9 @@ export default function UploadPage() {
 
                 {/* Threat Intel Notice */}
                 {fileHash && (
-                  <div className="glass border border-purple-500/20 bg-purple-500/5 rounded-lg p-4">
+                  <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                     <div className="flex items-start gap-3">
-                      <Globe className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
+                      <Globe className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium text-foreground">Immediate Threat Intelligence</h4>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -231,7 +234,7 @@ export default function UploadPage() {
 
                 {/* AI Model Selection */}
                 {(analysisType === "complete" || analysisType === "parse_and_ai" || analysisType === "ai") && (
-                  <div className="glass border border-border rounded-lg p-6">
+                  <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                     <details className="cursor-pointer group" open>
                       <summary className="flex items-center justify-between font-medium text-foreground hover:text-primary transition-colors">
                         <div className="flex items-center gap-2">
@@ -249,7 +252,7 @@ export default function UploadPage() {
                           <select
                             value={aiModel}
                             onChange={(e) => setAiModel(e.target.value)}
-                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-primary"
+                            className="w-full px-3 py-2 bg-black/20 border border-[#1a1a1a] rounded-lg text-foreground focus:outline-none focus:border-primary/40"
                           >
                             <option value="gemini-2.5-flash">Gemini 2.5 Flash (recommended)</option>
                             <option value="gemini-2.5-pro">Gemini 2.5 Pro (high context)</option>
@@ -269,7 +272,7 @@ export default function UploadPage() {
                 <button
                   onClick={handleStartAnalysis}
                   disabled={isUploading}
-                  className="w-full px-6 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors neon-glow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-primary to-emerald-400 text-black font-semibold rounded-lg hover:brightness-105 transition-colors shadow-[0_10px_26px_rgba(0,255,136,0.18)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
                     <>
@@ -311,35 +314,19 @@ function AnalysisTypeCard({
   color: "green" | "blue" | "pink" | "accent"
   recommended?: boolean
 }) {
-  const borderColor = selected
-    ? color === "green" ? "border-primary"
-    : color === "blue"  ? "border-secondary"
-    : color === "pink"  ? "border-accent"
-    : "border-primary"
-    : "border-border"
-
-  const glowClass = selected
-    ? color === "green" ? "glow-green"
-    : color === "blue"  ? "glow-blue"
-    : color === "pink"  ? "glow-pink"
-    : "glow-green"
-    : ""
-
-  const iconColor =
-    color === "green" ? "text-primary"
-    : color === "blue"  ? "text-secondary"
-    : color === "pink"  ? "text-accent"
-    : "text-primary"
+  const borderColor = selected ? "border-primary/50" : "border-[#1a1a1a]"
+  const iconColor = selected ? "text-primary" : "text-muted-foreground"
 
   return (
     <button
       onClick={onSelect}
-      className={`relative text-left p-4 rounded-lg border-2 transition-all duration-200 ${borderColor} ${glowClass} hover:scale-[1.02] ${
-        selected ? "bg-muted/20" : "bg-muted/5"
+      className={`relative text-left p-4 rounded-lg border transition-all duration-200 ${borderColor} shadow-[0_8px_22px_rgba(0,0,0,0.2)] hover:scale-[1.01] ${
+        selected ? "bg-primary/5" : "bg-black/10 hover:bg-white/[0.02]"
       }`}
     >
+      {selected && <span className="absolute left-0 top-0 h-full w-1 rounded-l-lg bg-primary" />}
       {recommended && (
-        <span className="absolute -top-2 -right-2 px-2 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
+        <span className="absolute -top-2 -right-2 px-2 py-1 bg-primary text-black text-xs font-semibold rounded-full">
           Recommended
         </span>
       )}
@@ -349,7 +336,7 @@ function AnalysisTypeCard({
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-semibold text-foreground">{title}</h4>
-            {selected && <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+            {selected && <span className="w-2 h-2 rounded-full bg-primary" />}
           </div>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>

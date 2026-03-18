@@ -4,6 +4,7 @@
 import { FileText, AlertTriangle, CheckCircle, Clock, AlertOctagon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { apiService } from "@/services/api/api.service"
+import { isCompletedStatus, isPendingStatus } from "@/lib/analysis-status"
 
 // minimal interface for reports returned by API (expand as needed)
 interface Report {
@@ -30,15 +31,8 @@ export function StatsCards() {
         // Calculate stats matching Reports page logic
         const total = reports.length
         
-        // Completed: status is "complete" or "completed"
-        const completed = reports.filter((r: Report) => 
-          r.status === "complete" || r.status === "completed"
-        ).length
-        
-        // Pending: status is "created", "pending", or "processing"
-        const pending = reports.filter((r: Report) => 
-          r.status === "created" || r.status === "pending" || r.status === "processing"
-        ).length
+        const completed = reports.filter((r: Report) => isCompletedStatus(r.status)).length
+        const pending = reports.filter((r: Report) => isPendingStatus(r.status)).length
         
         // Threats: malscore >= 4 (Medium + High risk)
         const threats = reports.filter((r: Report) => (r.malscore || 0) >= 4).length
@@ -57,56 +51,45 @@ export function StatsCards() {
   }, [])
 
   const statItems = [
-    { 
-      icon: FileText, 
-      label: "Total Analyses", 
-      value: stats.total, 
-      color: "blue",
-      bgColor: "bg-blue-500/10",
-      iconColor: "text-blue-500",
-      borderColor: "border-blue-500/20"
+    {
+      icon: FileText,
+      label: "Total Analyses",
+      value: stats.total,
+      threat: false,
     },
-    { 
-      icon: CheckCircle, 
-      label: "Completed", 
-      value: stats.completed, 
-      color: "green",
-      bgColor: "bg-green-500/10",
-      iconColor: "text-green-500",
-      borderColor: "border-green-500/20"
+    {
+      icon: CheckCircle,
+      label: "Completed",
+      value: stats.completed,
+      threat: false,
+      sub: stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : null,
     },
-    { 
-      icon: Clock, 
-      label: "Pending", 
-      value: stats.pending, 
-      color: "yellow",
-      bgColor: "bg-yellow-500/10",
-      iconColor: "text-yellow-500",
-      borderColor: "border-yellow-500/20"
+    {
+      icon: Clock,
+      label: "Pending",
+      value: stats.pending,
+      threat: false,
     },
-    { 
-      icon: AlertOctagon, 
-      label: "Threats Detected", 
-      value: stats.threats, 
-      color: "red",
-      bgColor: "bg-red-500/10",
-      iconColor: "text-red-500",
-      borderColor: "border-red-500/20"
+    {
+      icon: AlertOctagon,
+      label: "Threats Detected",
+      value: stats.threats,
+      threat: true,
     },
   ]
 
   // Loading skeletons
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="glass border border-border rounded-lg p-6 animate-pulse"
+            className="rounded-xl border border-border/80 bg-card/50 p-5 animate-pulse"
           >
-            <div className="h-8 w-8 bg-muted/20 rounded-lg mb-4" />
-            <div className="h-8 w-16 bg-muted/20 rounded mb-2" />
-            <div className="h-4 w-24 bg-muted/20 rounded" />
+            <div className="h-7 w-7 bg-muted/20 rounded-lg mb-4" />
+            <div className="h-7 w-14 bg-muted/20 rounded mb-2" />
+            <div className="h-3 w-22 bg-muted/20 rounded" />
           </div>
         ))}
       </div>
@@ -114,53 +97,35 @@ export function StatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {statItems.map((stat) => {
         const Icon = stat.icon
+        const isAlert = stat.threat && stat.value > 0
 
         return (
           <div
             key={stat.label}
-            className={`glass border ${stat.borderColor} rounded-lg p-6 transition-all duration-300`}
+            className={`rounded-xl border bg-card/50 p-5 transition-colors ${
+              isAlert ? "border-red-500/30" : "border-border/80"
+            }`}
           >
-            <div className={`flex items-center justify-between mb-4`}>
-              <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                <Icon className={`w-6 h-6 ${stat.iconColor}`} />
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-2 rounded-lg ${isAlert ? "bg-red-500/10" : "bg-muted/20"}`}>
+                <Icon className={`w-5 h-5 ${isAlert ? "text-red-400" : "text-muted-foreground"}`} />
               </div>
-              
-              {/* Mini indicator for threats */}
-              {stat.label === "Threats Detected" && stats.threats > 0 && (
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                </span>
+              {isAlert && (
+                <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />
               )}
             </div>
-            
-            {/* Value */}
-            <p className="text-3xl font-bold text-foreground mb-1">
+
+            <p className={`text-3xl font-semibold mb-1 ${isAlert ? "text-red-400" : "text-foreground"}`}>
               {stat.value}
             </p>
-            
-            {/* Label with additional context */}
+
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               {stat.label}
-              
-              {stat.label === "Completed" && stats.total > 0 && (
-                <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full">
-                  {Math.round((stats.completed / stats.total) * 100)}%
-                </span>
-              )}
-              {stat.label === "Threats Detected" && stats.total > 0 && (
-                <span className="text-xs px-2 py-0.5 bg-red-500/10 text-red-500 rounded-full">
-                  {Math.round((stats.threats / stats.total) * 100)}% of total
-                </span>
-              )}
-              {stat.label === "Pending" && stats.pending === 0 && (
-                <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full">
-                  None
-                </span>
+              {"sub" in stat && stat.sub && (
+                <span className="text-xs font-mono text-primary">{stat.sub}</span>
               )}
             </p>
           </div>

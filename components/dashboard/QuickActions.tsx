@@ -9,29 +9,27 @@ export function QuickActions() {
   const router = useRouter()
 
   return (
-    <div className="glass border border-border rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-foreground mb-6">Quick Actions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+      <h2 className="text-sm font-semibold text-foreground mb-4">Quick Actions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <ActionButton
-          icon={<Upload className="w-6 h-6" />}
+          icon={<Upload className="w-4 h-4" />}
           label="Upload File"
           description="Analyze new sample"
           onClick={() => router.push("/dashboard/upload")}
-          color="green"
+          primary
         />
         <ActionButton
-          icon={<FileText className="w-6 h-6" />}
+          icon={<FileText className="w-4 h-4" />}
           label="View Reports"
           description="Browse analyses"
           onClick={() => router.push("/dashboard/reports")}
-          color="blue"
         />
         <ActionButton
-          icon={<Download className="w-6 h-6" />}
+          icon={<Download className="w-4 h-4" />}
           label="Export Data"
           description="Download results"
           onClick={() => alert("Export functionality coming soon")}
-          color="pink"
         />
       </div>
     </div>
@@ -43,25 +41,27 @@ function ActionButton({
   label,
   description,
   onClick,
-  color,
+  primary,
 }: {
   icon: React.ReactNode
   label: string
   description: string
   onClick: () => void
-  color: "green" | "blue" | "pink"
+  primary?: boolean
 }) {
-  const iconColor = color === "green" ? "text-primary" : color === "blue" ? "text-secondary" : "text-accent"
-
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-4 p-4 rounded-lg border border-border bg-muted/5 hover:bg-muted/10 transition-all duration-200"
+      className={`flex items-center gap-3 p-4 rounded-lg border transition-colors text-left ${
+        primary
+          ? "border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50"
+          : "border-[#1a1a1a] bg-transparent hover:bg-white/[0.03] hover:border-[#2a2a2a]"
+      }`}
     >
-      <div className={iconColor}>{icon}</div>
-      <div className="text-left">
-        <p className="font-medium text-foreground">{label}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div className={primary ? "text-primary" : "text-muted-foreground"}>{icon}</div>
+      <div>
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
     </button>
   )

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import { apiService } from "@/services/api/api.service"
+import { isCompletedStatus, isPendingStatus, isFailedStatus } from "@/lib/analysis-status"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   FileText, 
@@ -95,15 +95,14 @@ export default function ReportsPage() {
       // Status filter
       if (statusFilter !== "all") {
         filtered = filtered.filter(report => {
-          const status = report.status?.toLowerCase() || ""
           if (statusFilter === "completed") {
-            return status === "complete" || status === "completed" || status === "done"
+            return isCompletedStatus(report.status)
           }
           if (statusFilter === "processing") {
-            return status === "created" || status === "pending" || status === "processing"
+            return isPendingStatus(report.status)
           }
           if (statusFilter === "failed") {
-            return status === "failed" || status === "error" || status === "crashed"
+            return isFailedStatus(report.status)
           }
           return false
         })
@@ -148,18 +147,9 @@ export default function ReportsPage() {
       // Calculate stats
       const newStats = {
         total: reports.length,
-        completed: reports.filter(r => {
-          const status = r.status?.toLowerCase() || ""
-          return status === "complete" || status === "completed" || status === "done"
-        }).length,
-        pending: reports.filter(r => {
-          const status = r.status?.toLowerCase() || ""
-          return status === "created" || status === "pending" || status === "processing"
-        }).length,
-        failed: reports.filter(r => {
-          const status = r.status?.toLowerCase() || ""
-          return status === "failed" || status === "error" || status === "crashed"
-        }).length,
+        completed: reports.filter(r => isCompletedStatus(r.status)).length,
+        pending: reports.filter(r => isPendingStatus(r.status)).length,
+        failed: reports.filter(r => isFailedStatus(r.status)).length,
         highRisk: reports.filter(r => (r.malscore || 0) >= 7).length,
         mediumRisk: reports.filter(r => (r.malscore || 0) >= 4 && (r.malscore || 0) < 7).length,
         lowRisk: reports.filter(r => (r.malscore || 0) >= 1 && (r.malscore || 0) < 4).length
@@ -264,9 +254,7 @@ export default function ReportsPage() {
   }
 
   const getStatusInfo = (status?: string) => {
-    const statusLower = status?.toLowerCase() || ""
-    
-    if (statusLower === "complete" || statusLower === "completed" || statusLower === "done") {
+    if (isCompletedStatus(status)) {
       return { 
         label: "Completed", 
         color: "text-green-500", 
@@ -276,7 +264,7 @@ export default function ReportsPage() {
         spin: false
       }
     }
-    if (statusLower === "created" || statusLower === "pending" || statusLower === "processing") {
+    if (isPendingStatus(status)) {
       return { 
         label: "Processing", 
         color: "text-blue-500", 
@@ -286,7 +274,7 @@ export default function ReportsPage() {
         spin: true
       }
     }
-    if (statusLower === "failed" || statusLower === "error" || statusLower === "crashed") {
+    if (isFailedStatus(status)) {
       return { 
         label: "Failed", 
         color: "text-red-500", 
@@ -307,17 +295,14 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-      <NetworkBackground />
-      
-      {/* Decorative elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700" />
+    <div className="relative min-h-full bg-[#080808]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
       </div>
 
-      <div className="relative z-10 p-4 lg:p-6 max-w-7xl mx-auto">
+      <div className="relative z-10 p-6 max-w-7xl mx-auto">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -327,13 +312,12 @@ export default function ReportsPage() {
           {/* Header */}
           <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-primary to-purple-600 rounded-2xl shadow-xl">
-                <FileText className="w-8 h-8 text-white" />
+              <div className="p-3 rounded-xl border border-[#1a1a1a] bg-[#0d0d0d]">
+                <FileText className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Analysis Reports
-                </h1>
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Archive</p>
+                <h1 className="text-2xl font-semibold text-white">Analysis Reports</h1>
                 <p className="text-muted-foreground mt-1 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
                   Browse and manage your malware analysis reports
@@ -346,7 +330,7 @@ export default function ReportsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
-                className="p-2 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/50 transition-colors"
+                className="p-2 rounded-lg border border-[#1a1a1a] text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -416,7 +400,7 @@ export default function ReportsPage() {
           </motion.div>
 
           {/* Search and Filters */}
-          <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-4 backdrop-blur-xl">
+          <motion.div variants={itemVariants} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -426,7 +410,7 @@ export default function ReportsPage() {
                     placeholder="Search by filename or analysis ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-background/50 border border-border rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-black/20 border border-[#1a1a1a] rounded-xl focus:outline-none focus:border-primary/40 transition-all"
                   />
                 </div>
               </div>
@@ -438,8 +422,8 @@ export default function ReportsPage() {
                   onClick={() => setShowFilters(!showFilters)}
                   className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 ${
                     showFilters 
-                      ? 'bg-primary/20 border-primary/50 text-primary' 
-                      : 'border-border/50 hover:border-primary/50'
+                      ? 'bg-primary/10 border-primary/40 text-primary' 
+                      : 'border-[#1a1a1a] text-muted-foreground hover:text-white hover:border-[#2a2a2a]'
                   }`}
                 >
                   <Filter className="w-4 h-4" />
@@ -454,7 +438,7 @@ export default function ReportsPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-4 py-3 bg-background/50 border border-border rounded-xl focus:outline-none focus:border-primary"
+                  className="px-4 py-3 bg-[#111111] text-white border border-[#1a1a1a] rounded-xl focus:outline-none focus:border-primary/40 [color-scheme:dark] [&>option]:bg-[#111111] [&>option]:text-white"
                 >
                   <option value="date">Sort by Date</option>
                   <option value="threat">Sort by Threat</option>
@@ -463,7 +447,7 @@ export default function ReportsPage() {
 
                 <button
                   onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc")}
-                  className="p-3 border border-border rounded-xl hover:border-primary/50 transition-colors"
+                  className="p-3 border border-[#1a1a1a] rounded-xl hover:border-[#2a2a2a] transition-colors"
                   title={sortOrder === "desc" ? "Descending" : "Ascending"}
                 >
                   {sortOrder === "desc" ? "↓" : "↑"}
@@ -488,7 +472,7 @@ export default function ReportsPage() {
                       <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-background/50 border border-border rounded-lg focus:outline-none focus:border-primary"
+                        className="w-full px-3 py-2 bg-[#111111] text-white border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary/40 [color-scheme:dark] [&>option]:bg-[#111111] [&>option]:text-white"
                       >
                         <option value="all">All Status</option>
                         <option value="completed">Completed</option>
@@ -504,7 +488,7 @@ export default function ReportsPage() {
                       <select
                         value={threatFilter}
                         onChange={(e) => setThreatFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-background/50 border border-border rounded-lg focus:outline-none focus:border-primary"
+                        className="w-full px-3 py-2 bg-[#111111] text-white border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary/40 [color-scheme:dark] [&>option]:bg-[#111111] [&>option]:text-white"
                       >
                         <option value="all">All Threats</option>
                         <option value="high">High Risk</option>
@@ -523,7 +507,7 @@ export default function ReportsPage() {
                           setSortBy("date")
                           setSortOrder("desc")
                         }}
-                        className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors text-sm"
+                        className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-white/[0.03] transition-colors text-sm"
                       >
                         Clear Filters
                       </button>
@@ -551,12 +535,12 @@ export default function ReportsPage() {
 
           {/* Loading State */}
           {loading && (
-            <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-12 backdrop-blur-xl">
+            <motion.div variants={itemVariants} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
               <div className="flex flex-col items-center justify-center gap-4">
                 <div className="relative">
                   <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 bg-gradient-to-r from-primary to-purple-600 rounded-full animate-pulse" />
+                    <div className="w-8 h-8 bg-primary rounded-full animate-pulse" />
                   </div>
                 </div>
                 <p className="text-muted-foreground">Loading reports...</p>
@@ -566,7 +550,7 @@ export default function ReportsPage() {
 
           {/* Error State */}
           {error && !loading && (
-            <motion.div variants={itemVariants} className="glass border border-red-500/30 bg-red-500/5 rounded-xl p-8 backdrop-blur-xl">
+            <motion.div variants={itemVariants} className="rounded-xl border border-red-500/30 bg-[#0d0d0d] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-red-500/20 rounded-xl">
                   <AlertCircle className="w-6 h-6 text-red-500" />
@@ -590,9 +574,9 @@ export default function ReportsPage() {
 
           {/* Empty State */}
           {!loading && !error && filteredReports.length === 0 && (
-            <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-12 backdrop-blur-xl">
+            <motion.div variants={itemVariants} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-full mb-4">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
                   <FileText className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">No Reports Found</h3>
@@ -609,14 +593,14 @@ export default function ReportsPage() {
                         setStatusFilter("all")
                         setThreatFilter("all")
                       }}
-                      className="px-6 py-3 border border-border rounded-xl hover:bg-muted/30 transition-colors"
+                      className="px-6 py-3 border border-[#1a1a1a] rounded-xl hover:bg-white/[0.03] transition-colors"
                     >
                       Clear Filters
                     </button>
                   )}
                   <button
                     onClick={() => router.push("/dashboard/upload")}
-                    className="px-6 py-3 bg-gradient-to-r from-primary to-purple-600 text-white rounded-xl hover:from-primary/90 hover:to-purple-600/90 transition-all flex items-center gap-2"
+                      className="px-6 py-3 bg-primary text-black rounded-xl hover:bg-primary/90 transition-all flex items-center gap-2 font-semibold"
                   >
                     <Rocket className="w-4 h-4" />
                     Upload File
@@ -641,7 +625,7 @@ export default function ReportsPage() {
                       key={report.analysis_id}
                       variants={cardVariants}
                       layout
-                      className={`glass border border-border/50 rounded-xl overflow-hidden backdrop-blur-xl relative ${
+                      className={`rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] overflow-hidden relative transition-colors hover:border-primary/30 ${
                         selectedReports.includes(report.analysis_id) 
                           ? 'ring-2 ring-primary' 
                           : ''
@@ -827,13 +811,24 @@ function StatsCard({ icon, label, value, gradient }: {
   value: number; 
   gradient: string;
 }) {
+  const accentMap: Record<string, string> = {
+    "from-blue-500 to-cyan-500": "text-sky-400 bg-sky-400/10",
+    "from-green-500 to-emerald-500": "text-emerald-400 bg-emerald-400/10",
+    "from-yellow-500 to-orange-500": "text-amber-400 bg-amber-400/10",
+    "from-red-500 to-pink-500": "text-rose-400 bg-rose-400/10",
+    "from-red-500 to-orange-500": "text-red-400 bg-red-400/10",
+    "from-yellow-500 to-amber-500": "text-yellow-400 bg-yellow-400/10",
+    "from-green-500 to-teal-500": "text-teal-400 bg-teal-400/10",
+  }
+  const accent = accentMap[gradient] ?? "text-primary bg-primary/10"
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className={`glass border border-border/50 rounded-xl p-3 backdrop-blur-xl bg-gradient-to-br ${gradient} bg-opacity-5`}
+      className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
     >
       <div className="flex items-center gap-2">
-        <div className={`p-2 rounded-lg bg-gradient-to-r ${gradient} bg-opacity-10`}>
+        <div className={`p-2 rounded-lg ${accent}`}>
           {icon}
         </div>
         <div>

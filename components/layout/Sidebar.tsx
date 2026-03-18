@@ -260,7 +260,7 @@ export function Sidebar() {
         {isItemActive && !isCollapsed && (
           <motion.div
             layoutId="activeIndicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-primary to-purple-500 rounded-r-full"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-7 bg-primary rounded-r-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -293,14 +293,9 @@ export function Sidebar() {
           )}
           title={isCollapsed ? item.label : undefined}
         >
-          {/* Background glow on hover */}
+          {/* Hover tint */}
           {isHovered && !isItemActive && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            />
+            <div className="absolute inset-0 bg-muted/30 rounded-xl" />
           )}
 
           <div className="flex items-center gap-3 min-w-0 relative z-10">
@@ -318,13 +313,7 @@ export function Sidebar() {
                 <Icon className="w-5 h-5" />
               </div>
               
-              {/* Status dot for active items */}
-              {isItemActive && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
-                </span>
-              )}
+
             </div>
             
             {!isCollapsed && (
@@ -334,12 +323,7 @@ export function Sidebar() {
                   
                   {/* Badge for new items */}
                   {item.badge && (
-                    <span className={cn(
-                      "px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r shadow-lg",
-                      item.badgeColor === "purple" ? "from-purple-500 to-pink-500 text-white" :
-                      item.badgeColor === "pink" ? "from-pink-500 to-rose-500 text-white" :
-                      "from-primary to-purple-500 text-white"
-                    )}>
+                    <span className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-primary/30 text-primary">
                       {item.badge}
                     </span>
                   )}
@@ -413,7 +397,7 @@ export function Sidebar() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-3 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground rounded-xl md:hidden shadow-xl"
+          className="fixed top-4 left-4 z-50 p-2.5 bg-background border border-border rounded-lg md:hidden"
         >
           {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
         </motion.button>
@@ -434,38 +418,27 @@ export function Sidebar() {
         )}
       >
         {/* Gradient background effect */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" />
         
         {/* Logo section */}
         <motion.div 
           className={cn(
-            "border-b border-border/50 flex items-center relative overflow-hidden",
-            isCollapsed ? "p-4 justify-center" : "p-4 justify-center"
+            "border-b border-border/50 flex items-center",
+            isCollapsed ? "p-4 justify-center" : "p-4"
           )}
         >
-          {/* Decorative elements */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent" />
-          <div className="absolute -right-10 -top-10 w-20 h-20 bg-primary/20 rounded-full blur-2xl" />
-          
           {/* Clickable logo */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => router.push("/")}
             className={cn(
-              "flex items-center gap-3 transition-all duration-300 group cursor-pointer relative z-10",
+              "flex items-center gap-3 transition-all duration-200 cursor-pointer",
               isCollapsed ? "justify-center" : ""
             )}
             title="Go to Home"
           >
-            <div className="relative">
-              <Logo type="icon" size="md" className="text-primary neon-text flex-shrink-0" />
-              <motion.div
-                className="absolute inset-0 bg-primary/20 blur-lg rounded-full"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            </div>
+            <Logo type="icon" size="md" className="text-primary flex-shrink-0" />
             
             {!isCollapsed && (
               <motion.div
@@ -473,11 +446,10 @@ export function Sidebar() {
                 animate={{ opacity: 1, x: 0 }}
                 className="min-w-0"
               >
-                <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent truncate">
+                <h1 className="text-base font-semibold text-foreground truncate">
                   Chameleon
                 </h1>
-                <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                  <Zap className="w-3 h-3" />
+                <p className="text-xs text-muted-foreground truncate">
                   Malware Analysis
                 </p>
               </motion.div>
@@ -493,21 +465,19 @@ export function Sidebar() {
         </nav>
 
         {/* Footer section */}
-        <div className="p-4 border-t border-border/50 relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="p-4 border-t border-border/50">
           
           {/* Desktop toggle button */}
           {!isMobile && (
             <div className="flex justify-end relative z-10">
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={toggleSidebar}
                 className={cn(
-                  "p-2 rounded-xl hover:bg-muted/50 transition-all duration-200 flex items-center justify-center group relative",
-                  "border border-border/50 hover:border-primary/50",
-                  "bg-gradient-to-r from-transparent to-transparent hover:from-primary/5 hover:to-purple-500/5",
-                  isCollapsed ? "w-10 h-10" : "w-10 h-10"
+                  "p-2 rounded-lg hover:bg-muted/40 transition-colors flex items-center justify-center",
+                  "border border-border/60",
+                  isCollapsed ? "w-8 h-8" : "w-8 h-8"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >

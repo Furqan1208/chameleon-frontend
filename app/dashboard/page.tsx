@@ -4,713 +4,502 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { StatsCards } from "@/components/dashboard/StatsCards"
-import { QuickActions } from "@/components/dashboard/QuickActions"
-import { RecentAnalyses } from "@/components/dashboard/RecentAnalyses"
-import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import { motion } from "framer-motion"
-import { 
-  Zap, 
-  Shield, 
-  Cpu, 
-  Globe, 
-  AlertTriangle, 
+import {
+  AlertTriangle,
   FileText,
   Activity,
-  TrendingUp,
-  BarChart3,
-  PieChart,
   Clock,
-  Calendar,
   ArrowUpRight,
-  ArrowRight,
-  Sparkles,
-  Rocket,
-  Gauge,
-  Radar,
-  Bot,
-  Atom,
-  Binary,
-  Code,
-  Cloud,
-  Database,
-  Lock,
-  Unlock,
   ChevronRight,
   CheckCircle,
-  XCircle,
-  HelpCircle,
-  BookOpen,
-  Github,
-  Twitter,
-  Mail,
-  Star,
-  GitBranch,
-  Users,
-  Award,
-  Layers,
-  Workflow,
-  Compass,
-  Box,
-  Shield as ShieldIcon,
-  Target,
-  Radio,
-  Satellite,
-  Scan,
-  Eye,
-  AlertOctagon,
-  Fingerprint,
-  Hash,
-  Link as LinkIcon,
-  Network,
-  Server,
-  HardDrive,
-  Download,
+  Radar,
   Upload,
   RefreshCw,
-  Search,
-  Filter,
-  Settings,
-  Bell,
-  BellRing,
-  Menu,
-  X,
-  Home,
-  File,
-  Folder,
-  FolderOpen,
-  FolderTree,
-  FileCode,
-  FileJson,
-  FileText as FileTextIcon,
-  Image,
-  Video,
-  Music,
-  Archive,
-  Package,
-  Box as BoxIcon,
-  Cpu as CpuIcon,
-  Globe as GlobeIcon,
-  Shield as ShieldIcon2,
-  Lock as LockIcon,
-  Unlock as UnlockIcon,
-  Key,
-  KeyRound,
-  Fingerprint as FingerprintIcon,
-  Scan as ScanIcon,
-  Radar as RadarIcon,
-  Satellite as SatelliteIcon,
-  Radio as RadioIcon,
-  Target as TargetIcon,
-  Crosshair,
-  Cross,
-  Circle,
-  Square,
-  Triangle,
-  Hexagon,
-  Octagon,
-  Pentagon,
-  Star as StarIcon,
-  Heart,
-  ThumbsUp,
-  ThumbsDown,
-  Smile,
-  Frown,
-  Meh,
-  Laugh,
-  Angry,
-  Eye as EyeIcon,
-  EyeOff,
-  EyeClosed,
-  Ear,
-  EarOff,
-  Mic,
-  MicOff,
-  Speaker,
-  Volume1,
-  Volume2,
-  VolumeX,
-  Headphones,
-  Headset,
-  Radio as RadioIcon2,
-  Tv,
-  Monitor,
-  Tablet,
-  Smartphone,
-  Watch,
-  Clock as ClockIcon,
-  AlarmClock,
-  Timer,
-  Hourglass,
-  Calendar as CalendarIcon,
-  CalendarDays,
-  CalendarRange,
-  CalendarCheck,
-  CalendarX,
-  CalendarPlus,
-  CalendarMinus,
-  CalendarHeart,
-  CalendarClock,
-  CalendarOff,
-  CalendarCog,
-  CalendarArrowUp,
-  CalendarArrowDown,
   Loader,
-  Brain
+  XCircle,
+  Shield,
 } from "lucide-react"
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
 import { apiService } from "@/services/api/api.service"
+import { QuickActions } from "@/components/dashboard/QuickActions"
+import { isCompletedStatus, isPendingStatus, isFailedStatus } from "@/lib/analysis-status"
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+const COLORS = {
+  primary: "#00ff88",
+  red: "#f87171",
+  yellow: "#facc15",
+  muted: "#2a2a2a",
+  border: "#1a1a1a",
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+}
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0 },
+}
+
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+function CardHeader({ title, icon, action }: { title: string; icon: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+        {icon}
+        {title}
+      </h3>
+      {action}
+    </div>
+  )
+}
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-xs shadow-xl">
+      {label && <p className="text-muted-foreground mb-1">{label}</p>}
+      {payload.map((p: any, i: number) => (
+        <p key={i} style={{ color: p.color ?? p.fill }} className="font-medium">
+          {p.name}: {p.value}
+        </p>
+      ))}
+    </div>
+  )
 }
 
 export default function DashboardPage() {
   const router = useRouter()
   const [userName, setUserName] = useState("Analyst")
-  const [recentActivity, setRecentActivity] = useState<any[]>([])
-  const [stats, setStats] = useState({
-    totalAnalyses: 0,
-    threatIntelQueries: 0,
-    maliciousDetected: 0,
-    pendingAnalyses: 0,
-    activeIntegrations: 8
-  })
+  const [reports, setReports] = useState<any[]>([])
+  const [threatIntelQueries, setThreatIntelQueries] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadDashboardData()
-    loadCurrentUser()
+    loadAll()
   }, [])
 
-  const loadCurrentUser = async () => {
+  const loadAll = async () => {
+    setLoading(true)
     try {
-      const me = await apiService.getMe()
-      const resolvedName = me?.name?.trim()
-      if (resolvedName) {
-        setUserName(resolvedName)
-      }
-      setStats((prev) => ({
-        ...prev,
-        threatIntelQueries: me?.threat_intel_queries_today ?? 0,
-      }))
-      if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify(me))
-      }
+      const [me, rpts] = await Promise.all([apiService.getMe(), apiService.getAllReports()])
+      if (me?.name?.trim()) setUserName(me.name.trim())
+      setThreatIntelQueries(me?.threat_intel_queries_today ?? 0)
+      if (typeof window !== "undefined") localStorage.setItem("user", JSON.stringify(me))
+      setReports(Array.isArray(rpts) ? rpts : [])
     } catch {
-      const storedUser = apiService.getStoredUser()
-      const fallbackName = storedUser?.name?.trim()
-      if (fallbackName) {
-        setUserName(fallbackName)
-      }
-      setStats((prev) => ({
-        ...prev,
-        threatIntelQueries: storedUser?.threat_intel_queries_today ?? 0,
-      }))
-    }
-  }
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true)
-      // Get recent reports
-      const reports = await apiService.getAllReports()
-      setRecentActivity(reports.slice(0, 5))
-      
-      // Calculate stats
-      setStats((prev) => ({
-        ...prev,
-        totalAnalyses: reports.length,
-        maliciousDetected: reports.filter((r: any) => (r.malscore || 0) >= 7).length,
-        pendingAnalyses: reports.filter((r: any) =>
-          r.status === "created" || r.status === "pending" || r.status === "processing"
-        ).length,
-        activeIntegrations: 8,
-      }))
-    } catch (error) {
-      console.error("Failed to load dashboard data:", error)
+      try { setReports(await apiService.getAllReports()) } catch { setReports([]) }
+      const stored = apiService.getStoredUser()
+      if (stored?.name?.trim()) setUserName(stored.name.trim())
+      setThreatIntelQueries(stored?.threat_intel_queries_today ?? 0)
     } finally {
       setLoading(false)
     }
   }
 
+  // ── Derived stats ────────────────────────────────────────────────────────────
+  const total = reports.length
+  const completed = reports.filter(r => isCompletedStatus(r.status)).length
+  const pending   = reports.filter(r => isPendingStatus(r.status)).length
+  const failed    = reports.filter(r => isFailedStatus(r.status)).length
+  const highRisk  = reports.filter(r => (r.malscore ?? 0) >= 7).length
+  const medRisk   = reports.filter(r => (r.malscore ?? 0) >= 4 && (r.malscore ?? 0) < 7).length
+  const lowRisk   = reports.filter(r => (r.malscore ?? 0) >= 1 && (r.malscore ?? 0) < 4).length
+  const clean     = reports.filter(r => (r.malscore ?? 0) === 0).length
+
+  const statusChartData = [
+    { name: "Completed", value: completed, color: COLORS.primary },
+    { name: "Pending",   value: pending,   color: "#60a5fa"       },
+    { name: "Failed",    value: failed,    color: COLORS.red      },
+  ].filter(d => d.value > 0)
+
+  const riskChartData = [
+    { label: "High ≥7",    value: highRisk, fill: COLORS.red     },
+    { label: "Medium 4–6", value: medRisk,  fill: "#fb923c"      },
+    { label: "Low 1–3",    value: lowRisk,  fill: COLORS.yellow  },
+    { label: "Clean",      value: clean,    fill: COLORS.primary },
+  ]
+
+  const recentFive = reports.slice(0, 5)
+
   return (
-    <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-      <NetworkBackground />
-      
-      {/* Decorative elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700" />
+    <div className="relative min-h-full bg-[#080808]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
       </div>
 
-      <div className="relative z-10 p-4 lg:p-6 max-w-7xl mx-auto">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-          className="space-y-6"
-        >
-          {/* Header with Welcome and Quick Actions */}
-          <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-primary to-purple-600 rounded-2xl shadow-xl">
-                <Home className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Welcome back, {userName}
-                </h1>
-                <p className="text-muted-foreground mt-1 flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  Real-time malware analysis and threat intelligence at your fingertips
-                </p>
-              </div>
+      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+        <motion.div initial="hidden" animate="visible" variants={containerVariants} className="space-y-6">
+
+          {/* ── Header ─────────────────────────────────────────────────── */}
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary mb-1">Command Surface</p>
+              <h1 className="text-2xl font-semibold text-white">Welcome back, {userName}</h1>
+              <p className="text-muted-foreground text-sm mt-0.5">Malware analysis &amp; threat intelligence</p>
             </div>
-            
-            <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={loadDashboardData}
-                className="p-2 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/50 transition-colors"
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={loadAll}
+                className="p-2 rounded-lg border border-[#1a1a1a] text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => router.push("/dashboard/upload")}
-                className="px-4 py-2 bg-gradient-to-r from-primary to-purple-600 text-white rounded-lg hover:from-primary/90 hover:to-purple-600/90 transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm font-semibold"
               >
                 <Upload className="w-4 h-4" />
                 New Analysis
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
+              </button>
             </div>
           </motion.div>
 
-          {/* Stats Cards - Enhanced */}
-          <motion.div variants={itemVariants}>
-            <StatsCards />
+          {/* ── Stat Cards ─────────────────────────────────────────────── */}
+          <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Total Analyses", value: total, icon: <FileText className="w-4 h-4" />, sub: null },
+              {
+                label: "Completed", value: completed,
+                icon: <CheckCircle className="w-4 h-4" />,
+                sub: total > 0 ? `${Math.round((completed / total) * 100)}%` : null
+              },
+              {
+                label: "Threats Detected", value: highRisk,
+                icon: <AlertTriangle className="w-4 h-4" />,
+                alert: highRisk > 0
+              },
+              { label: "Pending", value: pending, icon: <Clock className="w-4 h-4" />, sub: null },
+            ].map(({ label, value, icon, sub, alert }) => (
+              <Card key={label} className={`p-5 ${alert ? "border-red-500/25" : ""}`}>
+                <div className={`flex items-center justify-between mb-3`}>
+                  <div className={`p-1.5 rounded-md ${alert ? "bg-red-500/10 text-red-400" : "bg-white/5 text-muted-foreground"}`}>
+                    {icon}
+                  </div>
+                  {alert && <span className="w-1.5 h-1.5 rounded-full bg-red-400" />}
+                </div>
+                <p className={`text-3xl font-semibold ${alert ? "text-red-400" : "text-white"}`}>
+                  {loading ? <span className="block h-8 w-12 bg-white/5 rounded animate-pulse" /> : value}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                  {label}
+                  {sub && <span className="font-mono text-primary">{sub}</span>}
+                </p>
+              </Card>
+            ))}
           </motion.div>
 
-          {/* Main Grid */}
+          {/* ── Charts + Threat Intel ───────────────────────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - 2/3 width */}
+
+            {/* Left 2/3 — charts */}
             <div className="lg:col-span-2 space-y-6">
+
+              {/* Analysis Status chart */}
+              <motion.div variants={itemVariants}>
+                <Card className="p-5">
+                  <CardHeader
+                    title="Analysis Status"
+                    icon={<Activity className="w-4 h-4 text-primary" />}
+                    action={
+                      <Link href="/dashboard/reports" className="text-xs text-primary hover:underline flex items-center gap-1">
+                        All Reports <ChevronRight className="w-3 h-3" />
+                      </Link>
+                    }
+                  />
+
+                  {loading ? (
+                    <div className="h-44 bg-white/[0.03] rounded-lg animate-pulse" />
+                  ) : total === 0 ? (
+                    <div className="h-44 flex flex-col items-center justify-center text-muted-foreground">
+                      <FileText className="w-8 h-8 mb-2 opacity-30" />
+                      <p className="text-sm">No analyses yet</p>
+                      <button onClick={() => router.push("/dashboard/upload")} className="mt-2 text-xs text-primary hover:underline">
+                        Upload a sample
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-6">
+                      {/* Donut */}
+                      <div className="shrink-0" style={{ width: 160, height: 160 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={statusChartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={50}
+                              outerRadius={72}
+                              paddingAngle={3}
+                              dataKey="value"
+                              stroke="none"
+                            >
+                              {statusChartData.map((entry, i) => (
+                                <Cell key={i} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip />} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Legend + numbers */}
+                      <div className="flex-1 space-y-3">
+                        {[
+                          { label: "Completed", value: completed, color: COLORS.primary },
+                          { label: "Pending",   value: pending,   color: "#60a5fa"       },
+                          { label: "Failed",    value: failed,    color: COLORS.red      },
+                        ].map(({ label, value, color }) => (
+                          <div key={label} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                              <span className="text-sm text-muted-foreground">{label}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-semibold text-white font-mono">{value}</span>
+                              <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{ width: `${total > 0 ? (value / total) * 100 : 0}%`, background: color }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="pt-1 border-t border-[#1a1a1a] flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Total</span>
+                          <span className="text-sm font-bold text-white font-mono">{total}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+
+              {/* Risk Distribution chart */}
+              <motion.div variants={itemVariants}>
+                <Card className="p-5">
+                  <CardHeader
+                    title="Risk Distribution"
+                    icon={<Shield className="w-4 h-4 text-primary" />}
+                  />
+
+                  {loading ? (
+                    <div className="h-44 bg-white/[0.03] rounded-lg animate-pulse" />
+                  ) : total === 0 ? (
+                    <div className="h-44 flex items-center justify-center text-muted-foreground">
+                      <p className="text-sm">No data</p>
+                    </div>
+                  ) : (
+                    <div className="h-44">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={riskChartData}
+                          layout="vertical"
+                          margin={{ top: 0, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <XAxis type="number" hide />
+                          <YAxis
+                            type="category"
+                            dataKey="label"
+                            width={76}
+                            tick={{ fill: "#888", fontSize: 11 }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                          <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={18}>
+                            {riskChartData.map((entry, i) => (
+                              <Cell key={i} fill={entry.fill} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+
               {/* Quick Actions */}
               <motion.div variants={itemVariants}>
                 <QuickActions />
               </motion.div>
+            </div>
 
-              {/* Recent Analyses */}
+            {/* Right 1/3 — threat intel */}
+            <div className="space-y-6">
               <motion.div variants={itemVariants}>
-                <RecentAnalyses />
-              </motion.div>
+                <Card className="p-5">
+                  <CardHeader
+                    title="Threat Intel"
+                    icon={<Radar className="w-4 h-4 text-primary" />}
+                    action={
+                      <Link href="/dashboard/threat-intel/unified" className="text-xs text-primary hover:underline flex items-center gap-1">
+                        Unified <ChevronRight className="w-3 h-3" />
+                      </Link>
+                    }
+                  />
 
-              {/* Activity Timeline */}
-              <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-6 backdrop-blur-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-primary" />
-                    Recent Activity
-                  </h3>
-                  <Link 
-                    href="/dashboard/reports"
-                    className="text-sm text-primary hover:underline flex items-center gap-1"
-                  >
-                    View All
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="rounded-lg border border-[#1a1a1a] p-3">
+                      <p className="text-[11px] text-muted-foreground mb-1">Sources</p>
+                      <p className="text-2xl font-semibold text-white">8</p>
+                    </div>
+                    <div className="rounded-lg border border-[#1a1a1a] p-3">
+                      <p className="text-[11px] text-muted-foreground mb-1">Today</p>
+                      <p className="text-2xl font-semibold text-white">{loading ? "—" : threatIntelQueries}</p>
+                    </div>
+                  </div>
 
-                {loading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-muted/5 border border-border/50 animate-pulse">
-                        <div className="w-10 h-10 bg-muted/20 rounded-lg" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-muted/20 rounded w-3/4" />
-                          <div className="h-3 bg-muted/20 rounded w-1/2" />
-                        </div>
+                  <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">Active Sources</p>
+                  <div className="space-y-1.5">
+                    {["VirusTotal", "AbuseIPDB", "MalwareBazaar", "Hybrid Analysis", "AlienVault OTX", "Filescan.io", "ThreatFox"].map((name) => (
+                      <div key={name} className="flex items-center justify-between px-3 py-2 rounded-lg border border-[#1a1a1a]">
+                        <span className="text-xs text-foreground">{name}</span>
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full" />
                       </div>
                     ))}
                   </div>
-                ) : recentActivity.length > 0 ? (
-                  <div className="space-y-3">
-                    {recentActivity.map((activity, index) => {
-                      const isMalicious = (activity.malscore || 0) >= 7
-                      const isProcessing = activity.status === "created" || activity.status === "pending"
-                      
-                      return (
-                        <motion.div
-                          key={activity.analysis_id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          onClick={() => router.push(`/dashboard/analysis/${activity.analysis_id}`)}
-                          className="flex items-center gap-4 p-3 rounded-lg bg-muted/5 border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer group"
-                        >
-                          <div className={`p-2 rounded-lg ${
-                            isMalicious ? 'bg-red-500/10' : 
-                            isProcessing ? 'bg-blue-500/10' : 
-                            'bg-green-500/10'
-                          }`}>
-                            {isMalicious ? (
-                              <AlertTriangle className="w-5 h-5 text-red-500" />
-                            ) : isProcessing ? (
-                              <Loader className="w-5 h-5 text-blue-500 animate-spin" />
-                            ) : (
-                              <CheckCircle className="w-5 h-5 text-green-500" />
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-foreground truncate">
-                                {activity.filename || "Unknown File"}
-                              </p>
-                              {activity.malscore && (
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                  activity.malscore >= 7 ? 'bg-red-500/10 text-red-500' :
-                                  activity.malscore >= 4 ? 'bg-yellow-500/10 text-yellow-500' :
-                                  'bg-green-500/10 text-green-500'
-                                }`}>
-                                  Score: {activity.malscore}
-                                </span>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {activity.created_at 
-                                  ? new Date(activity.created_at).toLocaleDateString()
-                                  : "Unknown"}
-                              </span>
-                              <span>•</span>
-                              <span className="flex items-center gap-1">
-                                <Hash className="w-3 h-3" />
-                                {activity.analysis_id?.slice(0, 8)}...
-                              </span>
-                              <span>•</span>
-                              <span className="capitalize">{activity.status || "unknown"}</span>
-                            </div>
-                          </div>
-                          
-                          <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-muted/20 rounded-full mb-3">
-                      <Activity className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground">No recent activity</p>
-                    <button
-                      onClick={() => router.push("/dashboard/upload")}
-                      className="mt-3 text-sm text-primary hover:underline"
-                    >
-                      Start your first analysis
-                    </button>
-                  </div>
-                )}
-              </motion.div>
-            </div>
 
-            {/* Right Column - 1/3 width */}
-            <div className="space-y-6">
-              {/* Threat Intelligence Overview */}
-              <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-6 backdrop-blur-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <Radar className="w-5 h-5 text-purple-500" />
-                    Threat Intel
-                  </h3>
-                  <Link 
+                  <Link
                     href="/dashboard/threat-intel/unified"
-                    className="text-sm text-purple-500 hover:underline flex items-center gap-1"
-                  >
-                    Unified Scanner
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-purple-500/5 border border-purple-500/20 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Active Sources</p>
-                      <p className="text-2xl font-bold text-purple-500">{stats.activeIntegrations}</p>
-                    </div>
-                    <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Queries Today</p>
-                      <p className="text-2xl font-bold text-blue-500">{stats.threatIntelQueries}</p>
-                    </div>
-                  </div>
-
-                  {/* Integration List */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-foreground mb-2">Active Integrations</p>
-                    <IntegrationBadge name="VirusTotal" color="green" status="active" />
-                    <IntegrationBadge name="AbuseIPDB" color="blue" status="active" />
-                    <IntegrationBadge name="MalwareBazaar" color="purple" status="active" />
-                    <IntegrationBadge name="Hybrid Analysis" color="orange" status="active" />
-                    <IntegrationBadge name="AlienVault OTX" color="teal" status="active" />
-                    <IntegrationBadge name="Filescan.io" color="indigo" status="active" />
-                    <IntegrationBadge name="ThreatFox" color="pink" status="active" />
-                  </div>
-
-                  <Link 
-                    href="/dashboard/threat-intel/unified"
-                    className="block w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all text-center text-sm font-medium"
+                    className="mt-4 block w-full text-center text-sm font-medium px-4 py-2.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
                   >
                     Search All Sources
                   </Link>
-                </div>
-              </motion.div>
-
-              {/* System Health */}
-              <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-6 backdrop-blur-xl">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
-                  <Activity className="w-5 h-5 text-green-500" />
-                  System Health
-                </h3>
-                
-                <div className="space-y-4">
-                  <HealthMetric
-                    label="API Response Time"
-                    value="124ms"
-                    status="good"
-                    icon={<Zap className="w-4 h-4" />}
-                  />
-                  <HealthMetric
-                    label="Queue Length"
-                    value="3 analyses"
-                    status="warning"
-                    icon={<Clock className="w-4 h-4" />}
-                  />
-                  <HealthMetric
-                    label="Storage Used"
-                    value="2.4 GB / 10 GB"
-                    status="good"
-                    icon={<HardDrive className="w-4 h-4" />}
-                  />
-                  <HealthMetric
-                    label="Active Users"
-                    value="1 (You)"
-                    status="good"
-                    icon={<Users className="w-4 h-4" />}
-                  />
-                </div>
-              </motion.div>
-
-              {/* Quick Tips */}
-              <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-6 backdrop-blur-xl bg-gradient-to-br from-primary/5 to-purple-500/5">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
-                  <Sparkles className="w-5 h-5 text-yellow-500" />
-                  Pro Tips
-                </h3>
-                
-                <div className="space-y-3">
-                  <TipItem
-                    icon={<Rocket className="w-4 h-4" />}
-                    text="Use 'Complete Analysis' for executable files to get sandbox results"
-                  />
-                  <TipItem
-                    icon={<FileJson className="w-4 h-4" />}
-                    text="Upload existing CAPE JSON reports for parsing and AI analysis"
-                  />
-                  <TipItem
-                    icon={<Radar className="w-4 h-4" />}
-                    text="Try the Unified Scanner to search across all threat intel sources"
-                  />
-                  <TipItem
-                    icon={<Hash className="w-4 h-4" />}
-                    text="Hash lookups are fastest - check hashes in MalwareBazaar first"
-                  />
-                  <TipItem
-                    icon={<Brain className="w-4 h-4" />}
-                    text="Gemini AI provides natural language summaries of analysis results"
-                  />
-                </div>
-              </motion.div>
-
-              {/* Quick Links */}
-              <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-4 backdrop-blur-xl">
-                <div className="grid grid-cols-2 gap-2">
-                  <QuickLink
-                    icon={<Upload className="w-4 h-4" />}
-                    label="Upload"
-                    href="/dashboard/upload"
-                  />
-                  <QuickLink
-                    icon={<FileText className="w-4 h-4" />}
-                    label="Reports"
-                    href="/dashboard/reports"
-                  />
-                  <QuickLink
-                    icon={<Shield className="w-4 h-4" />}
-                    label="Threat Intel"
-                    href="/dashboard/threat-intel"
-                  />
-                  <QuickLink
-                    icon={<Settings className="w-4 h-4" />}
-                    label="Settings"
-                    href="/dashboard/settings"
-                  />
-                </div>
+                </Card>
               </motion.div>
             </div>
           </div>
 
-          {/* Footer Stats */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-border/50">
-            <FooterStat
-              label="Total Analyses"
-              value={stats.totalAnalyses.toString()}
-              change="+12%"
-              icon={<BarChart3 className="w-4 h-4" />}
-            />
-            <FooterStat
-              label="Threats Detected"
-              value={stats.maliciousDetected.toString()}
-              change="+3"
-              icon={<AlertTriangle className="w-4 h-4" />}
-              critical
-            />
-            <FooterStat
-              label="Pending"
-              value={stats.pendingAnalyses.toString()}
-              change="-2"
-              icon={<Clock className="w-4 h-4" />}
-            />
-            <FooterStat
-              label="Integrations"
-              value={`${stats.activeIntegrations}/8`}
-              change="Active"
-              icon={<Globe className="w-4 h-4" />}
-            />
+          {/* ── Recent Analyses ─────────────────────────────────────────── */}
+          <motion.div variants={itemVariants}>
+            <Card className="p-5">
+              <CardHeader
+                title="Recent Analyses"
+                icon={<Activity className="w-4 h-4 text-primary" />}
+                action={
+                  <Link href="/dashboard/reports" className="text-xs text-primary hover:underline flex items-center gap-1">
+                    View All <ChevronRight className="w-3 h-3" />
+                  </Link>
+                }
+              />
+
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center gap-4 h-10 animate-pulse">
+                      <div className="w-5 h-5 bg-white/5 rounded" />
+                      <div className="flex-1 h-3 bg-white/5 rounded" />
+                      <div className="w-16 h-3 bg-white/5 rounded" />
+                      <div className="w-20 h-3 bg-white/5 rounded" />
+                    </div>
+                  ))}
+                </div>
+              ) : recentFive.length === 0 ? (
+                <div className="py-10 text-center">
+                  <FileText className="w-7 h-7 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No analyses yet — upload a file to begin.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#1a1a1a]">
+                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">File</th>
+                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">Status</th>
+                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">Score</th>
+                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">Date</th>
+                        <th className="text-left text-xs text-muted-foreground font-normal pb-2" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentFive.map((r, i) => {
+                        const done = isCompletedStatus(r.status)
+                        const pend = isPendingStatus(r.status)
+                        const fail = isFailedStatus(r.status)
+                        const score = r.malscore ?? null
+                        const scoreColor =
+                          score === null ? "text-muted-foreground" :
+                          score >= 7 ? "text-red-400" :
+                          score >= 4 ? "text-yellow-400" : "text-primary"
+                        return (
+                          <tr
+                            key={r.analysis_id}
+                            onClick={() => router.push(`/dashboard/analysis/${r.analysis_id}`)}
+                            className="border-b border-[#111] last:border-0 hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                          >
+                            <td className="py-3 pr-4">
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span className="text-white truncate max-w-[240px]">{r.filename || "Unknown"}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 pr-4">
+                              {done ? (
+                                <span className="inline-flex items-center gap-1 text-xs text-primary">
+                                  <CheckCircle className="w-3 h-3" /> Completed
+                                </span>
+                              ) : pend ? (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-400">
+                                  <Loader className="w-3 h-3 animate-spin" /> Processing
+                                </span>
+                              ) : fail ? (
+                                <span className="inline-flex items-center gap-1 text-xs text-red-400">
+                                  <XCircle className="w-3 h-3" /> Failed
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground capitalize">{r.status}</span>
+                              )}
+                            </td>
+                            <td className="py-3 pr-4">
+                              <span className={`font-mono text-xs ${scoreColor}`}>
+                                {score !== null ? score : "—"}
+                              </span>
+                            </td>
+                            <td className="py-3 pr-4 text-xs text-muted-foreground">
+                              {r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}
+                            </td>
+                            <td className="py-3">
+                              <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
           </motion.div>
+
         </motion.div>
       </div>
     </div>
   )
 }
 
-// Helper Components
 
-function IntegrationBadge({ name, color, status }: { name: string; color: string; status: string }) {
-  const colorClasses = {
-    green: 'bg-green-500/10 text-green-500 border-green-500/20',
-    blue: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    purple: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-    orange: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
-    teal: 'bg-teal-500/10 text-teal-500 border-teal-500/20',
-    indigo: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
-    pink: 'bg-pink-500/10 text-pink-500 border-pink-500/20'
-  }
 
-  return (
-    <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <span className="text-sm">{name}</span>
-      <span className="flex items-center gap-1">
-        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-        <span className="text-xs">Active</span>
-      </span>
-    </div>
-  )
-}
 
-function HealthMetric({ label, value, status, icon }: { label: string; value: string; status: 'good' | 'warning' | 'bad'; icon: React.ReactNode }) {
-  const statusColors = {
-    good: 'text-green-500',
-    warning: 'text-yellow-500',
-    bad: 'text-red-500'
-  }
-
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {icon}
-        <span>{label}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-foreground">{value}</span>
-        <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status]} animate-pulse`} />
-      </div>
-    </div>
-  )
-}
-
-function TipItem({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <div className="flex items-start gap-2 text-sm">
-      <div className="text-primary mt-0.5">{icon}</div>
-      <p className="text-muted-foreground">{text}</p>
-    </div>
-  )
-}
-
-function QuickLink({ icon, label, href }: { icon: React.ReactNode; label: string; href: string }) {
-  const router = useRouter()
-  
-  return (
-    <button
-      onClick={() => router.push(href)}
-      className="flex items-center gap-2 p-3 rounded-lg bg-muted/5 border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
-    >
-      <div className="text-primary">{icon}</div>
-      <span className="text-sm font-medium text-foreground">{label}</span>
-    </button>
-  )
-}
-
-function FooterStat({ label, value, change, icon, critical = false }: { 
-  label: string; 
-  value: string; 
-  change: string; 
-  icon: React.ReactNode;
-  critical?: boolean;
-}) {
-  const isPositive = change.startsWith('+') && !critical
-  const isNegative = change.startsWith('-') || critical
-
-  return (
-    <div className="flex items-center gap-3">
-      <div className="p-2 rounded-lg bg-muted/20">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <div className="flex items-center gap-2">
-          <p className="text-lg font-bold text-foreground">{value}</p>
-          <span className={`text-xs ${
-            isPositive ? 'text-green-500' : 
-            isNegative ? 'text-red-500' : 
-            'text-yellow-500'
-          }`}>
-            {change}
-          </span>
-        </div>
-      </div>
-    </div>
-  )
-}

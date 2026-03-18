@@ -15,12 +15,25 @@ import {
   Download,
   AlertTriangle,
   CheckCircle,
-  Eye,
-  EyeOff,
   Copy,
   Shield,
-  Globe
+  Globe,
+  Activity,
+  BarChart3,
+  Sparkles,
+  ChevronRight
 } from "lucide-react"
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis
+} from "recharts"
 import {apiService } from "@/services/api/api.service"
 
 // Import modular components
@@ -29,7 +42,7 @@ import {
   CapeAnalysisDashboard,
   ParsedAnalysisDashboard,
   AIAnalysisDashboard,
-  ThreatIntelDashboard,  // New import
+  ThreatIntelDashboard,
   extractFileHashes,
   getMalscore
 } from "@/components/analysis"
@@ -53,7 +66,6 @@ export default function AnalysisPage() {
   const [aiData, setAiData] = useState<any>(null)
   const [loadingComponents, setLoadingComponents] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [viewMode, setViewMode] = useState<"pretty" | "raw">("pretty")
   const [downloadProgress, setDownloadProgress] = useState(0)
 
   const loading = originalLoading || overviewLoading || loadingComponents
@@ -205,8 +217,85 @@ export default function AnalysisPage() {
   const hasAi = components?.components?.ai_analysis || false
   const hasThreatIntel = !!fileHashes // Threat intel is available if we have hashes
 
+  const componentHealthData = [
+    { name: "Overview", value: combinedAnalysis ? 1 : 0, color: "#00ff88" },
+    { name: "Threat Intel", value: hasThreatIntel ? 1 : 0, color: "#a855f7" },
+    { name: "CAPE", value: hasCape ? 1 : 0, color: "#3b82f6" },
+    { name: "Parsed", value: hasParsed ? 1 : 0, color: "#ec4899" },
+    { name: "AI", value: hasAi ? 1 : 0, color: "#22d3ee" }
+  ]
+
+  // Use one source only (prefer CAPE when both are present) to avoid duplicated counts.
+  const densitySource: "cape" | "parsed" = hasCape ? "cape" : "parsed"
+  const densitySourceLabel = densitySource === "cape" ? "CAPE only" : "Parsed only"
+
+  const densityCounts = {
+    signatures:
+      densitySource === "cape"
+        ? (capeData?.signatures?.length || 0)
+        : (parsedData?.sections?.signatures?.signatures?.length || 0),
+    processes:
+      densitySource === "cape"
+        ? (capeData?.behavior?.processes?.length || 0)
+        : (parsedData?.sections?.behavior?.data?.processes?.length || 0),
+    indicators:
+      densitySource === "cape"
+        ? (capeData?.ttps?.length || 0)
+        : (parsedData?.sections?.signatures?.ttps?.length || 0),
+    iocs:
+      densitySource === "cape"
+        ? (capeData?.dropped?.length || 0)
+        : (parsedData?.sections?.strings?.metadata?.total_strings_processed || 0)
+  }
+
+  const analysisVolumeData = [
+    {
+      name: "Signatures",
+      value: densityCounts.signatures
+    },
+    {
+      name: "Processes",
+      value: densityCounts.processes
+    },
+    {
+      name: "Indicators",
+      value: densityCounts.indicators
+    },
+    {
+      name: "IOCs",
+      value: densityCounts.iocs
+    }
+  ].filter((d) => d.value > 0)
+
+  const componentReady = componentHealthData.filter((item) => item.value === 1).length
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (!active || !payload?.length) return null
+    return (
+      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-xs shadow-xl">
+        {payload.map((p: any, i: number) => (
+          <p key={i} style={{ color: p.color ?? p.fill }} className="font-medium">
+            {p.name}: {p.value}
+          </p>
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="relative min-h-full bg-background">
+    <div className="relative min-h-full bg-[#080808]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "40px 40px"
+          }}
+        />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+      </div>
       <NetworkBackground />
 
       <div className="relative z-10 p-4 lg:p-6 max-w-7xl mx-auto">
@@ -215,9 +304,12 @@ export default function AnalysisPage() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <Shield className="w-8 h-8 text-primary" />
+                <div className="p-2 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d]">
+                  <Shield className="w-7 h-7 text-primary" />
+                </div>
                 <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Analysis Results</h1>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary mb-1">Investigation Workspace</p>
+                  <h1 className="text-2xl lg:text-3xl font-semibold text-white">Analysis Results</h1>
                   <p className="text-muted-foreground text-sm">
                     {fileHashes?.filename || combinedAnalysis?.filename || "Malware analysis report"} • ID: <span className="font-mono">{analysisId.substring(0, 8)}...</span>
                   </p>
@@ -226,20 +318,10 @@ export default function AnalysisPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {activeView === "cape" && (
-                <button
-                  onClick={() => setViewMode(viewMode === "pretty" ? "raw" : "pretty")}
-                  className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
-                  disabled={downloadProgress > 0}
-                >
-                  {viewMode === "pretty" ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                  {viewMode === "pretty" ? "Raw View" : "Structured View"}
-                </button>
-              )}
               <button
                 onClick={() => handleDownload("json")}
                 disabled={downloadProgress > 0}
-                className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm relative overflow-hidden"
+                className="px-3 py-1.5 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm relative overflow-hidden font-semibold"
               >
                 {downloadProgress > 0 ? (
                   <>
@@ -260,9 +342,72 @@ export default function AnalysisPage() {
             </div>
           </div>
 
+          {!loading && combinedAnalysis && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-primary" />
+                    Component Health
+                  </p>
+                  <span className="text-xs text-muted-foreground">{componentReady}/5 ready</span>
+                </div>
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={componentHealthData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={58}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {componentHealthData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:col-span-2">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                    Data Density Snapshot
+                  </p>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Live from {densitySourceLabel}
+                  </span>
+                </div>
+                {analysisVolumeData.length > 0 ? (
+                  <div className="h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analysisVolumeData}>
+                        <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#6b7280" fontSize={11} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="value" fill="#00ff88" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-muted-foreground text-sm">
+                    Waiting for component data to populate this chart.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Loading State */}
           {loading && (
-            <div className="glass border border-border rounded-xl p-8 lg:p-12 flex flex-col items-center justify-center gap-4">
+            <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-8 lg:p-12 flex flex-col items-center justify-center gap-4">
               <div className="relative">
                 <Loader className="w-10 h-10 text-primary animate-spin" />
               </div>
@@ -343,8 +488,14 @@ export default function AnalysisPage() {
 
               {/* Component Status */}
               {components && (
-                <div className="glass border border-border rounded-xl p-4 bg-muted/5">
-                  <p className="text-sm text-muted-foreground mb-3">Analysis Components</p>
+                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-muted-foreground">Analysis Components</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      Deep-dive views
+                      <ChevronRight className="w-3 h-3" />
+                    </p>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {hasThreatIntel && (
                       <div className="px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-purple-500/10 text-purple-500 border border-purple-500/20">
@@ -376,19 +527,7 @@ export default function AnalysisPage() {
               {/* Active View Content */}
               <div className="space-y-6">
                 {activeView === "overview" && (
-                  <div className="glass border border-border rounded-xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 bg-green-500/10 rounded-lg">
-                        <Layers className="w-5 h-5 text-green-500" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-semibold text-foreground">Analysis Overview</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Complete analysis summary and key findings
-                        </p>
-                      </div>
-                    </div>
-                    
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
                     <OverviewDashboard
                       combinedAnalysis={combinedAnalysis}
                       fileHashes={fileHashes}
@@ -402,21 +541,7 @@ export default function AnalysisPage() {
 
                 {activeView === "threat-intel" && (
                   <div className="glass border border-border rounded-xl p-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-500/10 rounded-lg">
-                          <Globe className="w-5 h-5 text-purple-500" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-semibold text-foreground">Threat Intelligence</h2>
-                          <p className="text-sm text-muted-foreground">
-                            Real-time threat intelligence from multiple sources
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
+                    <div>
                       {fileHashes ? (
                         <ThreatIntelDashboard 
                           fileHashes={fileHashes}
@@ -439,31 +564,8 @@ export default function AnalysisPage() {
                 )}
 
                 {activeView === "cape" && (
-                  <div className="glass border border-border rounded-xl p-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/10 rounded-lg">
-                          <FileJson className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-semibold text-foreground">CAPE Analysis</h2>
-                          <p className="text-sm text-muted-foreground">
-                            Comprehensive behavioral analysis from CAPE sandbox
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleCopyJson(capeData)}
-                          className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
-                        >
-                          <Copy className="w-3 h-3" />
-                          {copied ? "Copied!" : "Copy JSON"}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
+                    <div>
                       {loadingComponents ? (
                         <div className="flex items-center justify-center py-8">
                           <Loader className="w-6 h-6 text-primary animate-spin" />
@@ -487,31 +589,8 @@ export default function AnalysisPage() {
                 )}
 
                 {activeView === "parsed" && (
-                  <div className="glass border border-border rounded-xl p-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-pink-500/10 rounded-lg">
-                          <FileText className="w-5 h-5 text-pink-500" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-semibold text-foreground">Parsed Analysis</h2>
-                          <p className="text-sm text-muted-foreground">
-                            Structured insights from CAPE sandbox analysis
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleCopyJson(parsedData)}
-                          className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
-                        >
-                          <Copy className="w-3 h-3" />
-                          Copy All
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
+                    <div>
                       {loadingComponents ? (
                         <div className="flex items-center justify-center py-8">
                           <Loader className="w-6 h-6 text-primary animate-spin" />

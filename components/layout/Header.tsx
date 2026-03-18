@@ -43,32 +43,32 @@ export function Header() {
   }, [pathname])
 
   return (
-    <header className="h-16 glass border-b border-border flex items-center justify-between px-6">
+    <header className="h-14 border-b border-border/80 bg-background/95 backdrop-blur-sm flex items-center justify-between px-6">
       <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold text-foreground">{currentTitle}</h1>
-        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+        <h1 className="text-sm font-semibold text-foreground">{currentTitle}</h1>
+        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => router.push("/profile")}
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground hover:border-primary/40"
+          className="inline-flex items-center gap-2 rounded-lg border border-border/80 bg-card/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:border-border"
           title="Profile"
         >
-          <UserCircle className="w-4 h-4" />
+          <UserCircle className="w-3.5 h-3.5" />
           <span className="hidden md:inline">{userName}</span>
         </button>
-        <button 
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        <button
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
           title="Notifications"
         >
-          <Bell className="w-5 h-5" />
+          <Bell className="w-4 h-4" />
         </button>
-        <button 
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        <button
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
           title="Settings"
         >
-          <Settings className="w-5 h-5" />
+          <Settings className="w-4 h-4" />
         </button>
         <button
           onClick={() => {
@@ -77,7 +77,7 @@ export function Header() {
           className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
           title="Logout"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
     </header>

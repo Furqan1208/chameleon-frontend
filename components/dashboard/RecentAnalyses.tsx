@@ -27,8 +27,8 @@ export function RecentAnalyses() {
   }
 
   return (
-    <div className="glass border border-border rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-foreground mb-6">Recent Analyses</h2>
+    <div className="rounded-xl border border-border/80 bg-card/50 p-5">
+      <h2 className="text-sm font-semibold text-foreground mb-4">Recent Analyses</h2>
 
       {loading && (
         <div className="flex items-center justify-center py-12">
