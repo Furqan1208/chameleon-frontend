@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { ArrowLeft, Building2, Save, Shield, Target, UserCircle2 } from "lucide-react"
 import { apiService } from "@/services/api/api.service"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const sora = Sora({ subsets: ["latin"], variable: "--font-sora" })
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
@@ -141,7 +142,7 @@ export default function ProfilePage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <button
             onClick={() => router.push("/dashboard")}
-            className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mb-4 inline-flex h-10 items-center gap-2 rounded-lg border border-[#22262d] bg-[#101214] px-3 text-sm text-slate-100 transition-colors hover:border-[#2a2f38]"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to dashboard
@@ -184,16 +185,17 @@ export default function ProfilePage() {
             <div className="mt-6 grid gap-4">
               <div className="space-y-2">
                 <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="h-11 w-full rounded-lg border border-border bg-card/40 px-3 font-[var(--font-inter)] text-sm outline-none transition focus:border-primary/50"
-                >
-                  <option value="">Select role</option>
-                  {roleOptions.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
+                <Select value={role || "__none__"} onValueChange={(value) => setRole(value === "__none__" ? "" : value)}>
+                  <SelectTrigger className="h-11 w-full rounded-lg border-[#22262d] bg-[#101214] px-3 font-[var(--font-inter)] text-sm text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                    <SelectItem value="__none__" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Select role</SelectItem>
+                    {roleOptions.map((option) => (
+                      <SelectItem key={option} value={option} className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -204,7 +206,7 @@ export default function ProfilePage() {
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     placeholder="Organization / Company"
-                    className="h-11 w-full rounded-lg border border-border bg-card/40 pl-10 pr-3 font-[var(--font-inter)] text-sm outline-none transition focus:border-primary/50"
+                    className="h-11 w-full rounded-lg border border-[#22262d] bg-[#101214] pl-10 pr-3 font-[var(--font-inter)] text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
                   />
                 </div>
               </div>
@@ -212,30 +214,32 @@ export default function ProfilePage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">Experience Level</label>
-                  <select
-                    value={experienceLevel}
-                    onChange={(e) => setExperienceLevel(e.target.value)}
-                    className="h-11 w-full rounded-lg border border-border bg-card/40 px-3 font-[var(--font-inter)] text-sm outline-none transition focus:border-primary/50"
-                  >
-                    <option value="">Select level</option>
-                    {experienceOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
+                  <Select value={experienceLevel || "__none__"} onValueChange={(value) => setExperienceLevel(value === "__none__" ? "" : value)}>
+                    <SelectTrigger className="h-11 w-full rounded-lg border-[#22262d] bg-[#101214] px-3 font-[var(--font-inter)] text-sm text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                      <SelectItem value="__none__" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Select level</SelectItem>
+                      {experienceOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">Security Focus</label>
-                  <select
-                    value={primaryFocus}
-                    onChange={(e) => setPrimaryFocus(e.target.value)}
-                    className="h-11 w-full rounded-lg border border-border bg-card/40 px-3 font-[var(--font-inter)] text-sm outline-none transition focus:border-primary/50"
-                  >
-                    <option value="">Select focus</option>
-                    {focusOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
+                  <Select value={primaryFocus || "__none__"} onValueChange={(value) => setPrimaryFocus(value === "__none__" ? "" : value)}>
+                    <SelectTrigger className="h-11 w-full rounded-lg border-[#22262d] bg-[#101214] px-3 font-[var(--font-inter)] text-sm text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                      <SelectValue placeholder="Select focus" />
+                    </SelectTrigger>
+                    <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                      <SelectItem value="__none__" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Select focus</SelectItem>
+                      {focusOptions.map((option) => (
+                        <SelectItem key={option} value={option} className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -243,7 +247,7 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={saving}
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-cyan-500 px-4 py-2.5 font-[var(--font-inter)] text-sm font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-6 inline-flex h-10 items-center gap-2 rounded-lg border border-[#1f3d2f] bg-[#173226] px-4 font-[var(--font-inter)] text-sm font-medium text-emerald-100 transition-colors hover:bg-[#1e4333] disabled:cursor-not-allowed disabled:opacity-70"
             >
               <Save className="h-4 w-4" />
               {saving ? "Saving..." : "Save Profile"}

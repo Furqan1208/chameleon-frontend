@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import {
   Wrench, Search, Filter, ChevronDown, ChevronRight,
   X, ExternalLink, Github, Calendar, Users, Target,
@@ -18,6 +17,7 @@ import {
   Hexagon, Star, Heart, ThumbsUp, ThumbsDown,
   Smile, Frown, Meh, Laugh, Angry
 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useMITRE, useActiveData } from "@/components/framework/mitre-attack/context"
 import { RelationshipProcessor } from "@/components/framework/mitre-attack/relationship-utils"
 import type { Software, Technique, Group, SoftwareDetail } from "@/components/framework/mitre-attack/analysis-types"
@@ -131,10 +131,22 @@ export default function ToolsPage() {
 
   if (loading) {
     return (
-      <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-        <NetworkBackground />
+      <div className="relative min-h-full bg-[#080808]">
+        {/* Background Effects */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+          <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        </div>
         <div className="relative z-10 p-6 max-w-7xl mx-auto">
-          <div className="glass border border-border/50 rounded-xl p-12 backdrop-blur-xl">
+          <div className="bg-card border border-border rounded-xl p-12">
             <div className="flex flex-col items-center justify-center gap-4">
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -152,12 +164,24 @@ export default function ToolsPage() {
 
   if (error || !activeData) {
     return (
-      <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-        <NetworkBackground />
+      <div className="relative min-h-full bg-[#080808]">
+        {/* Background Effects */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+          <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        </div>
         <div className="relative z-10 p-6 max-w-7xl mx-auto">
-          <div className="glass border border-red-500/30 bg-red-500/5 rounded-xl p-12 backdrop-blur-xl">
+          <div className="bg-card border border-border rounded-xl p-12">
             <div className="flex flex-col items-center justify-center gap-4">
-              <AlertTriangle className="w-12 h-12 text-red-500" />
+              <AlertTriangle className="w-12 h-12 text-accent" />
               <h2 className="text-xl font-bold text-foreground">Failed to Load Tools</h2>
               <p className="text-muted-foreground">{error || 'No data available'}</p>
             </div>
@@ -168,13 +192,19 @@ export default function ToolsPage() {
   }
 
   return (
-    <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-      <NetworkBackground />
-      
-      {/* Decorative elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="relative min-h-full bg-[#080808]">
+      {/* Background Effects */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
       </div>
 
       <div className="relative z-10 p-4 lg:p-6 max-w-7xl mx-auto">
@@ -185,32 +215,18 @@ export default function ToolsPage() {
           className="space-y-6"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <motion.div variants={itemVariants} className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl">
-                <Wrench className="w-8 h-8 text-white" />
+              <div className="p-4 rounded-xl border border-[#1a1a1a] bg-[#0d0d0d]">
+                <Wrench className="w-8 h-8 text-emerald-300" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Tools
-                </h1>
-                <p className="text-muted-foreground mt-1 flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  {tools.length} tools used by threat actors
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-2">Software Tools</p>
+                <h1 className="text-3xl font-bold text-white">Tools</h1>
+                <p className="text-muted-foreground mt-2">
+                  {tools.length} offensive and utility tools used in attacks
                 </p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <a
-                href="https://attack.mitre.org/software/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors flex items-center gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                MITRE Software
-              </a>
             </div>
           </motion.div>
 
@@ -307,15 +323,16 @@ export default function ToolsPage() {
                   )}
                 </button>
 
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-3 py-2 border border-border rounded-lg bg-background/50 text-sm"
-                >
-                  <option value="name">Sort by Name</option>
-                  <option value="techniques">Sort by Techniques</option>
-                  <option value="groups">Sort by Groups</option>
-                </select>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as "name" | "techniques" | "groups") }>
+                  <SelectTrigger className="h-10 min-w-[168px] px-3 rounded-lg border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                    <SelectItem value="name" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Name</SelectItem>
+                    <SelectItem value="techniques" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Techniques</SelectItem>
+                    <SelectItem value="groups" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Groups</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 <button
                   onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
@@ -608,7 +625,7 @@ function ToolDetailModal({ tool, onClose }: { tool: SoftwareDetail; onClose: () 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -616,12 +633,12 @@ function ToolDetailModal({ tool, onClose }: { tool: SoftwareDetail; onClose: () 
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="glass border border-border/50 rounded-xl max-w-4xl w-full max-h-[85vh] overflow-y-auto backdrop-blur-xl"
+        className="border border-[#1a1a1a] bg-[#080808] rounded-xl max-w-4xl w-full max-h-[85vh] overflow-y-auto"
       >
-        <div className="sticky top-0 bg-background/95 backdrop-blur-xl border-b border-border/50 p-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-[#0d0d0d] border-b border-[#1a1a1a] p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-              <Wrench className="w-5 h-5 text-white" />
+            <div className="p-2 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 rounded-lg">
+              <Wrench className="w-5 h-5 text-emerald-300" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground">{tool.name}</h2>
@@ -703,25 +720,25 @@ function ToolDetailModal({ tool, onClose }: { tool: SoftwareDetail; onClose: () 
               label="Techniques"
               value={tool.techniques.count}
               icon={<Target className="w-4 h-4" />}
-              color="from-blue-500 to-cyan-500"
+              tone="sky"
             />
             <StatBox
               label="Used By Groups"
               value={tool.relationships.usedBy.length}
               icon={<Users className="w-4 h-4" />}
-              color="from-purple-500 to-pink-500"
+              tone="violet"
             />
             <StatBox
               label="Mitigations"
               value={tool.relationships.mitigations.length}
               icon={<Shield className="w-4 h-4" />}
-              color="from-amber-500 to-orange-500"
+              tone="amber"
             />
             <StatBox
               label="Related Tools"
               value={tool.relationships.relatedSoftware.length}
               icon={<Package className="w-4 h-4" />}
-              color="from-teal-500 to-cyan-500"
+              tone="emerald"
             />
           </div>
 
@@ -831,14 +848,14 @@ function ToolDetailModal({ tool, onClose }: { tool: SoftwareDetail; onClose: () 
 // Stat Card Component
 function StatCard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
   return (
-    <div className="glass border border-border/50 rounded-lg p-4 backdrop-blur-xl">
+    <div className="border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg p-4 hover:border-primary/30 transition-colors">
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg bg-gradient-to-br ${color} bg-opacity-20`}>
+        <div className={`p-2 rounded-lg bg-gradient-to-br ${color}`}>
           {icon}
         </div>
         <div>
           <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-2xl font-bold text-white">{value}</p>
         </div>
       </div>
     </div>
@@ -846,14 +863,41 @@ function StatCard({ label, value, icon, color }: { label: string; value: number;
 }
 
 // Stat Box Component
-function StatBox({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
+function StatBox({ label, value, icon, tone }: { label: string; value: number; icon: React.ReactNode; tone: "sky" | "rose" | "emerald" | "violet" | "amber" }) {
+  const toneStyles = {
+    sky: {
+      chip: "bg-sky-500/10 border-sky-400/20 text-sky-300",
+      icon: "text-sky-300"
+    },
+    rose: {
+      chip: "bg-rose-500/10 border-rose-400/20 text-rose-300",
+      icon: "text-rose-300"
+    },
+    emerald: {
+      chip: "bg-emerald-500/10 border-emerald-400/20 text-emerald-300",
+      icon: "text-emerald-300"
+    },
+    violet: {
+      chip: "bg-violet-500/10 border-violet-400/20 text-violet-300",
+      icon: "text-violet-300"
+    },
+    amber: {
+      chip: "bg-amber-500/10 border-amber-400/20 text-amber-300",
+      icon: "text-amber-300"
+    }
+  } as const
+
+  const style = toneStyles[tone]
+
   return (
-    <div className={`p-3 rounded-lg bg-gradient-to-br ${color} bg-opacity-10 border border-${color.split(' ')[1]}/20`}>
+    <div className="p-3 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d]">
       <div className="flex items-center gap-2 mb-1">
-        {icon}
+        <div className={`p-1.5 rounded-md border ${style.chip}`}>
+          <span className={style.icon}>{icon}</span>
+        </div>
         <span className="text-xs text-muted-foreground">{label}</span>
       </div>
-      <p className="text-xl font-bold text-foreground">{value}</p>
+      <p className="text-xl font-bold text-white">{value}</p>
     </div>
   )
 }

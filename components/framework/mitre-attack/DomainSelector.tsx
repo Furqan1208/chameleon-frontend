@@ -5,9 +5,9 @@ import { Globe, Cpu, Smartphone } from 'lucide-react'
 import { useMITRE } from './context'
 
 const domains = [
-  { id: 'enterprise', name: 'Enterprise', icon: Globe, color: 'from-blue-500 to-cyan-500' },
-  { id: 'ics', name: 'ICS', icon: Cpu, color: 'from-green-500 to-emerald-500' },
-  { id: 'mobile', name: 'Mobile', icon: Smartphone, color: 'from-purple-500 to-pink-500' }
+  { id: 'enterprise', name: 'Enterprise', icon: Globe, color: 'sky-300', bgColor: 'from-sky-500/10 to-cyan-500/10' },
+  { id: 'ics', name: 'ICS', icon: Cpu, color: 'emerald-300', bgColor: 'from-emerald-500/10 to-green-500/10' },
+  { id: 'mobile', name: 'Mobile', icon: Smartphone, color: 'violet-300', bgColor: 'from-violet-500/10 to-purple-500/10' }
 ] as const
 
 export function DomainSelector() {
@@ -24,9 +24,22 @@ export function DomainSelector() {
     }
   }
 
+  const getIconColor = (domainId: string) => {
+    switch (domainId) {
+      case 'enterprise':
+        return 'text-sky-300'
+      case 'ics':
+        return 'text-emerald-300'
+      case 'mobile':
+        return 'text-violet-300'
+      default:
+        return 'text-muted-foreground'
+    }
+  }
+
   return (
     <div className="flex gap-3">
-      {domains.map(({ id, name, icon: Icon, color }) => {
+      {domains.map(({ id, name, icon: Icon, bgColor }) => {
         const stats = getStats(id)
         const isActive = activeDomain === id
 
@@ -36,19 +49,15 @@ export function DomainSelector() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setActiveDomain(id)}
-            className={`relative flex-1 p-4 rounded-xl border-2 transition-all ${
+            className={`relative flex-1 p-4 rounded-lg border transition-all ${
               isActive
-                ? `border-transparent bg-gradient-to-br ${color} text-white shadow-lg`
-                : 'border-border/50 hover:border-primary/30 bg-muted/5'
+                ? `border-primary bg-[#0d0d0d] ring-2 ring-primary`
+                : `border-[#1a1a1a] bg-[#0d0d0d] hover:bg-[#141a21] hover:border-[#2a2a2a]`
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${
-                isActive ? 'bg-white/20' : 'bg-muted/30'
-              }`}>
-                <Icon className={`w-5 h-5 ${
-                  isActive ? 'text-white' : 'text-muted-foreground'
-                }`} />
+              <div className={`p-2 rounded-lg bg-gradient-to-br ${bgColor}`}>
+                <Icon className={getIconColor(id)} />
               </div>
               <div className="text-left">
                 <p className={`text-sm font-medium ${
@@ -58,7 +67,7 @@ export function DomainSelector() {
                 </p>
                 {stats && (
                   <p className={`text-xs ${
-                    isActive ? 'text-white/80' : 'text-muted-foreground'
+                    isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {stats.techniques} techniques
                   </p>

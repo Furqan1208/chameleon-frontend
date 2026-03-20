@@ -38,7 +38,7 @@ export function SearchFilters({
   const hasActiveFilters = searchQuery || selectedPlatforms.size > 0 || !showDeprecated || !showRevoked
 
   return (
-    <div className="glass border border-border/50 rounded-xl p-4 backdrop-blur-xl">
+    <div className="border border-[#1a1a1a] bg-[#0d0d0d] rounded-xl p-4">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
@@ -48,7 +48,7 @@ export function SearchFilters({
               placeholder="Search techniques by name, ID, or description..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-background/50 border border-border rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-[#080808] border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
             />
           </div>
         </div>
@@ -58,16 +58,16 @@ export function SearchFilters({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2 rounded-xl border transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
               showFilters || selectedPlatforms.size > 0
                 ? 'bg-primary/20 border-primary/50 text-primary' 
-                : 'border-border/50 hover:border-primary/50'
+                : 'border-[#1a1a1a] hover:border-[#2a2a2a] hover:bg-[#141a21]'
             }`}
           >
             <Filter className="w-4 h-4" />
             <span className="hidden sm:inline">Filters</span>
             {selectedPlatforms.size > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-black rounded-full font-semibold">
                 {selectedPlatforms.size}
               </span>
             )}
@@ -76,7 +76,7 @@ export function SearchFilters({
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
-              className="px-3 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors text-sm"
+              className="px-3 py-2 border border-[#1a1a1a] bg-[#080808] rounded-lg hover:border-[#2a2a2a] hover:bg-[#141a21] transition-colors text-sm"
             >
               Clear
             </button>
@@ -91,13 +91,13 @@ export function SearchFilters({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 pt-4 border-t border-border/50 overflow-hidden"
+            className="mt-4 pt-4 border-t border-[#1a1a1a] overflow-hidden"
           >
             <div className="space-y-4">
               {/* Platform Filters */}
               <div>
-                <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <Cpu className="w-4 h-4" />
+                <h3 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-cyan-300" />
                   Platforms
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -109,16 +109,16 @@ export function SearchFilters({
                         onClick={() => onTogglePlatform(platform)}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
                           selectedPlatforms.has(platform)
-                            ? 'bg-primary text-primary-foreground shadow-md'
-                            : 'border border-border hover:bg-muted/30'
+                            ? 'bg-primary text-black font-medium shadow-md'
+                            : 'border border-[#1a1a1a] hover:bg-[#141a21] hover:border-[#2a2a2a]'
                         }`}
                         disabled={count === 0}
                       >
                         {platform}
                         <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                           selectedPlatforms.has(platform)
-                            ? 'bg-primary-foreground/20 text-primary-foreground'
-                            : 'bg-muted/30 text-muted-foreground'
+                            ? 'bg-black/20'
+                            : 'bg-[#1a1a1a] text-muted-foreground'
                         }`}>
                           {count}
                         </span>
@@ -130,8 +130,8 @@ export function SearchFilters({
 
               {/* Status Filters */}
               <div>
-                <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <Info className="w-4 h-4" />
+                <h3 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                  <Info className="w-4 h-4 text-amber-300" />
                   Status
                 </h3>
                 <div className="flex gap-2">
@@ -139,8 +139,8 @@ export function SearchFilters({
                     onClick={onToggleDeprecated}
                     className={`px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
                       !showDeprecated
-                        ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'
-                        : 'border border-border hover:bg-muted/30'
+                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                        : 'border border-[#1a1a1a] hover:bg-[#141a21]'
                     }`}
                   >
                     {!showDeprecated ? (
@@ -159,8 +159,8 @@ export function SearchFilters({
                     onClick={onToggleRevoked}
                     className={`px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
                       !showRevoked
-                        ? 'bg-red-500/10 text-red-500 border border-red-500/30'
-                        : 'border border-border hover:bg-muted/30'
+                        ? 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
+                        : 'border border-[#1a1a1a] hover:bg-[#141a21]'
                     }`}
                   >
                     {!showRevoked ? (
@@ -180,11 +180,11 @@ export function SearchFilters({
 
               {/* Active Filters Summary */}
               {hasActiveFilters && (
-                <div className="pt-2 border-t border-border/50">
+                <div className="pt-2 border-t border-[#1a1a1a]">
                   <p className="text-xs text-muted-foreground mb-2">Active Filters:</p>
                   <div className="flex flex-wrap gap-2">
                     {searchQuery && (
-                      <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full flex items-center gap-1">
+                      <span className="px-2 py-1 text-xs bg-primary/20 text-primary rounded-full flex items-center gap-1">
                         Search: "{searchQuery}"
                         <button onClick={() => onSearchChange('')} className="hover:text-primary-foreground">
                           <X className="w-3 h-3" />
@@ -192,7 +192,7 @@ export function SearchFilters({
                       </span>
                     )}
                     {Array.from(selectedPlatforms).map(platform => (
-                      <span key={platform} className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full flex items-center gap-1">
+                      <span key={platform} className="px-2 py-1 text-xs bg-primary/20 text-primary rounded-full flex items-center gap-1">
                         {platform}
                         <button onClick={() => onTogglePlatform(platform)} className="hover:text-primary-foreground">
                           <X className="w-3 h-3" />
@@ -200,12 +200,12 @@ export function SearchFilters({
                       </span>
                     ))}
                     {!showDeprecated && (
-                      <span className="px-2 py-1 text-xs bg-yellow-500/10 text-yellow-500 rounded-full">
+                      <span className="px-2 py-1 text-xs bg-amber-500/10 text-amber-300 rounded-full">
                         Deprecated hidden
                       </span>
                     )}
                     {!showRevoked && (
-                      <span className="px-2 py-1 text-xs bg-red-500/10 text-red-500 rounded-full">
+                      <span className="px-2 py-1 text-xs bg-rose-500/10 text-rose-300 rounded-full">
                         Revoked hidden
                       </span>
                     )}

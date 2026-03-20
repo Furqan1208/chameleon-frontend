@@ -18,34 +18,34 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
   return (
     <motion.div
       layout
-      className="glass border border-border/50 rounded-lg overflow-hidden hover:border-primary/30 transition-all"
+      className="border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg overflow-hidden hover:border-primary/30 transition-all"
     >
       <div
         onClick={onToggle}
-        className="p-4 cursor-pointer hover:bg-muted/5 transition-colors"
+        className="p-4 cursor-pointer hover:bg-[#141a21] transition-colors"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-mono text-primary bg-primary/20 px-2 py-0.5 rounded-full">
                 {technique.external_id}
               </span>
               {technique.deprecated && (
-                <span className="px-1.5 py-0.5 text-xs bg-yellow-500/10 text-yellow-500 rounded-full flex items-center gap-1">
+                <span className="px-1.5 py-0.5 text-xs bg-amber-500/10 text-amber-300 rounded-full flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
                   Deprecated
                 </span>
               )}
               {technique.revoked && (
-                <span className="px-1.5 py-0.5 text-xs bg-red-500/10 text-red-500 rounded-full flex items-center gap-1">
+                <span className="px-1.5 py-0.5 text-xs bg-rose-500/10 text-rose-300 rounded-full flex items-center gap-1">
                   <XCircle className="w-3 h-3" />
                   Revoked
                 </span>
               )}
             </div>
-            <h4 className="font-semibold text-foreground">{technique.name}</h4>
+            <h4 className="font-semibold text-white">{technique.name}</h4>
           </div>
-          <button className="p-1 hover:bg-muted/30 rounded transition-colors">
+          <button className="p-1 hover:bg-[#141a21] rounded transition-colors">
             {expanded ? (
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             ) : (
@@ -60,13 +60,13 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
           {technique.platforms.slice(0, 3).map(platform => (
             <span
               key={platform}
-              className="px-2 py-0.5 text-xs bg-muted/30 text-muted-foreground rounded-full"
+              className="px-2 py-0.5 text-xs bg-[#1a1a1a] text-muted-foreground rounded-full"
             >
               {platform}
             </span>
           ))}
           {technique.platforms.length > 3 && (
-            <span className="px-2 py-0.5 text-xs bg-muted/30 text-muted-foreground rounded-full">
+            <span className="px-2 py-0.5 text-xs bg-[#1a1a1a] text-muted-foreground rounded-full">
               +{technique.platforms.length - 3}
             </span>
           )}
@@ -79,12 +79,12 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-border/50 p-4 bg-muted/5"
+            className="border-t border-[#1a1a1a] p-4 bg-[#080808]"
           >
             <div className="space-y-3">
               {technique.subtechniques.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1">
+                  <p className="text-xs font-medium text-white mb-2 flex items-center gap-1">
                     <ChevronRight className="w-3 h-3" />
                     Sub-techniques ({technique.subtechniques.length}):
                   </p>
@@ -96,7 +96,7 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
                           e.stopPropagation()
                           onSelect()
                         }}
-                        className="p-2 bg-background/50 border border-border/50 rounded-lg cursor-pointer hover:bg-primary/5 transition-colors"
+                        className="p-2 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg cursor-pointer hover:bg-primary/5 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-primary">{sub.external_id}</span>

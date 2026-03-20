@@ -2,7 +2,6 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import { motion } from "framer-motion"
 import Link from 'next/link'
 import {
@@ -14,7 +13,11 @@ import {
   List,
   Layers,
   Menu,
-  X
+  X,
+  AlertTriangle,
+  TrendingUp,
+  Package,
+  Brain
 } from "lucide-react"
 
 // Import MITRE components
@@ -153,10 +156,22 @@ function MITREAttackContent() {
 
   if (loading) {
     return (
-      <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-        <NetworkBackground />
+      <div className="relative min-h-full bg-[#080808]">
+        {/* Background Effects */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+          <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        </div>
         <div className="relative z-10 p-6 max-w-7xl mx-auto">
-          <div className="glass border border-border/50 rounded-xl p-12 backdrop-blur-xl">
+          <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl p-12">
             <div className="flex flex-col items-center justify-center gap-4">
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -174,17 +189,29 @@ function MITREAttackContent() {
 
   if (error || !activeData) {
     return (
-      <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-        <NetworkBackground />
+      <div className="relative min-h-full bg-[#080808]">
+        {/* Background Effects */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+          <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+          <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        </div>
         <div className="relative z-10 p-6 max-w-7xl mx-auto">
-          <div className="glass border border-red-500/30 bg-red-500/5 rounded-xl p-12 backdrop-blur-xl">
+          <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl p-12">
             <div className="flex flex-col items-center justify-center gap-4">
-              <Shield className="w-12 h-12 text-red-500" />
-              <h2 className="text-xl font-bold text-foreground">Failed to Load MITRE ATT&CK Data</h2>
+              <Shield className="w-12 h-12 text-accent" />
+              <h2 className="text-xl font-bold text-white">Failed to Load MITRE ATT&CK Data</h2>
               <p className="text-muted-foreground">{error || 'No data available'}</p>
               <button
                 onClick={refreshData}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors font-semibold"
               >
                 Try Again
               </button>
@@ -196,14 +223,19 @@ function MITREAttackContent() {
   }
 
   return (
-    <div className="relative min-h-full bg-gradient-to-br from-gray-900 via-background to-gray-900">
-      <NetworkBackground />
-      
-      {/* Decorative elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-500" />
+    <div className="relative min-h-full bg-[#080808]">
+      {/* Background Effects */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
       </div>
 
       <div className="relative z-10 p-4 lg:p-6 max-w-7xl mx-auto">
@@ -214,115 +246,58 @@ function MITREAttackContent() {
           className="space-y-6"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <motion.div variants={itemVariants} className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-primary to-purple-600 rounded-2xl shadow-xl">
-                <Shield className="w-8 h-8 text-white" />
+              <div className="p-4 rounded-xl border border-[#1a1a1a] bg-[#0d0d0d]">
+                <Layers className="w-8 h-8 text-violet-300" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  MITRE ATT&CK Framework
-                </h1>
-                <p className="text-muted-foreground mt-1 flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  Comprehensive threat intelligence framework
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-2">Threat Framework</p>
+                <h1 className="text-3xl font-bold text-white">MITRE ATT&CK</h1>
+                <p className="text-muted-foreground mt-2">
+                  Adversary tactics, techniques, and procedures database-backed threat analysis
                 </p>
               </div>
             </div>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 border border-border rounded-lg"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-
-            {/* Desktop header actions */}
-            <div className="hidden lg:flex items-center gap-3">
-              <a
-                href="https://attack.mitre.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors flex items-center gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Official Site
-              </a>
-              <a
-                href="https://github.com/mitre/cti"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors flex items-center gap-2"
-              >
-                <Github className="w-4 h-4" />
-                GitHub
-              </a>
-            </div>
           </motion.div>
 
-          {/* Mobile menu */}
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="lg:hidden glass border border-border/50 rounded-xl p-4 backdrop-blur-xl"
+          {/* Framework Navigation */}
+          <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/frameworks/mitre-attack"
+              className="px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-medium transition-colors"
             >
-              <div className="flex flex-col gap-2">
-                <a
-                  href="https://attack.mitre.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors flex items-center gap-2"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Official Site
-                </a>
-                <a
-                  href="https://github.com/mitre/cti"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors flex items-center gap-2"
-                >
-                  <Github className="w-4 h-4" />
-                  GitHub
-                </a>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Domain Selector */}
-          <motion.div variants={itemVariants}>
-            <DomainSelector />
-          </motion.div>
-
-          {/* Framework sub-navigation */}
-          <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
+              Techniques & Tactics
+            </Link>
             <Link
               href="/dashboard/frameworks/mitre-attack/apt"
-              className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+              className="px-4 py-2 border border-[#1a1a1a] bg-[#0d0d0d] hover:bg-[#141a21] hover:border-[#2a2a2a] rounded-lg transition-colors"
             >
               APT Groups
             </Link>
             <Link
               href="/dashboard/frameworks/mitre-attack/campaigns"
-              className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+              className="px-4 py-2 border border-[#1a1a1a] bg-[#0d0d0d] hover:bg-[#141a21] hover:border-[#2a2a2a] rounded-lg transition-colors"
             >
               Campaigns
             </Link>
             <Link
               href="/dashboard/frameworks/mitre-attack/malwares"
-              className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+              className="px-4 py-2 border border-[#1a1a1a] bg-[#0d0d0d] hover:bg-[#141a21] hover:border-[#2a2a2a] rounded-lg transition-colors"
             >
               Malwares
             </Link>
             <Link
               href="/dashboard/frameworks/mitre-attack/tools"
-              className="px-4 py-2 border border-border rounded-lg hover:bg-muted/30 transition-colors"
+              className="px-4 py-2 border border-[#1a1a1a] bg-[#0d0d0d] hover:bg-[#141a21] hover:border-[#2a2a2a] rounded-lg transition-colors"
             >
               Tools
             </Link>
+          </motion.div>
+
+          {/* Domain Selector */}
+          <motion.div variants={itemVariants}>
+            <DomainSelector />
           </motion.div>
 
           {/* Stats Overview */}
@@ -354,11 +329,11 @@ function MITREAttackContent() {
           </motion.div>
 
           {/* View Mode Toggle */}
-          <motion.div variants={itemVariants} className="flex items-center justify-end gap-1 p-1 bg-muted/30 rounded-lg border border-border/50 w-fit ml-auto">
+          <motion.div variants={itemVariants} className="flex items-center justify-end gap-1 p-1 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg w-fit ml-auto">
             <button
               onClick={() => setViewMode('matrix')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'matrix' ? 'bg-primary/20 text-primary' : 'hover:bg-muted/30'
+                viewMode === 'matrix' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-white'
               }`}
               title="Matrix View"
             >
@@ -367,7 +342,7 @@ function MITREAttackContent() {
             <button
               onClick={() => setViewMode('list')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'list' ? 'bg-primary/20 text-primary' : 'hover:bg-muted/30'
+                viewMode === 'list' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-white'
               }`}
               title="List View"
             >
@@ -376,7 +351,7 @@ function MITREAttackContent() {
             <button
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'table' ? 'bg-primary/20 text-primary' : 'hover:bg-muted/30'
+                viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-white'
               }`}
               title="Table View"
             >
@@ -385,7 +360,7 @@ function MITREAttackContent() {
           </motion.div>
 
           {/* Main Content */}
-          <motion.div variants={itemVariants} className="glass border border-border/50 rounded-xl p-6 backdrop-blur-xl">
+          <motion.div variants={itemVariants} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl p-6">
             {viewMode === 'matrix' && (
               <MatrixView
                 tactics={activeData.tactics}
