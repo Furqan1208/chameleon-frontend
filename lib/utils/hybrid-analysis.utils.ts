@@ -12,10 +12,17 @@ export async function calculateFileHash(file: File, algorithm: 'md5' | 'sha1' | 
 
     // Read the file as an ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
+
+    const subtleAlgorithmMap: Record<'md5' | 'sha1' | 'sha256' | 'sha512', AlgorithmIdentifier> = {
+      md5: 'MD5',
+      sha1: 'SHA-1',
+      sha256: 'SHA-256',
+      sha512: 'SHA-512',
+    };
     
     // Calculate hash using Web Crypto API
     const hashBuffer = await crypto.subtle.digest(
-      algorithm.toUpperCase(),
+      subtleAlgorithmMap[algorithm],
       arrayBuffer
     );
     
@@ -27,14 +34,7 @@ export async function calculateFileHash(file: File, algorithm: 'md5' | 'sha1' | 
     return hashHex;
   } catch (error) {
     console.error('Error calculating hash:', error);
-    
-    // For development/testing, you could return a mock hash
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('Using mock hash for development testing');
-      // Return a consistent mock hash for testing
-      return 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'; // Empty file SHA256
-    }
-    
+
     return null;
   }
 }

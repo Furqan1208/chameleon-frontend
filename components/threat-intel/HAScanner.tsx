@@ -1,34 +1,25 @@
-// components/threat-intel/HAScanner.tsx
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HAResults } from './HAResults';
 import { HATopThreats } from './HATopThreats';
 import { useHybridAnalysis } from '@/hooks/useHybridAnalysis';
-import { 
-  Cpu, 
-  AlertTriangle, 
-  CheckCircle, 
-  Trash2,
-  RefreshCw,
-  Database,
-  Info,
-  FileText,
-  Shield,
-  Network,
-  Activity,
-  Search,
-  Hash,
-  Globe,
-  ExternalLink,
-  Flame,
-  BarChart,
-  Upload,
-  Calculator,
+import {
+  AlertTriangle,
+  CheckCircle,
+  Cpu,
   FileCheck,
-  X,
   FileUp,
-  File
+  Hash,
+  Info,
+  Loader2,
+  RefreshCw,
+  Search,
+  Shield,
+  Trash2,
+  Upload,
+  X,
+  Flame,
 } from 'lucide-react';
 import { calculateFileHash, validateHash } from '@/lib/utils/hybrid-analysis.utils';
 
@@ -41,7 +32,7 @@ export function HAScanner() {
     feedLoading,
     scanIndicator,
     clearResults,
-    loadThreatFeed
+    loadThreatFeed,
   } = useHybridAnalysis();
 
   const [activeTab, setActiveTab] = useState<'scanner' | 'threats'>('scanner');
@@ -52,64 +43,67 @@ export function HAScanner() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (activeTab === 'threats' && threatFeed.length === 0) {
+      loadThreatFeed();
+    }
+  }, [activeTab, threatFeed.length, loadThreatFeed]);
 
   const handleHashScan = async (hash: string) => {
     try {
       setUploadError(null);
       setUploadSuccess(null);
-      
-      const validation = validateHash(hash);
+
+      const validation = validateHash(hash.trim());
       if (!validation.isValid) {
-        setUploadError(`Invalid hash format. Please enter a valid MD5, SHA1, SHA256, or SHA512 hash.`);
+        setUploadError('Invalid hash format. Enter a valid MD5, SHA1, SHA256, or SHA512 hash.');
         return;
       }
 
       await scanIndicator({
-        indicator: hash,
+        indicator: hash.trim(),
         type: 'hash',
         include_metadata: true,
-        include_summary: true
+        include_summary: true,
       });
-      
+
       setHashInput('');
-      setUploadSuccess(`Successfully analyzed ${validation.type} hash: ${hash.substring(0, 16)}...`);
+      setUploadSuccess(`Analysis complete for ${validation.type}: ${hash.slice(0, 16)}...`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to analyze hash';
-      console.error('Scan failed:', err);
       setUploadError(errorMessage);
     }
   };
 
   const handleFileUpload = async (files: File[]) => {
-    setUploadedFiles(prev => [...prev, ...files]);
+    setUploadedFiles((prev) => [...prev, ...files]);
     setUploadError(null);
     setUploadSuccess(null);
-    
+
     for (const file of files) {
       setCalculatingHash(true);
       try {
-        // Calculate SHA256 hash of the file
         const hash = await calculateFileHash(file, 'sha256');
-        
-        if (hash) {
-          setUploadSuccess(`Calculated SHA256: ${hash.substring(0, 16)}... Analyzing...`);
-          
-          // Scan the calculated hash
-          await scanIndicator({
-            indicator: hash,
-            type: 'hash',
-            include_metadata: true,
-            include_summary: true
-          });
-          
-          setUploadSuccess(`Successfully analyzed file: ${file.name}`);
-        } else {
-          setUploadError(`Failed to calculate hash for: ${file.name}`);
+
+        if (!hash) {
+          setUploadError(`Failed to calculate hash for ${file.name}`);
+          continue;
         }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to process file';
-        console.error('Failed to process file:', error);
+
+        setUploadSuccess(`Calculated SHA256 for ${file.name}. Querying Hybrid Analysis...`);
+        await scanIndicator({
+          indicator: hash,
+          type: 'hash',
+          include_metadata: true,
+          include_summary: true,
+        });
+
+        setUploadSuccess(`Analysis complete for ${file.name}`);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to process file';
         setUploadError(`Error processing ${file.name}: ${errorMessage}`);
       } finally {
         setCalculatingHash(false);
@@ -140,7 +134,7 @@ export function HAScanner() {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
-    
+
     const files = event.dataTransfer.files;
     if (files && files.length > 0) {
       handleFileUpload(Array.from(files));
@@ -148,26 +142,16 @@ export function HAScanner() {
   };
 
   const handleQuickTest = async (type: 'malicious' | 'benign') => {
-    // Test hashes
     const testHashes = {
-      malicious: [
-        '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', // EICAR test SHA256
-        '44d88612fea8a8f36de82e1278abb02f', // EICAR test MD5
-        '3395856ce81f2b7382dee72602f798b642f14140' // EICAR test SHA1
-      ],
-      benign: [
-        'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', // Empty file SHA256
-        'd41d8cd98f00b204e9800998ecf8427e', // Empty file MD5
-        'da39a3ee5e6b4b0d3255bfef95601890afd80709' // Empty file SHA1
-      ]
+      malicious: '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
+      benign: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     };
 
-    const hashToTest = testHashes[type][0]; // Use first hash
-    await handleHashScan(hashToTest);
+    await handleHashScan(testHashes[type]);
   };
 
   const removeUploadedFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearUploads = () => {
@@ -181,390 +165,299 @@ export function HAScanner() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Cpu className="w-8 h-8 text-purple-500" />
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Hybrid Analysis</h1>
-            <p className="text-sm text-muted-foreground">
-              Advanced sandbox malware analysis • Deep file inspection
-            </p>
-          </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Hybrid Analysis Workspace</p>
+          <h3 className="text-xl font-semibold text-white">Scanner & Threat Feed</h3>
+          <p className="text-sm text-muted-foreground mt-1">Upload files or submit hashes to retrieve sandbox verdicts and behavioral context.</p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Action Buttons */}
-          {results.length > 0 && (
-            <button
-              onClick={() => {
-                if (confirm('Clear all scan results?')) {
-                  clearResults();
-                  clearUploads();
-                }
-              }}
-              className="px-3 py-1.5 border border-destructive/30 text-destructive rounded-lg hover:bg-destructive/10 transition-colors flex items-center gap-2 text-sm"
-              title="Clear all scan results"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear Results
-            </button>
-          )}
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              if (confirm('Clear all scan results and local upload history?')) {
+                clearResults();
+                clearUploads();
+                setSelectedHash(null);
+              }
+            }}
+            disabled={results.length === 0 && uploadedFiles.length === 0}
+            className="px-3 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+          >
+            <Trash2 className="w-4 h-4" />
+            Clear
+          </button>
         </div>
       </div>
 
-
-      {/* Main Content */}
-      <div className="glass border border-border rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+        <div className="flex items-center gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('scanner')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'scanner'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted/20 text-muted-foreground'
+                ? 'bg-primary text-black'
+                : 'bg-black/20 border border-[#1a1a1a] text-muted-foreground hover:text-white'
             }`}
           >
             <Search className="w-4 h-4" />
             Scanner
-            {results.length > 0 && (
-              <span className="px-1.5 py-0.5 text-xs bg-primary/20 rounded">
-                {results.length}
-              </span>
-            )}
+            <span className={`text-[11px] px-1.5 py-0.5 rounded ${activeTab === 'scanner' ? 'bg-black/20' : 'bg-primary/10 text-primary'}`}>
+              {results.length}
+            </span>
           </button>
+
           <button
             onClick={() => setActiveTab('threats')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'threats'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted/20 text-muted-foreground'
+                ? 'bg-primary text-black'
+                : 'bg-black/20 border border-[#1a1a1a] text-muted-foreground hover:text-white'
             }`}
           >
             <Flame className="w-4 h-4" />
             Latest Threats
-            {threatFeed.length > 0 && (
-              <span className="px-1.5 py-0.5 text-xs bg-destructive/20 text-destructive rounded">
-                {threatFeed.filter(t => t.verdict === 60).length}
-              </span>
-            )}
+            <span className={`text-[11px] px-1.5 py-0.5 rounded ${activeTab === 'threats' ? 'bg-black/20' : 'bg-destructive/10 text-destructive'}`}>
+              {threatFeed.filter((t) => t.verdict === 60).length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => loadThreatFeed()}
+            disabled={feedLoading}
+            className="ml-auto px-3 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+          >
+            <RefreshCw className={`w-4 h-4 ${feedLoading ? 'animate-spin' : ''}`} />
+            Refresh Feed
           </button>
         </div>
+      </div>
 
-        {activeTab === 'scanner' && (
-          <div className="space-y-6">
-            {/* File Upload Section */}
-            <div 
-              className={`border-2 border-dashed rounded-xl p-8 transition-colors cursor-pointer ${
-                isDragging
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50 hover:bg-muted/5'
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-full mb-4">
-                  <Upload className="w-8 h-8 text-purple-500" />
-                </div>
-                
-                <h3 className="font-semibold text-foreground mb-2">Upload & Analyze Files</h3>
-                <p className="text-sm text-muted-foreground max-w-md mb-6">
-                  Drag & drop files or click to browse. We'll calculate the SHA256 hash and analyze it with Hybrid Analysis.
-                </p>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileSelect}
-                  multiple
-                  className="hidden"
-                  id="file-upload"
-                />
-                
-                <button
-                  type="button"
-                  className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current?.click();
-                  }}
-                >
-                  <FileUp className="w-5 h-5" />
-                  Choose Files
-                </button>
-                
-                <p className="text-xs text-muted-foreground mt-3">
-                  Supports executable files (EXE, DLL), documents (PDF, DOCX), scripts, archives, and more
-                </p>
+      {activeTab === 'scanner' && (
+        <div className="space-y-6">
+          <div
+            className={`rounded-xl border-2 border-dashed p-8 transition-colors cursor-pointer ${
+              isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-[#2a2a2a] bg-[#0d0d0d] hover:border-primary/40'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/25 mb-4">
+                <Upload className="w-7 h-7 text-primary" />
               </div>
+              <h4 className="text-white font-semibold">Upload Files for Sandbox Lookup</h4>
+              <p className="text-sm text-muted-foreground max-w-xl mt-2 mb-5">
+                Drop files here or click to browse. The scanner computes SHA256 locally and queries Hybrid Analysis automatically.
+              </p>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileSelect}
+                multiple
+                className="hidden"
+              />
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="px-5 py-2.5 rounded-lg bg-primary text-black font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2"
+              >
+                <FileUp className="w-4 h-4" />
+                Choose Files
+              </button>
             </div>
+          </div>
 
-            {/* Upload Status */}
-            {calculatingHash && (
-              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Calculator className="w-5 h-5 text-blue-500 animate-pulse" />
-                  <div>
-                    <p className="font-medium text-blue-500">Calculating file hash...</p>
-                    <p className="text-sm text-muted-foreground">
-                      Processing uploaded file{uploadedFiles.length > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Hash className="w-4 h-4 text-primary" />
+                <h4 className="font-semibold text-white">Manual Hash Lookup</h4>
               </div>
-            )}
+              <p className="text-xs text-muted-foreground">Paste MD5/SHA1/SHA256/SHA512 to run immediate sandbox intelligence lookup.</p>
 
-            {uploadSuccess && (
-              <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <div className="flex-1">
-                    <p className="font-medium text-green-500">{uploadSuccess}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {uploadError && (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
-                  <div className="flex-1">
-                    <p className="font-medium text-destructive">Upload Error</p>
-                    <p className="text-sm text-muted-foreground">{uploadError}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Uploaded Files List */}
-            {uploadedFiles.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-foreground">Uploaded Files ({uploadedFiles.length})</h4>
-                  <button
-                    onClick={clearUploads}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  >
-                    <X className="w-4 h-4" />
-                    Clear All
-                  </button>
-                </div>
-                
-                <div className="space-y-2">
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg group">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileCheck className="w-5 h-5 text-primary flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(file.size / 1024).toFixed(2)} KB • {file.type || 'Unknown type'}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeUploadedFile(index);
-                        }}
-                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-                        title="Remove file"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Hash Input Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Hash className="w-5 h-5 text-primary" />
-                <div>
-                  <h3 className="font-semibold text-foreground">Manual Hash Analysis</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Enter MD5, SHA1, SHA256, or SHA512 hash for direct analysis
-                  </p>
-                </div>
-              </div>
-              
               <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={hashInput}
-                      onChange={(e) => setHashInput(e.target.value)}
-                      placeholder="e.g., 275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
-                      className="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors font-mono text-sm"
-                    />
-                  </div>
-                </div>
+                <input
+                  type="text"
+                  value={hashInput}
+                  onChange={(e) => setHashInput(e.target.value)}
+                  placeholder="e.g. 275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
+                  className="w-full px-3 py-2.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-white placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm"
+                />
                 <button
                   onClick={() => handleHashScan(hashInput)}
                   disabled={scanning || !hashInput.trim()}
-                  className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  className="px-5 py-2.5 rounded-lg bg-primary text-black font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                 >
-                  {scanning ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      Scanning...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4" />
-                      Analyze Hash
-                    </>
-                  )}
+                  {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  Analyze
                 </button>
               </div>
 
-              {/* Quick Test Buttons */}
-              <div className="flex flex-wrap gap-2 pt-2">
-                <p className="text-sm text-muted-foreground w-full">Quick test with known samples:</p>
+              <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   onClick={() => handleQuickTest('malicious')}
-                  className="px-4 py-2 bg-destructive/10 text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/20 transition-colors flex items-center gap-2 text-sm"
                   disabled={scanning}
+                  className="px-3 py-1.5 rounded-lg text-xs border border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/15 transition-colors disabled:opacity-50"
                 >
-                  <AlertTriangle className="w-4 h-4" />
-                  Test Malicious (EICAR)
+                  Test Malicious Sample
                 </button>
                 <button
                   onClick={() => handleQuickTest('benign')}
-                  className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-2 text-sm"
                   disabled={scanning}
+                  className="px-3 py-1.5 rounded-lg text-xs border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 transition-colors disabled:opacity-50"
                 >
-                  <Shield className="w-4 h-4" />
-                  Test Clean (Empty File)
+                  Test Clean Sample
                 </button>
               </div>
             </div>
 
-            {/* Error Display */}
-            {error && (
-              <div className="p-4 border border-destructive/30 bg-destructive/5 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-destructive mb-1">Analysis Failed</p>
-                    <p className="text-sm text-foreground/80">{error}</p>
-                  </div>
+            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+              <h4 className="font-semibold text-white mb-3">Scanner Status</h4>
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Scans queued</span>
+                  <span className="text-white font-medium">{uploadedFiles.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Results available</span>
+                  <span className="text-white font-medium">{results.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Engine state</span>
+                  <span className={`font-medium ${scanning || calculatingHash ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {scanning || calculatingHash ? 'Processing' : 'Ready'}
+                  </span>
                 </div>
               </div>
-            )}
 
-            {/* Results */}
-            {results.length > 0 ? (
-              <div className="mt-8">
-                <HAResults 
-                  results={results}
-                  selectedHash={selectedHash}
-                  onSelectHash={setSelectedHash}
-                />
-              </div>
-            ) : !scanning && !calculatingHash && (
-              <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-full mb-4">
-                  <Cpu className="w-8 h-8 text-purple-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Analyze</h3>
-                <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                  Upload a file or enter a hash to analyze with Hybrid Analysis sandbox
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-lg mx-auto">
-                  <div className="p-4 border border-border rounded-lg text-center hover:border-primary/30 transition-colors">
-                    <Upload className="w-8 h-8 text-primary mx-auto mb-2" />
-                    <p className="text-sm font-medium">Upload File</p>
-                    <p className="text-xs text-muted-foreground">Auto-calculate hash</p>
-                  </div>
-                  <div className="p-4 border border-border rounded-lg text-center hover:border-primary/30 transition-colors">
-                    <Hash className="w-8 h-8 text-primary mx-auto mb-2" />
-                    <p className="text-sm font-medium">Manual Hash</p>
-                    <p className="text-xs text-muted-foreground">Any hash format</p>
-                  </div>
-                  <div className="p-4 border border-border rounded-lg text-center hover:border-primary/30 transition-colors">
-                    <Database className="w-8 h-8 text-primary mx-auto mb-2" />
-                    <p className="text-sm font-medium">Latest Threats</p>
-                    <p className="text-xs text-muted-foreground">View recent detections</p>
-                  </div>
+              <div className="mt-4 pt-4 border-t border-[#1a1a1a]">
+                <p className="text-xs text-muted-foreground">Supported input</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {['MD5', 'SHA1', 'SHA256', 'SHA512', 'URL reports'].map((item) => (
+                    <span key={item} className="px-2 py-1 rounded-full text-[11px] border border-[#1a1a1a] bg-black/20 text-muted-foreground">
+                      {item}
+                    </span>
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        )}
 
-        {activeTab === 'threats' && (
-          <HATopThreats 
-            threats={threatFeed}
-            loading={feedLoading}
-            onRefresh={loadThreatFeed}
-          />
-        )}
-      </div>
+          {calculatingHash && (
+            <div className="rounded-lg border border-blue-500/25 bg-blue-500/10 p-3 flex items-center gap-2 text-blue-300 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Calculating hash and preparing sandbox query...
+            </div>
+          )}
 
-      {/* Information Section */}
-      <div className="glass border border-border rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Info className="w-5 h-5 text-primary" />
-          About Hybrid Analysis
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-primary" />
-              <span className="font-medium text-foreground">Sandbox Analysis</span>
+          {uploadSuccess && (
+            <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 p-3 flex items-center gap-2 text-emerald-300 text-sm">
+              <CheckCircle className="w-4 h-4" />
+              {uploadSuccess}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Execute files in isolated environments to observe behavior and detect malware.
-            </p>
+          )}
+
+          {uploadError && (
+            <div className="rounded-lg border border-destructive/25 bg-destructive/10 p-3 flex items-center gap-2 text-destructive text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              {uploadError}
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-lg border border-destructive/25 bg-destructive/10 p-3 flex items-center gap-2 text-destructive text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              {error}
+            </div>
+          )}
+
+          {uploadedFiles.length > 0 && (
+            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">Uploaded Files ({uploadedFiles.length})</h4>
+                <button
+                  onClick={clearUploads}
+                  className="text-xs px-2.5 py-1.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white transition-colors flex items-center gap-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Clear uploads
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {uploadedFiles.map((file, index) => (
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileCheck className="w-4 h-4 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm text-white truncate">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeUploadedFile(index)}
+                      className="text-muted-foreground hover:text-destructive p-1.5 rounded transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {results.length > 0 ? (
+            <HAResults results={results} selectedHash={selectedHash} onSelectHash={setSelectedHash} />
+          ) : !scanning && !calculatingHash ? (
+            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-8 text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/25 mb-4">
+                <Cpu className="w-7 h-7 text-primary" />
+              </div>
+              <h4 className="text-white font-semibold">No Scan Results Yet</h4>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
+                Start with file upload or hash lookup to build your Hybrid Analysis evidence panel.
+              </p>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {activeTab === 'threats' && (
+        <HATopThreats threats={threatFeed} loading={feedLoading} onRefresh={loadThreatFeed} />
+      )}
+
+      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+        <h4 className="text-white font-semibold flex items-center gap-2 mb-3">
+          <Info className="w-4 h-4 text-primary" />
+          Scanner Workflow
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+            <p className="text-white font-medium mb-1">1. Submit</p>
+            <p className="text-muted-foreground text-xs">Upload files or paste hashes for immediate sandbox lookup.</p>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-accent" />
-              <span className="font-medium text-foreground">Threat Intelligence</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Access detailed reports including MITRE ATT&CK techniques, network analysis, and more.
-            </p>
+          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+            <p className="text-white font-medium mb-1">2. Triage</p>
+            <p className="text-muted-foreground text-xs">Review verdict, threat score, signatures, and MITRE techniques.</p>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Database className="w-4 h-4 text-secondary" />
-              <span className="font-medium text-foreground">File Support</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Windows executables, documents, scripts, archives, and various file formats.
-            </p>
+          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+            <p className="text-white font-medium mb-1">3. Investigate</p>
+            <p className="text-muted-foreground text-xs">Open environment reports for detailed behavioral and network telemetry.</p>
           </div>
         </div>
-        
-        <div className="pt-6 border-t border-border">
-          <h3 className="font-medium text-foreground mb-3">Getting Started</h3>
-          <ol className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">1.</span>
-              <span>Upload any file or enter a hash to analyze</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">2.</span>
-              <span>View detailed sandbox analysis including behavioral data and threat indicators</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-0.5">3.</span>
-              <span>Check the Latest Threats tab for recent malware detections</span>
-            </li>
-          </ol>
+        <div className="mt-4 rounded-lg border border-primary/25 bg-primary/5 p-3 flex items-start gap-2 text-xs text-muted-foreground">
+          <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+          Ensure your Hybrid Analysis key is configured in Integrations for consistent feed and report lookups.
         </div>
       </div>
     </div>

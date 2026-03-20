@@ -43,6 +43,13 @@ const COLORS = {
   border: "#1a1a1a",
 }
 
+const ICON_TONES = {
+  slate: "bg-slate-400/10 text-slate-300 ring-1 ring-slate-300/15",
+  teal: "bg-teal-400/10 text-teal-300 ring-1 ring-teal-300/15",
+  amber: "bg-amber-400/10 text-amber-300 ring-1 ring-amber-300/15",
+  blue: "bg-sky-400/10 text-sky-300 ring-1 ring-sky-300/15",
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
@@ -161,7 +168,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={loadAll}
-                className="p-2 rounded-lg border border-[#1a1a1a] text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors"
+                className="p-2 rounded-lg border border-[#1a1a1a] text-slate-300 hover:text-foreground hover:border-[#2a2a2a] hover:bg-white/[0.02] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -179,22 +186,24 @@ export default function DashboardPage() {
           {/* ── Stat Cards ─────────────────────────────────────────────── */}
           <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Total Analyses", value: total, icon: <FileText className="w-4 h-4" />, sub: null },
+              { label: "Total Analyses", value: total, icon: <FileText className="w-4 h-4" />, sub: null, tone: ICON_TONES.slate },
               {
                 label: "Completed", value: completed,
                 icon: <CheckCircle className="w-4 h-4" />,
-                sub: total > 0 ? `${Math.round((completed / total) * 100)}%` : null
+                sub: total > 0 ? `${Math.round((completed / total) * 100)}%` : null,
+                tone: ICON_TONES.teal,
               },
               {
                 label: "Threats Detected", value: highRisk,
                 icon: <AlertTriangle className="w-4 h-4" />,
-                alert: highRisk > 0
+                alert: highRisk > 0,
+                tone: ICON_TONES.amber,
               },
-              { label: "Pending", value: pending, icon: <Clock className="w-4 h-4" />, sub: null },
-            ].map(({ label, value, icon, sub, alert }) => (
+              { label: "Pending", value: pending, icon: <Clock className="w-4 h-4" />, sub: null, tone: ICON_TONES.blue },
+            ].map(({ label, value, icon, sub, alert, tone }) => (
               <Card key={label} className={`p-5 ${alert ? "border-red-500/25" : ""}`}>
                 <div className={`flex items-center justify-between mb-3`}>
-                  <div className={`p-1.5 rounded-md ${alert ? "bg-red-500/10 text-red-400" : "bg-white/5 text-muted-foreground"}`}>
+                  <div className={`p-1.5 rounded-md ${alert ? "bg-red-500/12 text-red-300 ring-1 ring-red-300/20" : tone}`}>
                     {icon}
                   </div>
                   {alert && <span className="w-1.5 h-1.5 rounded-full bg-red-400" />}
@@ -221,7 +230,7 @@ export default function DashboardPage() {
                 <Card className="p-5">
                   <CardHeader
                     title="Analysis Status"
-                    icon={<Activity className="w-4 h-4 text-primary" />}
+                    icon={<Activity className="w-4 h-4 text-teal-300" />}
                     action={
                       <Link href="/dashboard/reports" className="text-xs text-primary hover:underline flex items-center gap-1">
                         All Reports <ChevronRight className="w-3 h-3" />
@@ -302,7 +311,7 @@ export default function DashboardPage() {
                 <Card className="p-5">
                   <CardHeader
                     title="Risk Distribution"
-                    icon={<Shield className="w-4 h-4 text-primary" />}
+                    icon={<Shield className="w-4 h-4 text-sky-300" />}
                   />
 
                   {loading ? (
@@ -353,7 +362,7 @@ export default function DashboardPage() {
                 <Card className="p-5">
                   <CardHeader
                     title="Threat Intel"
-                    icon={<Radar className="w-4 h-4 text-primary" />}
+                    icon={<Radar className="w-4 h-4 text-violet-300" />}
                     action={
                       <Link href="/dashboard/threat-intel/unified" className="text-xs text-primary hover:underline flex items-center gap-1">
                         Unified <ChevronRight className="w-3 h-3" />
@@ -398,7 +407,7 @@ export default function DashboardPage() {
             <Card className="p-5">
               <CardHeader
                 title="Recent Analyses"
-                icon={<Activity className="w-4 h-4 text-primary" />}
+                icon={<Activity className="w-4 h-4 text-emerald-300" />}
                 action={
                   <Link href="/dashboard/reports" className="text-xs text-primary hover:underline flex items-center gap-1">
                     View All <ChevronRight className="w-3 h-3" />
@@ -452,7 +461,7 @@ export default function DashboardPage() {
                           >
                             <td className="py-3 pr-4">
                               <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <FileText className="w-3.5 h-3.5 text-slate-300/90 shrink-0" />
                                 <span className="text-white truncate max-w-[240px]">{r.filename || "Unknown"}</span>
                               </div>
                             </td>
@@ -482,7 +491,7 @@ export default function DashboardPage() {
                               {r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}
                             </td>
                             <td className="py-3">
-                              <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400/90 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </td>
                           </tr>
                         )

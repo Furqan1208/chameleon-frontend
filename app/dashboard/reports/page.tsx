@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation"
 import { apiService } from "@/services/api/api.service"
 import { isCompletedStatus, isPendingStatus, isFailedStatus } from "@/lib/analysis-status"
 import { motion, AnimatePresence } from "framer-motion"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { 
   FileText, 
   Clock, 
@@ -196,7 +203,7 @@ export default function ReportsPage() {
     e.stopPropagation()
     if (window.confirm(`Are you sure you want to delete ${selectedReports.length} selected reports?`)) {
       try {
-        await Promise.all(selectedReports.map(id => apiService.deleteReport(id)))
+        await Promise.all(selectedReports.map(id => apiService.deleteAnalysis(id)))
         await loadReports()
         setSelectedReports([])
       } catch (err) {
@@ -313,13 +320,13 @@ export default function ReportsPage() {
           <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl border border-[#1a1a1a] bg-[#0d0d0d]">
-                <FileText className="w-6 h-6 text-primary" />
+                <FileText className="w-6 h-6 text-emerald-300" />
               </div>
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Archive</p>
                 <h1 className="text-2xl font-semibold text-white">Analysis Reports</h1>
                 <p className="text-muted-foreground mt-1 flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
+                  <Zap className="w-4 h-4 text-sky-300" />
                   Browse and manage your malware analysis reports
                 </p>
               </div>
@@ -330,7 +337,7 @@ export default function ReportsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
-                className="p-2 rounded-lg border border-[#1a1a1a] text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors"
+                className="p-2 rounded-lg border border-[#1a1a1a] bg-[#101214] text-slate-300 hover:text-foreground hover:border-[#2a2a2a] hover:bg-[#13161b] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -404,13 +411,13 @@ export default function ReportsPage() {
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-300/90" />
                   <input
                     type="text"
                     placeholder="Search by filename or analysis ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-black/20 border border-[#1a1a1a] rounded-xl focus:outline-none focus:border-primary/40 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-[#101214] border border-[#22262d] rounded-xl focus:outline-none focus:border-primary/40 transition-all"
                   />
                 </div>
               </div>
@@ -420,10 +427,10 @@ export default function ReportsPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`px-4 py-3 rounded-xl border transition-all flex items-center gap-2 ${
+                  className={`h-12 min-w-[132px] px-4 rounded-xl border transition-all inline-flex items-center justify-center gap-2 ${
                     showFilters 
-                      ? 'bg-primary/10 border-primary/40 text-primary' 
-                      : 'border-[#1a1a1a] text-muted-foreground hover:text-white hover:border-[#2a2a2a]'
+                      ? 'bg-primary/12 border-primary/40 text-primary' 
+                      : 'border-[#1a1a1a] bg-[#101214] text-slate-300 hover:text-foreground hover:border-[#2a2a2a]'
                   }`}
                 >
                   <Filter className="w-4 h-4" />
@@ -435,19 +442,20 @@ export default function ReportsPage() {
                   )}
                 </motion.button>
 
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-4 py-3 bg-[#111111] text-white border border-[#1a1a1a] rounded-xl focus:outline-none focus:border-primary/40 [color-scheme:dark] [&>option]:bg-[#111111] [&>option]:text-white"
-                >
-                  <option value="date">Sort by Date</option>
-                  <option value="threat">Sort by Threat</option>
-                  <option value="name">Sort by Name</option>
-                </select>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as "date" | "threat" | "name")}>
+                  <SelectTrigger className="h-12 min-w-[168px] px-4 rounded-xl border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                    <SelectItem value="date" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Date</SelectItem>
+                    <SelectItem value="threat" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Threat</SelectItem>
+                    <SelectItem value="name" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Name</SelectItem>
+                  </SelectContent>
+                </Select>
 
                 <button
                   onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc")}
-                  className="p-3 border border-[#1a1a1a] rounded-xl hover:border-[#2a2a2a] transition-colors"
+                  className="h-12 w-12 border border-[#1a1a1a] bg-[#101214] text-slate-200 rounded-xl hover:border-[#2a2a2a] hover:bg-[#13161b] transition-colors inline-flex items-center justify-center"
                   title={sortOrder === "desc" ? "Descending" : "Ascending"}
                 >
                   {sortOrder === "desc" ? "↓" : "↑"}
@@ -462,40 +470,42 @@ export default function ReportsPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 pt-4 border-t border-border/50"
+                  className="mt-4 pt-4 border-t border-[#1a1a1a]"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Status
                       </label>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#111111] text-white border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary/40 [color-scheme:dark] [&>option]:bg-[#111111] [&>option]:text-white"
-                      >
-                        <option value="all">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="processing">Processing</option>
-                        <option value="failed">Failed</option>
-                      </select>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full h-10 px-3 rounded-lg border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                          <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                          <SelectItem value="all" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">All Status</SelectItem>
+                          <SelectItem value="completed" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Completed</SelectItem>
+                          <SelectItem value="processing" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Processing</SelectItem>
+                          <SelectItem value="failed" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Failed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Threat Level
                       </label>
-                      <select
-                        value={threatFilter}
-                        onChange={(e) => setThreatFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#111111] text-white border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary/40 [color-scheme:dark] [&>option]:bg-[#111111] [&>option]:text-white"
-                      >
-                        <option value="all">All Threats</option>
-                        <option value="high">High Risk</option>
-                        <option value="medium">Medium Risk</option>
-                        <option value="low">Low Risk</option>
-                        <option value="unknown">Unknown</option>
-                      </select>
+                      <Select value={threatFilter} onValueChange={setThreatFilter}>
+                        <SelectTrigger className="w-full h-10 px-3 rounded-lg border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                          <SelectValue placeholder="All Threats" />
+                        </SelectTrigger>
+                        <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                          <SelectItem value="all" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">All Threats</SelectItem>
+                          <SelectItem value="high" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">High Risk</SelectItem>
+                          <SelectItem value="medium" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Medium Risk</SelectItem>
+                          <SelectItem value="low" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Low Risk</SelectItem>
+                          <SelectItem value="unknown" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Unknown</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="flex items-end">
@@ -507,7 +517,7 @@ export default function ReportsPage() {
                           setSortBy("date")
                           setSortOrder("desc")
                         }}
-                        className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-white/[0.03] transition-colors text-sm"
+                        className="px-4 py-2 border border-[#1a1a1a] bg-[#101214] rounded-lg hover:bg-[#13161b] transition-colors text-sm"
                       >
                         Clear Filters
                       </button>
@@ -686,14 +696,14 @@ export default function ReportsPage() {
                                   <div>
                                     <p className="text-muted-foreground mb-1">Analysis ID</p>
                                     <div className="flex items-center gap-2">
-                                      <code className="text-foreground font-mono text-xs bg-muted/30 px-2 py-1 rounded">
+                                      <code className="text-foreground font-mono text-xs bg-[#101214] border border-[#1a1a1a] px-2 py-1 rounded">
                                         {report.analysis_id?.slice(0, 12)}...
                                       </code>
                                       <button
                                         onClick={(e) => handleCopyId(report.analysis_id, e)}
-                                        className="p-1 hover:bg-muted/30 rounded transition-colors"
+                                        className="p-1 hover:bg-[#151a21] rounded transition-colors"
                                       >
-                                        <Copy className="w-3 h-3 text-muted-foreground" />
+                                        <Copy className="w-3 h-3 text-slate-300/90" />
                                       </button>
                                     </div>
                                   </div>
@@ -720,8 +730,8 @@ export default function ReportsPage() {
                                   
                                   <div>
                                     <p className="text-muted-foreground mb-1">Created</p>
-                                    <div className="flex items-center gap-1 text-foreground">
-                                      <Calendar className="w-3 h-3 text-muted-foreground" />
+                                    <div className="inline-flex items-center gap-1.5 text-foreground px-2 py-1 rounded-md border border-[#1a1a1a] bg-[#101214]">
+                                      <Calendar className="w-3 h-3 text-sky-300" />
                                       <span>
                                         {report.created_at
                                           ? format(new Date(report.created_at), "MMM d, yyyy")
@@ -732,8 +742,8 @@ export default function ReportsPage() {
                                   
                                   <div>
                                     <p className="text-muted-foreground mb-1">Time Ago</p>
-                                    <div className="flex items-center gap-1 text-foreground">
-                                      <Clock className="w-3 h-3 text-muted-foreground" />
+                                    <div className="inline-flex items-center gap-1.5 text-foreground px-2 py-1 rounded-md border border-[#1a1a1a] bg-[#101214]">
+                                      <Clock className="w-3 h-3 text-violet-300" />
                                       <span>
                                         {report.created_at
                                           ? formatDistanceToNow(new Date(report.created_at), { addSuffix: true })
@@ -751,7 +761,7 @@ export default function ReportsPage() {
                                       {report.analysis_type}
                                     </span>
                                     {report.model_used && (
-                                      <span className="px-2 py-0.5 bg-purple-500/10 text-purple-500 border border-purple-500/20 rounded-full text-xs">
+                                      <span className="px-2 py-0.5 bg-violet-400/10 text-violet-300 border border-violet-400/20 rounded-full text-xs">
                                         {report.model_used}
                                       </span>
                                     )}

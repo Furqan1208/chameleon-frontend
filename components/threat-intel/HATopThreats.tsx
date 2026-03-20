@@ -89,7 +89,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
 
   if (loading && threats.length === 0) {
     return (
-      <div className="glass border border-border rounded-xl p-12 text-center">
+      <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 text-center">
         <RefreshCw className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-spin" />
         <p className="text-muted-foreground">Loading threat feed...</p>
       </div>
@@ -111,13 +111,13 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           
-          <div className="flex items-center gap-1 border border-border rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1 border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg overflow-hidden p-1">
             {(['all', 'malicious', 'suspicious'] as const).map((filterType) => (
               <button
                 key={filterType}
@@ -127,9 +127,9 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                     ? filterType === 'malicious' 
                       ? 'bg-destructive text-white' 
                       : filterType === 'suspicious'
-                      ? 'bg-accent text-white'
-                      : 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted/20 text-muted-foreground'
+                      ? 'bg-amber-500 text-black'
+                      : 'bg-primary text-black'
+                    : 'hover:bg-black/30 text-muted-foreground'
                 }`}
               >
                 {filterType}
@@ -177,7 +177,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search threats by hash, filename, or type..."
-          className="w-full pl-10 pr-10 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
+          className="w-full pl-10 pr-10 py-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary/40 transition-colors"
         />
         {searchQuery && (
           <button
@@ -200,10 +200,10 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
             return (
               <div
                 key={index}
-                className={`glass border rounded-xl overflow-hidden transition-all duration-300 ${
+                className={`border rounded-xl overflow-hidden transition-all duration-300 bg-[#0d0d0d] ${
                   threat.verdict === 60 ? 'border-destructive/30' :
                   threat.verdict === 50 ? 'border-accent/30' :
-                  'border-border'
+                  'border-[#1a1a1a]'
                 }`}
               >
                 {/* Threat Header */}
@@ -315,7 +315,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
 
                 {/* Expanded Details */}
                 {isExpanded && threat.sha256 && (
-                  <div className="border-t border-border/50 bg-black/5">
+                  <div className="border-t border-[#1a1a1a] bg-black/20">
                     <div className="p-6 space-y-6">
                       {/* Hash Information */}
                       <div>
@@ -349,14 +349,14 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                           href={`https://www.hybrid-analysis.com/sample/${threat.sha256}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+                          className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 font-medium"
                         >
                           <ExternalLink className="w-4 h-4" />
                           View Full Report
                         </a>
                         <button
                           onClick={() => navigator.clipboard.writeText(threat.sha256!)}
-                          className="px-4 py-2 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2"
+                          className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-black/20 transition-colors flex items-center gap-2"
                         >
                           <Copy className="w-4 h-4" />
                           Copy Hash
@@ -364,7 +364,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                         {threat.report_id && (
                           <button
                             onClick={() => window.open(`https://www.hybrid-analysis.com/report/${threat.report_id}`, '_blank')}
-                            className="px-4 py-2 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-black/20 transition-colors flex items-center gap-2"
                           >
                             <Eye className="w-4 h-4" />
                             View Report
@@ -379,7 +379,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
           })}
         </div>
       ) : (
-        <div className="glass border border-border rounded-xl p-12 text-center">
+        <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 text-center">
           <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">No threats found</p>
           <p className="text-sm text-muted-foreground mt-1">

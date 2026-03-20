@@ -615,29 +615,6 @@ export default function AnalysisPage() {
 
                 {activeView === "ai" && (
                   <div className="glass border border-border rounded-xl p-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <Brain className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-semibold text-foreground">AI Analysis</h2>
-                          <p className="text-sm text-muted-foreground">
-                            AI-powered insights and threat intelligence
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleCopyJson(aiData)}
-                          className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
-                        >
-                          <Copy className="w-3 h-3" />
-                          Copy All
-                        </button>
-                      </div>
-                    </div>
-
                     <div className="mt-6">
                       {loadingComponents ? (
                         <div className="flex items-center justify-center py-8">

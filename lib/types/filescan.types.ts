@@ -36,9 +36,19 @@ export interface FileScanOptions {
   description?: string;
   osint?: boolean;
   extended_osint?: boolean;
+  extracted_files_osint?: boolean;
+  input_file_yara?: boolean;
+  extracted_files_yara?: boolean;
+  visualization?: boolean;
+  files_download?: boolean;
   resolve_domains?: boolean;
   whois?: boolean;
+  ips_meta?: boolean | null;
+  images_ocr?: boolean;
+  certificates?: boolean;
   url_analysis?: boolean;
+  extract_strings?: boolean;
+  ocr_qr?: boolean;
   phishing_detection?: boolean;
 }
 
@@ -75,6 +85,48 @@ export interface AnalysisResult {
   report_url: string;
   scan_url: string;
   timestamp: string;
+  overallState?: string;
+  positionInQueue?: number;
+  filesDownloadFinished?: boolean;
+  allScanStepsDone?: boolean;
+  additionalStepsRunning?: string[];
+  additionalStepsDone?: boolean;
+  defaultOptionsUsed?: boolean;
+  peEmulationFileMetadata?: Array<{
+    name: string;
+    description?: string;
+    size?: number;
+    line_count?: number;
+  }>;
+  scanEngine?: string;
+  similaritySearchResults?: Array<{
+    sha256: string;
+    overall_similarity: number;
+    details?: {
+      start_date?: string;
+      file_size?: number;
+      tags?: string[];
+      verdict?: string;
+      architecture?: string;
+      entropy?: number;
+    };
+  }>;
+  latestReport?: {
+    id?: string;
+    flowId?: string;
+  };
+  aiData?: any[];
+  estimatedTime?: string;
+  extractedFiles?: Array<{
+    name?: string;
+    size?: number;
+    mediaType?: string;
+    hash?: string;
+  }>;
+  chatGptSummary?: {
+    data?: string;
+    created_date?: string;
+  };
 }
 
 export interface DetailedAnalysisResult {

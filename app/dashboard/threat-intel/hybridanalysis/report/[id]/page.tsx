@@ -500,25 +500,25 @@ export default function DetailedReportPage() {
           icon={<FileText className="w-4 h-4" />}
           label="File Size"
           value={report?.size ? formatFileSize(report.size) : 'Unknown'}
-          color="blue"
+          iconTone="text-sky-300"
         />
         <StatCard
           icon={<Code className="w-4 h-4" />}
           label="File Type"
           value={report?.type_short?.[0] || report?.type || 'Unknown'}
-          color="purple"
+          iconTone="text-violet-300"
         />
         <StatCard
           icon={<Cpu className="w-4 h-4" />}
           label="Environment"
           value={report?.environment_description?.split(' ')[0] || 'Unknown'}
-          color="green"
+          iconTone="text-cyan-300"
         />
         <StatCard
           icon={<Calendar className="w-4 h-4" />}
           label="Analyzed"
           value={report?.analysis_start_time ? formatDate(report.analysis_start_time).split(',')[0] : 'Unknown'}
-          color="orange"
+          iconTone="text-amber-300"
         />
       </div>
 
@@ -775,25 +775,25 @@ export default function DetailedReportPage() {
           icon={<NetworkIcon className="w-4 h-4" />}
           label="Connections"
           value={report?.total_network_connections || 0}
-          color="blue"
+          iconTone="text-sky-300"
         />
         <StatCard
           icon={<Globe className="w-4 h-4" />}
           label="Domains"
           value={report?.domains?.length || 0}
-          color="green"
+          iconTone="text-emerald-300"
         />
         <StatCard
           icon={<Server className="w-4 h-4" />}
           label="Hosts"
           value={report?.hosts?.length || 0}
-          color="purple"
+          iconTone="text-violet-300"
         />
         <StatCard
           icon={<Link className="w-4 h-4" />}
           label="Compromised"
           value={report?.compromised_hosts?.length || 0}
-          color="destructive"
+          iconTone="text-rose-300"
         />
       </div>
 
@@ -1096,10 +1096,9 @@ export default function DetailedReportPage() {
 
   if (loading) {
     return (
-      <div className="relative min-h-full bg-background">
-        <NetworkBackground />
+      <div className="relative min-h-full bg-[#080808]">
         <div className="relative z-10 p-6 max-w-7xl mx-auto">
-          <div className="glass border border-border rounded-xl p-12 text-center">
+          <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-12 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading detailed report...</p>
           </div>
@@ -1110,10 +1109,9 @@ export default function DetailedReportPage() {
 
   if (error || !report) {
     return (
-      <div className="relative min-h-full bg-background">
-        <NetworkBackground />
+      <div className="relative min-h-full bg-[#080808]">
         <div className="relative z-10 p-6 max-w-7xl mx-auto">
-          <div className="glass border border-border rounded-xl p-12 text-center">
+          <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-12 text-center">
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <p className="text-destructive font-medium mb-2">Failed to load report</p>
             <p className="text-muted-foreground mb-6">{error || 'Report not found'}</p>
@@ -1130,63 +1128,67 @@ export default function DetailedReportPage() {
   }
 
   return (
-    <div className="relative min-h-full bg-background">
-      <NetworkBackground />
+    <div className="relative min-h-full bg-[#080808]">
+      {/* Background Effects */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-blue-500/5 blur-3xl" />
+      </div>
       
       <div className="relative z-10 p-4 lg:p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="p-2 rounded-lg hover:bg-muted/20 transition-colors"
-              title="Go back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-foreground truncate">{report.submit_name}</h1>
-              <p className="text-sm text-muted-foreground truncate">
-                Environment: {report.environment_description} • ID: {report.job_id?.substring(0, 8)}...
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              {formatDate(report.analysis_start_time || '')}
-            </div>
-            <a
-              href={`https://www.hybrid-analysis.com/sample/${report.sha256}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 whitespace-nowrap"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View on HA
-            </a>
-          </div>
+        {/* Enhanced Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors text-primary mb-4"
+            title="Go back"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">Back</span>
+          </button>
         </div>
 
-        {/* File Header Card */}
-        <div className="glass border border-border rounded-xl p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1 min-w-0">
+        {/* Report Header - Enhanced */}
+        <div className="relative p-6 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] mb-8 overflow-hidden">
+          {/* Gradient background based on verdict */}
+          <div className={`absolute inset-0 opacity-5 pointer-events-none ${
+            report.threat_score && report.threat_score > 70 ? 'bg-gradient-to-r from-destructive via-transparent' :
+            report.threat_score && report.threat_score > 40 ? 'bg-gradient-to-r from-accent via-transparent' :
+            'bg-gradient-to-r from-primary via-transparent'
+          }`}></div>
+
+          <div className="relative flex flex-col lg:flex-row lg:items-start gap-6">
+            {/* Threat Grade Badge & Core Info */}
+            <div className="flex items-start gap-6">
+              {/* Threat Score Meter */}
               <div className="flex-shrink-0">
                 {renderThreatMeter()}
               </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-3 mb-3">
+
+              {/* File Info */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-widest text-purple-500">
+                    Sandbox Report
+                  </span>
+                </div>
+                
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2 break-all">
+                  {report.submit_name}
+                </h1>
+
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                   <VerdictBadge verdict={report.verdict || ''} />
                   {report.threat_score !== undefined && (
                     <ThreatScoreBadge score={report.threat_score} />
-                  )}
-                  {report.av_detect !== undefined && (
-                    <Badge variant="outline">
-                      AV: {report.av_detect}%
-                    </Badge>
                   )}
                   {report.interesting && (
                     <Badge variant="warning">
@@ -1195,26 +1197,48 @@ export default function DetailedReportPage() {
                     </Badge>
                   )}
                 </div>
-                
-                <div className="space-y-2">
-                  <h2 className="font-semibold text-foreground truncate">{report.submit_name}</h2>
-                  
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Database className="w-3 h-3" />
-                      <span>{report.size ? formatFileSize(report.size) : 'Unknown size'}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Code className="w-3 h-3" />
-                      <span className="truncate">{report.type_short?.join(', ') || report.type || 'Unknown type'}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Cpu className="w-3 h-3" />
-                      <span>{report.environment_description}</span>
-                    </div>
+
+                {/* Key Stats Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">AV Detection</p>
+                    <p className="font-bold text-foreground">{report.av_detect || 0}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">File Size</p>
+                    <p className="font-bold text-foreground">{formatFileSize(report.size || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Analysis Time</p>
+                    <p className="font-bold text-foreground text-sm">{formatDate(report.analysis_start_time || '').split(',')[0]}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Environment</p>
+                    <p className="font-bold text-foreground text-sm">{report.environment_description || 'N/A'}</p>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Right Section - Actions */}
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <a
+                href={`https://www.hybrid-analysis.com/sample/${report.sha256}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap font-medium text-sm"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View on HA
+              </a>
+              <button
+                onClick={() => navigator.clipboard.writeText(report.sha256 || '')}
+                className="px-4 py-2.5 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap font-medium text-sm"
+                title="Copy SHA256"
+              >
+                <Copy className="w-4 h-4" />
+                Copy Hash
+              </button>
             </div>
           </div>
         </div>
@@ -1271,25 +1295,25 @@ export default function DetailedReportPage() {
             icon={<Target className="w-5 h-5" />}
             label="MITRE ATT&CK"
             value={report.mitre_attcks?.length || 0}
-            color="destructive"
+            iconTone="text-emerald-300"
           />
           <StatCard
             icon={<Flag className="w-5 h-5" />}
             label="Signatures"
             value={report.total_signatures || 0}
-            color="accent"
+            iconTone="text-violet-300"
           />
           <StatCard
             icon={<Network className="w-5 h-5" />}
             label="Network"
             value={report.total_network_connections || 0}
-            color="blue"
+            iconTone="text-cyan-300"
           />
           <StatCard
             icon={<Settings className="w-5 h-5" />}
             label="Processes"
             value={report.total_processes || 0}
-            color="purple"
+            iconTone="text-amber-300"
           />
         </div>
       </div>
@@ -1327,14 +1351,14 @@ function CollapsibleSection({
   badge?: React.ReactNode;
 }) {
   return (
-    <div className="border border-border rounded-xl overflow-hidden">
+    <div className="border border-[#1a1a1a] rounded-lg overflow-hidden bg-[#0d0d0d]">
       <button
         onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/5 transition-colors"
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-3">
           {icon}
-          <h3 className="font-semibold text-foreground">{title}</h3>
+          <h3 className="font-semibold text-white">{title}</h3>
           {badge}
         </div>
         {expanded ? (
@@ -1344,7 +1368,7 @@ function CollapsibleSection({
         )}
       </button>
       {expanded && (
-        <div className="px-6 py-4 border-t border-border">
+        <div className="px-6 py-4 border-t border-[#1a1a1a]">
           {children}
         </div>
       )}
@@ -1395,33 +1419,21 @@ function InfoField({ icon, label, value, copyable = false }: {
   );
 }
 
-function StatCard({ icon, label, value, color }: { 
+function StatCard({ icon, label, value, iconTone }: { 
   icon: React.ReactNode; 
   label: string; 
   value: string | number; 
-  color: string;
+  iconTone: string;
 }) {
-  const colorClasses = {
-    destructive: 'text-destructive border-destructive/20 bg-destructive/5',
-    accent: 'text-accent border-accent/20 bg-accent/5',
-    blue: 'text-blue-500 border-blue-500/20 bg-blue-500/5',
-    purple: 'text-purple-500 border-purple-500/20 bg-purple-500/5',
-    green: 'text-green-500 border-green-500/20 bg-green-500/5',
-    yellow: 'text-yellow-500 border-yellow-500/20 bg-yellow-500/5',
-    orange: 'text-orange-500 border-orange-500/20 bg-orange-500/5'
-  };
-
   return (
-    <div className={`border rounded-xl p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${colorClasses[color as keyof typeof colorClasses].split(' ')[0].replace('text-', 'bg-')} bg-opacity-10`}>
+    <div className="border border-[#1a1a1a] rounded-lg p-4 bg-[#0d0d0d]">
+      <div className="flex items-center gap-3 text-muted-foreground mb-2 text-xs uppercase tracking-wider">
+        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md border border-[#1a1a1a] bg-[#101214] ${iconTone}`}>
           {icon}
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-sm text-muted-foreground">{label}</p>
-        </div>
+        </span>
+        <span>{label}</span>
       </div>
+      <p className="text-2xl font-semibold text-white">{value}</p>
     </div>
   );
 }
@@ -1461,7 +1473,7 @@ function HashDisplay({ label, value }: { label: string; value: string }) {
   };
 
   return (
-    <div className="p-3 border border-border rounded-lg hover:bg-muted/5 transition-colors group">
+    <div className="p-3 border border-[#1a1a1a] rounded-lg bg-[#0d0d0d] hover:bg-white/5 transition-colors group">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Hash className="w-4 h-4 text-muted-foreground" />
@@ -1469,13 +1481,13 @@ function HashDisplay({ label, value }: { label: string; value: string }) {
         </div>
         <button
           onClick={handleCopy}
-          className="p-1 hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+          className="p-1 hover:bg-white/10 rounded transition-colors opacity-0 group-hover:opacity-100"
           title="Copy hash"
         >
           <Copy className="w-3 h-3" />
         </button>
       </div>
-      <code className="text-sm font-mono break-all">{value}</code>
+      <code className="text-sm font-mono break-all text-white">{value}</code>
       {copied && (
         <div className="text-xs text-primary mt-1 animate-pulse">Copied to clipboard</div>
       )}
@@ -1571,14 +1583,14 @@ function MitreAttackCard({ attack }: { attack: any }) {
   const hasInformativeIdentifiers = attack.informative_identifiers_count && attack.informative_identifiers_count > 0;
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="border border-[#1a1a1a] rounded-lg overflow-hidden bg-[#0d0d0d]">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full p-4 flex items-center justify-between hover:bg-muted/5 transition-colors text-left"
+        className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors text-left"
       >
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
-            <h4 className="font-semibold text-sm">{attack.technique}</h4>
+            <h4 className="font-semibold text-sm text-white">{attack.technique}</h4>
             {attack.attck_id && (
               <Badge variant="outline" className="text-xs">
                 {attack.attck_id}
@@ -1616,11 +1628,11 @@ function MitreAttackCard({ attack }: { attack: any }) {
         </div>
       </button>
       {expanded && (
-        <div className="p-4 border-t border-border bg-muted/5">
+        <div className="p-4 border-t border-[#1a1a1a] bg-black/20">
           {attack.parent && attack.parent.technique && (
             <div className="mb-3">
               <p className="text-xs text-muted-foreground mb-1">Parent Technique</p>
-              <p className="text-sm font-medium">{attack.parent.technique}</p>
+              <p className="text-sm font-medium text-white">{attack.parent.technique}</p>
             </div>
           )}
           {(attack.malicious_identifiers?.length || attack.suspicious_identifiers?.length || attack.informative_identifiers?.length) && (

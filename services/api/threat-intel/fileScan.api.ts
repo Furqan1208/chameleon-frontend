@@ -187,6 +187,19 @@ export class FileScanApi extends BaseApi {
       report_url: data.report_url,
       scan_url: data.scan_url,
       timestamp: data.timestamp,
+      overallState: data.overallState ?? data.overall_state,
+      positionInQueue: data.positionInQueue ?? data.position_in_queue,
+      filesDownloadFinished: data.filesDownloadFinished ?? data.files_download_finished,
+      allScanStepsDone: data.allScanStepsDone ?? data.all_scan_steps_done,
+      additionalStepsRunning: data.additionalStepsRunning ?? data.additional_steps_running,
+      additionalStepsDone: data.additionalStepsDone ?? data.additional_steps_done,
+      defaultOptionsUsed: data.defaultOptionsUsed ?? data.default_options_used,
+      peEmulationFileMetadata: data.peEmulationFileMetadata ?? data.pe_emulation_file_metadata,
+      scanEngine: data.scanEngine ?? data.scan_engine,
+      similaritySearchResults: data.similaritySearchResults ?? data.similarity_search_results,
+      latestReport: data.latestReport ?? data.latest_report,
+      aiData: data.aiData ?? data.ai_data,
+      estimatedTime: data.estimatedTime ?? data.estimated_time,
     };
     
     console.log('[FileScanApi] Normalized result:', normalized);

@@ -8,7 +8,6 @@ import {
   FileText, 
   Shield, 
   ChevronDown, 
-  ChevronRight, 
   Plug, 
   Cpu,
   Globe,
@@ -43,7 +42,9 @@ import {
   Target,
   Radio,
   Satellite,
-  Atom
+  Atom,
+  Search,
+  Command
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
@@ -56,6 +57,7 @@ const menuItems = [
     icon: Home, 
     label: "Dashboard", 
     path: "/dashboard",
+    section: "Core",
     description: "Overview & stats",
     color: "from-blue-500 to-cyan-500"
   },
@@ -63,6 +65,7 @@ const menuItems = [
     icon: Upload, 
     label: "Upload & Analyze", 
     path: "/dashboard/upload",
+    section: "Core",
     description: "Submit new files",
     color: "from-green-500 to-emerald-500"
   },
@@ -70,6 +73,7 @@ const menuItems = [
     icon: FileText, 
     label: "Reports", 
     path: "/dashboard/reports",
+    section: "Core",
     description: "View analysis results",
     color: "from-orange-500 to-amber-500"
   },
@@ -77,6 +81,7 @@ const menuItems = [
     icon: Shield, 
     label: "Threat Intel", 
     path: "/dashboard/threat-intel",
+    section: "Intelligence",
     description: "Multi-source scanning",
     color: "from-purple-500 to-pink-500",
     submenu: [
@@ -148,6 +153,7 @@ const menuItems = [
     icon: Workflow, 
     label: "Integrations", 
     path: "/dashboard/integrations",
+    section: "Platform",
     description: "Connect services",
     color: "from-gray-500 to-slate-500"
   },
@@ -155,6 +161,7 @@ const menuItems = [
     icon: Layers, 
     label: "Frameworks", 
     path: "/dashboard/frameworks",
+    section: "Platform",
     description: "TTP frameworks & analysis",
     color: "from-indigo-500 to-violet-500",
     submenu: [
@@ -179,6 +186,32 @@ const menuItemVariants = {
   hover: { scale: 1.02, x: 4, transition: { duration: 0.2 } }
 }
 
+const sectionOrder = ["Core", "Intelligence", "Platform"] as const
+
+const quickShortcutRoutes = [
+  { label: "Dashboard", path: "/dashboard", icon: Home },
+  { label: "Upload", path: "/dashboard/upload", icon: Upload },
+  { label: "Reports", path: "/dashboard/reports", icon: FileText },
+  { label: "Unified", path: "/dashboard/threat-intel/unified", icon: Zap },
+  { label: "VirusTotal", path: "/dashboard/threat-intel/virustotal", icon: Cpu },
+  { label: "Hybrid", path: "/dashboard/threat-intel/hybridanalysis", icon: Brain },
+  { label: "AbuseIPDB", path: "/dashboard/threat-intel/abuseipdb", icon: Radar },
+  { label: "Abuse.ch", path: "/dashboard/threat-intel/abusech", icon: Network },
+  { label: "AlienVault", path: "/dashboard/threat-intel/alienvault", icon: Satellite },
+  { label: "Filescan", path: "/dashboard/threat-intel/filescan", icon: Scan },
+  { label: "Integrations", path: "/dashboard/integrations", icon: Workflow },
+  { label: "Frameworks", path: "/dashboard/frameworks", icon: Layers },
+]
+
+const quickShortcuts = quickShortcutRoutes.map((item, idx) => {
+  const key = idx < 9 ? String(idx + 1) : null
+  return {
+    ...item,
+    key,
+    combo: key ? `Alt+${key}` : "Click",
+  }
+})
+
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -187,10 +220,16 @@ export function Sidebar() {
   const [isMobile, setIsMobile] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+  const [shortcutsExpanded, setShortcutsExpanded] = useState(false)
 
   // Check for mobile - only on client side
   useEffect(() => {
     setMounted(true)
+    const savedState = window.localStorage.getItem("chameleon.sidebar.collapsed")
+    if (savedState != null) {
+      setIsCollapsed(savedState === "true")
+    }
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
       // Auto collapse on mobile
@@ -203,6 +242,32 @@ export function Sidebar() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    window.localStorage.setItem("chameleon.sidebar.collapsed", String(isCollapsed))
+  }, [isCollapsed, mounted])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+        event.preventDefault()
+        setIsCollapsed((prev) => !prev)
+        return
+      }
+
+      if (event.altKey) {
+        const shortcut = quickShortcuts.find((item) => item.key != null && item.key === event.key)
+        if (shortcut) {
+          event.preventDefault()
+          navigateToPath(shortcut.path)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isMobile, router])
 
   // Auto-expand Threat Intel menu when on any threat intel page
   useEffect(() => {
@@ -220,6 +285,13 @@ export function Sidebar() {
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
+  }
+
+  const navigateToPath = (path: string) => {
+    router.push(path)
+    if (isMobile) {
+      setIsCollapsed(true)
+    }
   }
 
   // Fixed isActive function
@@ -246,6 +318,17 @@ export function Sidebar() {
     const isItemActive = isActive(item.path, hasSubmenu)
     const isExpanded = expandedMenus[item.label] || false
     const isHovered = hoveredItem === item.path
+    const iconTone = isItemActive
+      ? "bg-gradient-to-br from-primary/25 to-primary/10 text-primary ring-1 ring-primary/30"
+      : item.path.includes("/threat-intel")
+      ? "bg-gradient-to-br from-fuchsia-500/20 to-violet-500/20 text-fuchsia-300"
+      : item.path.includes("/upload")
+      ? "bg-gradient-to-br from-emerald-500/20 to-lime-500/20 text-emerald-300"
+      : item.path.includes("/reports")
+      ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-300"
+      : item.path.includes("/frameworks")
+      ? "bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-indigo-300"
+      : "bg-gradient-to-br from-cyan-500/20 to-sky-500/20 text-cyan-300"
 
     return (
       <motion.div
@@ -274,20 +357,17 @@ export function Sidebar() {
                 toggleSubmenu(item.label)
               } else {
                 // On collapsed, just go to the main path
-                router.push(item.path)
+                navigateToPath(item.path)
               }
             } else {
-              router.push(item.path)
-              if (isMobile) {
-                setIsCollapsed(true)
-              }
+              navigateToPath(item.path)
             }
           }}
           className={cn(
             "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
             isItemActive
-              ? "bg-gradient-to-r from-primary/15 via-primary/10 to-transparent text-primary border border-primary/20 shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              ? "bg-gradient-to-r from-primary/18 via-primary/10 to-transparent text-primary border border-primary/25 shadow-[0_0_0_1px_rgba(0,255,136,0.06),0_10px_30px_rgba(0,255,136,0.09)]"
+              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent hover:border-[#1a1a1a]",
             depth > 0 && "ml-3",
             isCollapsed && "justify-center px-2"
           )}
@@ -295,7 +375,7 @@ export function Sidebar() {
         >
           {/* Hover tint */}
           {isHovered && !isItemActive && (
-            <div className="absolute inset-0 bg-muted/30 rounded-xl" />
+            <div className="absolute inset-0 bg-white/[0.02] rounded-xl" />
           )}
 
           <div className="flex items-center gap-3 min-w-0 relative z-10">
@@ -305,10 +385,8 @@ export function Sidebar() {
             )}>
               {/* Icon with gradient background */}
               <div className={cn(
-                "p-1.5 rounded-lg transition-all duration-200",
-                isItemActive 
-                  ? "bg-primary/20 text-primary"
-                  : "text-inherit group-hover:scale-110"
+                "p-1.5 rounded-lg transition-all duration-200 group-hover:scale-110",
+                iconTone
               )}>
                 <Icon className="w-5 h-5" />
               </div>
@@ -376,10 +454,17 @@ export function Sidebar() {
     )
   }
 
+  const groupedMenuItems = sectionOrder
+    .map((section) => ({
+      section,
+      items: menuItems.filter((item) => item.section === section),
+    }))
+    .filter((group) => group.items.length > 0)
+
   // Don't render sidebar until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <div className="glass border-r border-border flex flex-col w-16 md:w-64 h-screen z-40 bg-background/95 backdrop-blur-xl">
+      <div className="border-r border-[#1a1a1a] flex flex-col w-16 md:w-64 h-screen z-40 bg-[#0d0d0d]">
         <div className="border-b border-border/50 p-4">
           <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse" />
         </div>
@@ -410,7 +495,7 @@ export function Sidebar() {
         animate={isCollapsed ? "collapsed" : "expanded"}
         transition={{ duration: 0.3 }}
         className={cn(
-          "glass border-r border-border/50 flex flex-col h-screen z-40 bg-background/95 backdrop-blur-xl",
+          "border-r border-[#1a1a1a] flex flex-col h-screen z-40 bg-[#0d0d0d]",
           "fixed md:relative shadow-2xl md:shadow-none",
           "md:translate-x-0 transition-transform",
           isMobile && isCollapsed && "-translate-x-full",
@@ -418,7 +503,8 @@ export function Sidebar() {
         )}
       >
         {/* Gradient background effect */}
-        <div className="absolute inset-0 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_15%_0%,rgba(0,255,136,0.08),transparent_38%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.1),transparent_36%)]" />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] bg-[size:34px_34px]" />
         
         {/* Logo section */}
         <motion.div 
@@ -446,12 +532,12 @@ export function Sidebar() {
                 animate={{ opacity: 1, x: 0 }}
                 className="min-w-0"
               >
-                <h1 className="text-base font-semibold text-foreground truncate">
-                  Chameleon
-                </h1>
-                <p className="text-xs text-muted-foreground truncate">
-                  Malware Analysis
-                </p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base font-semibold text-foreground tracking-tight truncate">
+                    Chameleon
+                  </h1>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">Adaptive Malware Intelligence</p>
               </motion.div>
             )}
           </motion.button>
@@ -459,13 +545,86 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted/50 hover:scrollbar-thumb-muted">
-          <div className="space-y-1">
-            {menuItems.map((item) => renderMenuItem(item))}
+          {!isCollapsed && (
+            <button
+              className="w-full mb-3 flex items-center justify-between gap-2 rounded-xl border border-[#1a1a1a] bg-[#111111] px-3 py-2 text-xs text-muted-foreground hover:bg-[#141414] transition-colors"
+              title="Quick search coming soon"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Search className="w-3.5 h-3.5" />
+                Quick Search
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-md border border-border/70 px-1.5 py-0.5 text-[10px]">
+                <Command className="w-3 h-3" />
+                K
+              </span>
+            </button>
+          )}
+
+          <div className="space-y-4">
+            {groupedMenuItems.map((group) => (
+              <div key={group.section}>
+                {!isCollapsed && (
+                  <p className="px-2 mb-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80">
+                    {group.section}
+                  </p>
+                )}
+                <div className="space-y-1">
+                  {group.items.map((item) => renderMenuItem(item))}
+                </div>
+              </div>
+            ))}
           </div>
         </nav>
 
         {/* Footer section */}
-        <div className="p-4 border-t border-border/50">
+        <div className="p-4 border-t border-[#1a1a1a]">
+          {!isCollapsed && !isMobile && (
+            <div className="mb-3 rounded-xl border border-[#1a1a1a] bg-[#111111] p-3">
+              <button
+                onClick={() => setShortcutsExpanded((prev) => !prev)}
+                className="w-full flex items-center justify-between text-xs"
+              >
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <Zap className="w-3.5 h-3.5 text-primary" />
+                  Quick Shortcuts
+                </span>
+                <span className="text-muted-foreground inline-flex items-center gap-2">
+                  <span className="text-[10px]">Alt+1..9</span>
+                  {shortcutsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRightIcon className="w-3.5 h-3.5" />}
+                </span>
+              </button>
+
+              {shortcutsExpanded && (
+                <div className="space-y-1.5 mt-2">
+                  {quickShortcuts.map((shortcut) => {
+                  const Icon = shortcut.icon
+
+                  return (
+                    <button
+                      key={shortcut.path}
+                      onClick={() => navigateToPath(shortcut.path)}
+                      className={cn(
+                        "w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
+                        pathname === shortcut.path
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-white/[0.04] text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon className="w-3.5 h-3.5" />
+                        {shortcut.label}
+                      </span>
+                      <span className="rounded border border-border/70 px-1.5 py-0.5 text-[10px]">
+                        {shortcut.combo}
+                      </span>
+                    </button>
+                  )
+                })}
+                </div>
+              )}
+            </div>
+          )}
           
           {/* Desktop toggle button */}
           {!isMobile && (
@@ -475,8 +634,8 @@ export function Sidebar() {
                 whileTap={{ scale: 0.95 }}
                 onClick={toggleSidebar}
                 className={cn(
-                  "p-2 rounded-lg hover:bg-muted/40 transition-colors flex items-center justify-center",
-                  "border border-border/60",
+                  "p-2 rounded-lg hover:bg-white/[0.05] transition-colors flex items-center justify-center",
+                  "border border-[#1a1a1a]",
                   isCollapsed ? "w-8 h-8" : "w-8 h-8"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}

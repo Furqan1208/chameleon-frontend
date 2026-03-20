@@ -63,6 +63,10 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
   const [expandedResult, setExpandedResult] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  const maliciousCount = results.filter((r) => r.threat_level === 'malicious').length;
+  const suspiciousCount = results.filter((r) => r.threat_level === 'suspicious').length;
+  const cleanCount = results.filter((r) => r.threat_level === 'whitelisted' || r.threat_level === 'no_specific_threat').length;
+
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopied(id);
@@ -86,11 +90,30 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="text-lg font-semibold text-white">
           Analysis Results ({results.length})
         </h3>
         <div className="text-sm text-muted-foreground">
           {results.filter(r => r.found).length} found • {results.filter(r => !r.found).length} not found
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</p>
+          <p className="text-xl font-semibold text-white mt-1">{results.length}</p>
+        </div>
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+          <p className="text-[11px] uppercase tracking-wider text-destructive/80">Malicious</p>
+          <p className="text-xl font-semibold text-destructive mt-1">{maliciousCount}</p>
+        </div>
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+          <p className="text-[11px] uppercase tracking-wider text-amber-400">Suspicious</p>
+          <p className="text-xl font-semibold text-amber-400 mt-1">{suspiciousCount}</p>
+        </div>
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+          <p className="text-[11px] uppercase tracking-wider text-emerald-300">Clean / Low Risk</p>
+          <p className="text-xl font-semibold text-emerald-300 mt-1">{cleanCount}</p>
         </div>
       </div>
 
@@ -102,11 +125,11 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
         return (
           <div
             key={`result-${index}`}
-            className={`glass border rounded-xl overflow-hidden transition-all duration-300 ${
+            className={`border rounded-xl overflow-hidden transition-all duration-300 bg-[#0d0d0d] ${
               result.threat_level === 'malicious' ? 'border-destructive/30' :
               result.threat_level === 'suspicious' ? 'border-accent/30' :
               result.threat_level === 'whitelisted' ? 'border-green-500/30' :
-              'border-border'
+              'border-[#1a1a1a]'
             }`}
           >
             <div className="p-4 cursor-pointer" onClick={() => toggleExpand(result.sha256)}>
@@ -138,7 +161,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                       )}
                     </div>
                     
-                    <p className="font-mono text-sm break-all mb-1">
+                    <p className="font-mono text-sm break-all mb-1 text-white">
                       {result.sha256.substring(0, 16)}...{result.sha256.substring(48)}
                     </p>
                     
@@ -177,7 +200,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                       e.stopPropagation();
                       handleCopy(result.sha256, `copy-hash-${index}`);
                     }}
-                    className="p-1.5 rounded hover:bg-black/10 transition-colors"
+                    className="p-1.5 rounded hover:bg-black/30 transition-colors"
                     title="Copy Hash"
                   >
                     <Copy className="w-4 h-4" />
@@ -187,13 +210,13 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 rounded hover:bg-black/10 transition-colors"
+                    className="p-1.5 rounded hover:bg-black/30 transition-colors"
                     title="View on Hybrid Analysis"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
                   <button
-                    className="p-1.5 rounded hover:bg-black/10 transition-colors"
+                    className="p-1.5 rounded hover:bg-black/30 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleExpand(result.sha256);
@@ -216,7 +239,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
             </div>
 
             {isExpanded && (
-              <div className="border-t border-border/50 bg-black/5">
+              <div className="border-t border-[#1a1a1a] bg-black/20">
                 <div className="p-6 space-y-8">
                   {/* File Information Section */}
                   <div>
@@ -490,9 +513,12 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                           const reportId = report.id;
                           const submissionId = report.submission_id;
                           const displayId = reportId || submissionId || null;
+                          const uniqueReportKey = displayId
+                            ? `${displayId}-${report.environment_id ?? 'env'}-${idx}`
+                            : `report-${result.sha256}-${idx}`;
 
                           return (
-                            <div key={displayId || idx} className="p-3 border border-border rounded-lg hover:border-primary/30 transition-colors">
+                              <div key={uniqueReportKey} className="p-3 border border-[#1a1a1a] bg-black/20 rounded-lg hover:border-primary/30 transition-colors">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-foreground text-sm">
                                   {report.environment_description || `Env ${report.environment_id}`}
@@ -532,13 +558,13 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
 
                   {result.raw_data && (
                     <div>
-                      <details className="group">
+                      <details className="group rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
                         <summary className="cursor-pointer text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-2">
                           <Code className="w-4 h-4" />
                           View Raw Data
                           <span className="ml-auto group-open:rotate-90 transition-transform">→</span>
                         </summary>
-                        <div className="mt-3 p-3 bg-black/10 rounded-lg overflow-x-auto">
+                        <div className="mt-3 p-3 bg-black/30 rounded-lg overflow-x-auto border border-[#1a1a1a]">
                           <pre className="text-xs font-mono text-foreground/80">
                             {JSON.stringify(result.raw_data, null, 2)}
                           </pre>

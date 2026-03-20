@@ -20,10 +20,12 @@ import {
   FileText,
   Folder,
   GitBranch,
+  Globe,
   Hash,
   Key,
   Layers,
   MemoryStick,
+  Network,
   Search,
   Terminal,
   Type,
@@ -38,7 +40,7 @@ interface ParsedAnalysisDashboardProps {
   onDownload?: (format: string) => void
 }
 
-type ParsedTab = "overview" | "behavior" | "signatures" | "strings" | "memory" | "static" | "raw"
+type ParsedTab = "overview" | "behavior" | "signatures" | "strings" | "memory" | "network" | "static" | "raw"
 type SeverityFilter = "all" | "high" | "medium" | "low"
 
 function safeArray<T = any>(value: any): T[] {
@@ -178,6 +180,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
   const [activeTab, setActiveTab] = useState<ParsedTab>("overview")
   const [viewMode, setViewMode] = useState<"structured" | "raw">("structured")
   const [searchQuery, setSearchQuery] = useState("")
+  const [networkQuery, setNetworkQuery] = useState("")
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("all")
 
   const sections = useMemo(() => data?.sections || {}, [data])
@@ -351,6 +354,85 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
     }
   }, [sections])
 
+  const networkSection = useMemo(() => {
+    const raw = sections?.network?.data || sections?.network || {}
+    const summary = raw?.network_summary || {}
+    const hosts = safeArray(raw?.hosts)
+    const domains = safeArray(raw?.domains)
+    const httpRequests = safeArray(raw?.http_requests)
+    const dnsQueries = safeArray(raw?.dns_queries)
+    const failedConnections = safeArray(raw?.failed_connections)
+    const suspiciousDomains = safeArray(raw?.ioc_summary?.suspicious_domains)
+    const suspiciousIps = safeArray(raw?.ioc_summary?.suspicious_ips)
+
+    const tldCounts = domains.reduce((acc: Record<string, number>, domain: any) => {
+      const tld = String(domain?.tld || "unknown").toLowerCase()
+      acc[tld] = (acc[tld] || 0) + 1
+      return acc
+    }, {})
+
+    const topTlds = Object.entries(tldCounts)
+      .map(([tld, count]) => ({ tld, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+
+    const methodCounts = httpRequests.reduce((acc: Record<string, number>, req: any) => {
+      const method = String(req?.method || "UNKNOWN").toUpperCase()
+      acc[method] = (acc[method] || 0) + numberOrZero(req?.count || 1)
+      return acc
+    }, {})
+
+    const topMethods = Object.entries(methodCounts)
+      .map(([method, count]) => ({ method, count }))
+      .sort((a, b) => b.count - a.count)
+
+    return {
+      summary: {
+        totalHosts: numberOrZero(summary?.total_hosts || hosts.length),
+        totalDomains: numberOrZero(summary?.total_domains || domains.length),
+        totalHttp: numberOrZero(summary?.total_http_requests || httpRequests.length),
+        totalDns: numberOrZero(summary?.total_dns_queries || dnsQueries.length),
+        hasPcap: Boolean(summary?.has_pcap),
+      },
+      hosts,
+      domains,
+      httpRequests,
+      dnsQueries,
+      failedConnections,
+      suspiciousDomains,
+      suspiciousIps,
+      topTlds,
+      topMethods,
+    }
+  }, [sections])
+
+  const filteredNetwork = useMemo(() => {
+    if (!networkQuery.trim()) {
+      return {
+        domains: networkSection.domains,
+        httpRequests: networkSection.httpRequests,
+        dnsQueries: networkSection.dnsQueries,
+      }
+    }
+
+    const q = networkQuery.toLowerCase()
+    const domains = networkSection.domains.filter((d: any) => {
+      return String(d?.domain || "").toLowerCase().includes(q) || String(d?.tld || "").toLowerCase().includes(q)
+    })
+    const httpRequests = networkSection.httpRequests.filter((h: any) => {
+      return (
+        String(h?.host || "").toLowerCase().includes(q) ||
+        String(h?.path || "").toLowerCase().includes(q) ||
+        String(h?.method || "").toLowerCase().includes(q)
+      )
+    })
+    const dnsQueries = networkSection.dnsQueries.filter((d: any) => {
+      return String(d?.query || "").toLowerCase().includes(q) || String(d?.type || "").toLowerCase().includes(q)
+    })
+
+    return { domains, httpRequests, dnsQueries }
+  }, [networkSection, networkQuery])
+
   const apiCalls = useMemo(() => {
     return behaviorProcesses.reduce((acc: number, proc: any) => acc + safeArray(proc?.calls).length, 0)
   }, [behaviorProcesses])
@@ -493,6 +575,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 { id: "signatures", label: "Signatures", icon: <AlertTriangle className="w-4 h-4" /> },
                 { id: "strings", label: "Strings", icon: <Type className="w-4 h-4" /> },
                 { id: "memory", label: "Memory", icon: <MemoryStick className="w-4 h-4" /> },
+                { id: "network", label: "Network", icon: <Network className="w-4 h-4" /> },
                 { id: "static", label: "Static", icon: <FileCode className="w-4 h-4" /> },
                 { id: "raw", label: "Raw Data", icon: <FileJson className="w-4 h-4" /> },
               ].map((tab) => (
@@ -861,6 +944,177 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       )}
                     />
                   )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "network" && (
+              <div className="space-y-6">
+                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Network className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Parsed Network Intelligence</h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <StatTile icon={<Globe className="w-3.5 h-3.5" />} label="Hosts" value={networkSection.summary.totalHosts} />
+                    <StatTile icon={<Globe className="w-3.5 h-3.5" />} label="Domains" value={networkSection.summary.totalDomains} />
+                    <StatTile icon={<Activity className="w-3.5 h-3.5" />} label="HTTP" value={networkSection.summary.totalHttp} />
+                    <StatTile icon={<Activity className="w-3.5 h-3.5" />} label="DNS" value={networkSection.summary.totalDns} />
+                    <StatTile icon={<AlertTriangle className="w-3.5 h-3.5" />} label="Failed Conn" value={networkSection.failedConnections.length} />
+                  </div>
+
+                  <div className="mt-3 text-xs text-muted-foreground">
+                    PCAP Available: <span className="text-foreground font-medium">{networkSection.summary.hasPcap ? "Yes" : "No"}</span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      value={networkQuery}
+                      onChange={(e) => setNetworkQuery(e.target.value)}
+                      placeholder="Search domain, HTTP host/path, DNS query"
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Suspicious Domains</h4>
+                      {networkSection.suspiciousDomains.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No suspicious domains listed.</p>
+                      ) : (
+                        <ProgressiveList
+                          items={networkSection.suspiciousDomains}
+                          initialCount={12}
+                          step={12}
+                          className="space-y-2"
+                          renderItem={(domain: string, idx: number) => (
+                            <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs text-foreground break-all">
+                              {domain}
+                            </div>
+                          )}
+                        />
+                      )}
+                    </div>
+
+                    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Failed Connections</h4>
+                      {networkSection.failedConnections.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No failed connection entries.</p>
+                      ) : (
+                        <ProgressiveList
+                          items={networkSection.failedConnections}
+                          initialCount={8}
+                          step={8}
+                          className="space-y-2"
+                          renderItem={(conn: any, idx: number) => (
+                            <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                              <p className="text-foreground">{conn?.ip || "N/A"}:{conn?.port ?? "-"}</p>
+                              <p className="text-muted-foreground">failed: {conn?.failed ? "true" : "false"}</p>
+                            </div>
+                          )}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">Top TLD Distribution</h3>
+                    {networkSection.topTlds.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No domain TLD data available.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {networkSection.topTlds.map((row: any, idx: number) => {
+                          const max = networkSection.topTlds[0]?.count || 1
+                          const width = Math.max((row.count / max) * 100, 4)
+                          return (
+                            <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                              <div className="flex items-center justify-between mb-1 text-xs">
+                                <p className="text-foreground">.{row.tld}</p>
+                                <p className="text-muted-foreground">{row.count}</p>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">HTTP Method Distribution</h3>
+                    {networkSection.topMethods.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No HTTP method data available.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {networkSection.topMethods.map((row: any, idx: number) => (
+                          <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-center">
+                            <p className="text-white font-semibold text-sm">{row.method}</p>
+                            <p className="text-xs text-muted-foreground">{row.count}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">Domains</h3>
+                    <ProgressiveList
+                      items={filteredNetwork.domains}
+                      initialCount={16}
+                      step={16}
+                      className="space-y-2"
+                      renderItem={(domain: any, idx: number) => (
+                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                          <p className="text-foreground break-all">{domain?.domain || "N/A"}</p>
+                          <p className="text-muted-foreground">TLD: {domain?.tld || "unknown"}</p>
+                        </div>
+                      )}
+                    />
+                  </div>
+
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">HTTP Requests</h3>
+                    <ProgressiveList
+                      items={filteredNetwork.httpRequests}
+                      initialCount={12}
+                      step={12}
+                      className="space-y-2"
+                      renderItem={(req: any, idx: number) => (
+                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                          <p className="text-foreground font-medium break-all">{req?.method || "GET"} {req?.path || "/"}</p>
+                          <p className="text-muted-foreground break-all">{req?.host || "unknown-host"}</p>
+                          <p className="text-muted-foreground">count: {req?.count ?? 1}</p>
+                        </div>
+                      )}
+                    />
+                  </div>
+
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">DNS Queries</h3>
+                    <ProgressiveList
+                      items={filteredNetwork.dnsQueries}
+                      initialCount={12}
+                      step={12}
+                      className="space-y-2"
+                      renderItem={(dns: any, idx: number) => (
+                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                          <p className="text-foreground break-all">{dns?.query || "N/A"}</p>
+                          <p className="text-muted-foreground">type: {dns?.type || "A"} • answers: {safeArray(dns?.answers).length}</p>
+                          {dns?.no_answer && <p className="text-amber-300">no answer</p>}
+                        </div>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             )}

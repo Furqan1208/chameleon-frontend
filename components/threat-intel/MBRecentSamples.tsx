@@ -99,7 +99,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
       {/* Header with Stats */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
             Recent Malware Samples
           </h3>
@@ -111,7 +111,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             {(Object.entries(fileTypeStats) as [string, number][]).slice(0, 3).map(([type, count]) => (
-              <div key={type} className="px-2 py-1 bg-muted/50 rounded text-xs">
+              <div key={type} className="px-2 py-1 border border-[#1a1a1a] bg-black/20 rounded text-xs text-muted-foreground">
                 {type}: {count}
               </div>
             ))}
@@ -123,7 +123,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
             className={`px-3 py-1.5 rounded-lg flex items-center gap-2 ${
               refreshing
                 ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                : 'border border-border hover:bg-muted/20'
+                : 'border border-[#1a1a1a] bg-black/20 hover:border-[#2a2a2a] hover:text-white text-muted-foreground'
             }`}
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -140,7 +140,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
           className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
             filter === 'all'
               ? 'bg-primary text-primary-foreground'
-              : 'border border-border hover:bg-muted/20'
+                : 'border border-[#1a1a1a] bg-black/20 hover:border-[#2a2a2a] hover:text-white text-muted-foreground'
           }`}
         >
           All ({samples.length})
@@ -152,7 +152,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
             className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
               filter === type
                 ? 'bg-primary text-primary-foreground'
-                : 'border border-border hover:bg-muted/20'
+                : 'border border-[#1a1a1a] bg-black/20 hover:border-[#2a2a2a] hover:text-white text-muted-foreground'
             }`}
           >
             {type.toUpperCase()} ({fileTypeStats[type] || 0})
@@ -168,7 +168,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
           return (
             <div
               key={sample.sha256_hash}
-              className="border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-colors"
+              className="border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg overflow-hidden hover:border-primary/30 transition-colors"
             >
               {/* Sample Header */}
               <div className="p-4">
@@ -280,7 +280,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
 
               {/* Expanded Details */}
               {isExpanded && (
-                <div className="border-t border-border/50 bg-black/5 p-4">
+                <div className="border-t border-[#1a1a1a] bg-black/20 p-4">
                   <div className="space-y-4">
                     {/* Hashes */}
                     <div>
@@ -352,7 +352,7 @@ export function MBRecentSamples({ samples, onRefresh, refreshing }: MBRecentSamp
         <div className="text-center pt-4">
           <button
             onClick={() => alert('Implement pagination or modal view here')}
-            className="px-4 py-2 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 mx-auto"
+            className="px-4 py-2 border border-[#1a1a1a] bg-black/20 rounded-lg hover:border-[#2a2a2a] hover:text-white text-muted-foreground transition-colors flex items-center gap-2 mx-auto"
           >
             <Eye className="w-4 h-4" />
             View All {filteredSamples.length} Samples

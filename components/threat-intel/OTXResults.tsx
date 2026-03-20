@@ -92,7 +92,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
       case 'clean':
         return 'text-green-500 border-green-500/20 bg-green-500/5';
       default:
-        return 'text-muted-foreground border-border bg-muted/5';
+        return 'text-muted-foreground border-[#1a1a1a] bg-[#0d0d0d]';
     }
   };
 
@@ -261,7 +261,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="text-lg font-semibold text-white">
           Scan Results ({results.length})
         </h3>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -292,7 +292,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
         return (
           <div
             key={resultId}
-            className={`glass border rounded-xl overflow-hidden transition-all duration-300 ${threatColor} hover:shadow-lg`}
+            className={`rounded-lg border overflow-hidden transition-all duration-300 ${threatColor}`}
           >
             {/* Result Header */}
             <div className="p-4 cursor-pointer" onClick={() => toggleExpand(resultId)}>
@@ -347,7 +347,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                       </div>
                     </div>
                     
-                    <p className="font-mono text-sm break-all mb-2 bg-black/5 p-2 rounded">
+                    <p className="font-mono text-sm break-all mb-2 bg-black/20 p-2 rounded border border-[#1a1a1a]">
                       {result.ioc}
                     </p>
                     
@@ -451,7 +451,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
 
             {/* Expanded Details */}
             {isExpanded && (
-              <div className="border-t border-border/50 bg-black/5">
+              <div className="border-t border-[#1a1a1a] bg-black/20">
                 <div className="p-4 space-y-6">
                   {/* General Information */}
                   {result.sections?.general && (

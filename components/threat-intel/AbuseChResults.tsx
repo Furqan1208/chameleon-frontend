@@ -173,7 +173,7 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="text-lg font-semibold text-white">
           Recent Checks ({results.length})
         </h3>
         <div className="text-sm text-muted-foreground">
@@ -195,12 +195,12 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
         return (
           <div
             key={resultId}
-            className={`glass border rounded-xl overflow-hidden transition-all duration-300 ${
+            className={`rounded-lg border overflow-hidden transition-all duration-300 ${
               hasURLhaus 
-                ? 'border-green-500/20 bg-green-500/5'
+                ? 'border-primary/25 bg-primary/10'
                 : hasThreatFox 
-                  ? 'border-purple-500/20 bg-purple-500/5'
-                  : 'border-border bg-muted/5'
+                  ? 'border-sky-500/25 bg-sky-500/10'
+                  : 'border-[#1a1a1a] bg-[#0d0d0d]'
             }`}
           >
             {/* Result Header */}
@@ -325,11 +325,11 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
 
             {/* Expanded Details */}
             {isExpanded && (
-              <div className="border-t border-border/50 bg-black/5">
+              <div className="border-t border-[#1a1a1a] bg-black/20">
                 <div className="p-4 space-y-6">
                   {/* Service Tabs */}
                   {(hasURLhaus || hasThreatFox) && (
-                    <div className="flex items-center gap-2 border-b border-border pb-2">
+                    <div className="flex items-center gap-2 border-b border-[#1a1a1a] pb-2">
                       {hasURLhaus && (
                         <button
                           onClick={() => setActiveTab('urlhaus')}

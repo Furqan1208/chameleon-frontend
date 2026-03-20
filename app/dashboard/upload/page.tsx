@@ -8,12 +8,19 @@ import { FilePreview } from "@/components/upload/FilePreview"
 import { UploadProgress } from "@/components/upload/UploadProgress"
 import { apiService } from "@/services/api/api.service"
 import { calculateFileHash, simpleHashExtraction } from "@/lib/hash-utils"
-import { FileText, Brain, Shield, Zap, Info, Layers, Globe } from "lucide-react"
+import { FileText, Shield, Zap, Info, Layers, Globe } from "lucide-react"
+
+const ICON_TONES = {
+  emerald: "text-emerald-300",
+  sky: "text-sky-300",
+  slate: "text-slate-300/90",
+  violet: "text-violet-300",
+}
 
 export default function UploadPage() {
   const router = useRouter()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [analysisType, setAnalysisType] = useState<"complete" | "parse" | "parse_and_ai" | "ai">("complete")
+  const [analysisType, setAnalysisType] = useState<"complete" | "parse" | "parse_and_ai">("complete")
   const [aiModel, setAiModel] = useState("gemini-2.5-flash")
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -88,8 +95,6 @@ export default function UploadPage() {
         return "Upload existing CAPE JSON report for parsing only (structured analysis)"
       case "parse_and_ai":
         return "Upload existing CAPE JSON report for parsing AND AI analysis"
-      case "ai":
-        return "Upload already parsed JSON data for AI-powered analysis only"
       default:
         return ""
     }
@@ -100,7 +105,6 @@ export default function UploadPage() {
       case "complete": return <Zap className="w-5 h-5" />
       case "parse":    return <FileText className="w-5 h-5" />
       case "parse_and_ai": return <Layers className="w-5 h-5" />
-      case "ai":       return <Brain className="w-5 h-5" />
       default:         return <Zap className="w-5 h-5" />
     }
   }
@@ -110,7 +114,6 @@ export default function UploadPage() {
       case "complete":     return "Complete Analysis"
       case "parse":        return "Parse Only"
       case "parse_and_ai": return "Parse + AI Analysis"
-      case "ai":           return "AI Only"
       default:             return "Complete Analysis"
     }
   }
@@ -120,7 +123,6 @@ export default function UploadPage() {
       case "complete":     return "File → CAPE → Parse → AI"
       case "parse":        return "CAPE JSON → Parse"
       case "parse_and_ai": return "CAPE JSON → Parse → AI"
-      case "ai":           return "Parsed JSON → AI"
       default:             return "File → CAPE → Parse → AI"
     }
   }
@@ -158,7 +160,7 @@ export default function UploadPage() {
             {selectedFile && fileHash && !isUploading && (
               <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                 <div className="flex items-center gap-2 text-sm">
-                  <Shield className="w-4 h-4 text-primary" />
+                  <Shield className={`w-4 h-4 ${ICON_TONES.emerald}`} />
                   <span className="text-muted-foreground">File hash calculated:</span>
                   <code className="font-mono text-xs bg-background px-2 py-1 rounded">
                     {fileHash.substring(0, 16)}...
@@ -184,8 +186,8 @@ export default function UploadPage() {
                 <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Analysis Type</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {(["complete", "parse", "parse_and_ai", "ai"] as const).map((type) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(["complete", "parse", "parse_and_ai"] as const).map((type) => (
                       <AnalysisTypeCard
                         key={type}
                         type={type}
@@ -197,7 +199,7 @@ export default function UploadPage() {
                         color={
                           type === "complete" ? "green" :
                           type === "parse" ? "blue" :
-                          type === "parse_and_ai" ? "pink" : "accent"
+                          "pink"
                         }
                         recommended={
                           (type === "complete" && !selectedFile.name.toLowerCase().endsWith(".json")) ||
@@ -209,7 +211,7 @@ export default function UploadPage() {
 
                   <div className="mt-4 p-3 bg-black/20 border border-[#1a1a1a] rounded-lg">
                     <div className="flex items-start gap-2">
-                      <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <Info className={`w-4 h-4 ${ICON_TONES.slate} mt-0.5 shrink-0`} />
                       <p className="text-sm text-muted-foreground">{getAnalysisTypeDescription()}</p>
                     </div>
                   </div>
@@ -219,7 +221,7 @@ export default function UploadPage() {
                 {fileHash && (
                   <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                     <div className="flex items-start gap-3">
-                      <Globe className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <Globe className={`w-5 h-5 ${ICON_TONES.sky} shrink-0 mt-0.5`} />
                       <div>
                         <h4 className="font-medium text-foreground">Immediate Threat Intelligence</h4>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -233,12 +235,12 @@ export default function UploadPage() {
                 )}
 
                 {/* AI Model Selection */}
-                {(analysisType === "complete" || analysisType === "parse_and_ai" || analysisType === "ai") && (
+                {(analysisType === "complete" || analysisType === "parse_and_ai") && (
                   <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
                     <details className="cursor-pointer group" open>
                       <summary className="flex items-center justify-between font-medium text-foreground hover:text-primary transition-colors">
                         <div className="flex items-center gap-2">
-                          <Shield className="w-5 h-5" />
+                          <Shield className={`w-5 h-5 ${ICON_TONES.violet}`} />
                           <span>AI Model Selection</span>
                         </div>
                         <span className="group-open:rotate-90 transition-transform">→</span>
@@ -311,11 +313,18 @@ function AnalysisTypeCard({
   description: string
   selected: boolean
   onSelect: () => void
-  color: "green" | "blue" | "pink" | "accent"
+  color: "green" | "blue" | "pink"
   recommended?: boolean
 }) {
   const borderColor = selected ? "border-primary/50" : "border-[#1a1a1a]"
-  const iconColor = selected ? "text-primary" : "text-muted-foreground"
+  const iconToneByType = {
+    green: "bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-300/15",
+    blue: "bg-sky-400/10 text-sky-300 ring-1 ring-sky-300/15",
+    pink: "bg-rose-400/10 text-rose-300 ring-1 ring-rose-300/15",
+  } as const
+  const iconColor = selected
+    ? "bg-primary/15 text-primary ring-1 ring-primary/25"
+    : iconToneByType[color]
 
   return (
     <button
@@ -332,7 +341,7 @@ function AnalysisTypeCard({
       )}
 
       <div className="flex items-start gap-3">
-        <div className={iconColor}>{icon}</div>
+        <div className={`p-1.5 rounded-md ${iconColor}`}>{icon}</div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-semibold text-foreground">{title}</h4>

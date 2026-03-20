@@ -192,3 +192,18 @@
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
+
+/* Global icon polish: elevate muted Lucide icons without oversaturating the UI */
+.lucide.text-muted-foreground,
+.lucide.text-muted-foreground\/90,
+.lucide.text-muted-foreground\/80,
+.lucide.text-muted-foreground\/70 {
+  color: rgba(184, 198, 214, 0.92);
+}
+
+.lucide.text-muted-foreground:hover,
+.lucide.text-muted-foreground\/90:hover,
+.lucide.text-muted-foreground\/80:hover,
+.lucide.text-muted-foreground\/70:hover {
+  color: rgba(214, 225, 238, 0.98);
+}
