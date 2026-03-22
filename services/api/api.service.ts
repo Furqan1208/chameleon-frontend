@@ -31,6 +31,7 @@ export const apiService = {
     analysisApi.getAiAnalysis(...a),
   downloadReport: (...a: Parameters<typeof analysisApi.downloadReport>) =>
     analysisApi.downloadReport(...a),
+  downloadPdfReport: (id: string) => analysisApi.downloadPdfReport(id),
   deleteAnalysis: (id: string) => analysisApi.deleteAnalysis(id),
 
   // ── User ──────────────────────────────────────────────────────────────────

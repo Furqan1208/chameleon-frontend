@@ -634,7 +634,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
           <button
             onClick={runAll}
             disabled={anyLoading}
-            className="px-3 py-1.5 rounded-lg bg-primary text-black font-semibold hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm disabled:opacity-50"
+            className="h-8 px-3 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors flex items-center gap-1.5 text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {anyLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
             {anyLoading ? "Scanning all..." : "Scan All"}
@@ -643,7 +643,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
           {onCopyJson && (
             <button
               onClick={onCopyJson}
-              className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-1.5 text-sm"
+              className="h-8 px-3 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-1.5 text-sm whitespace-nowrap"
             >
               <Copy className="w-3.5 h-3.5" />
               {copied ? "Copied" : "Copy JSON"}
@@ -654,10 +654,10 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
 
       <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Hash className="w-3.5 h-3.5 text-muted-foreground" />
+          <Hash className="w-3.5 h-3.5 text-sky-300" />
           <code className="text-xs text-primary truncate">{hash}</code>
           <button onClick={() => navigator.clipboard.writeText(hash)} className="p-1 rounded hover:bg-muted/20 transition-colors ml-auto">
-            <Copy className="w-3.5 h-3.5" />
+            <Copy className="w-3.5 h-3.5 text-slate-300" />
           </button>
         </div>
 

@@ -43,8 +43,17 @@ function asObject(v: any): Record<string, any> {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {}
 }
 
+function normalizeInlineMarkdown(text: string): string {
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+}
+
 function cleanText(v: any): string {
-  return typeof v === "string" ? v.trim() : ""
+  if (typeof v !== "string") return ""
+  return normalizeInlineMarkdown(v).replace(/\s+/g, " ").trim()
 }
 
 function firstSentence(v: any): string {
@@ -57,22 +66,37 @@ function firstSentence(v: any): string {
 function splitActionText(text: string): string[] {
   if (!text) return []
 
-  // Handle numbered lists and newline bullets from final synthesis sections.
+  // Normalize markdown-ish formatting and flatten malformed numbering from AI output.
   const normalized = text
     .replace(/\r/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/(?:^|\s)(\d+)\.\s+/g, "\n$1. ")
     .replace(/\n\s*\*\s*/g, "\n")
     .replace(/\n\s*-\s*/g, "\n")
+    .replace(/\n\s*\d+\.\s*$/gm, "")
+
+  const byLine = normalized
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^\d+\.\s+/, ""))
+    .map((line) => normalizeInlineMarkdown(line).trim())
+    .filter(Boolean)
+
+  if (byLine.length > 1) {
+    return dedupeStrings(byLine)
+  }
 
   const numberedSplit = normalized
     .split(/\n\s*\d+\.\s+/)
-    .map((s) => s.trim())
+    .map((s) => normalizeInlineMarkdown(s).trim())
     .filter(Boolean)
 
   if (numberedSplit.length > 1) return numberedSplit
 
   return normalized
     .split("\n")
-    .map((s) => s.trim())
+    .map((s) => normalizeInlineMarkdown(s).trim())
     .filter(Boolean)
 }
 
@@ -154,9 +178,11 @@ function ProgressiveList<T>({
 function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
     <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
-      <div className="flex items-center gap-2 text-muted-foreground mb-2 text-xs uppercase tracking-wider">
-        {icon}
-        <span>{label}</span>
+      <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider">
+        <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
+          {icon}
+        </span>
+        <span className="text-slate-300">{label}</span>
       </div>
       <p className="text-2xl font-semibold text-white break-words">{value}</p>
     </div>
@@ -310,6 +336,8 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
       ...safeArray(sections.memory?.ai_forensic_insights?.recommended_memory_investigation),
       ...safeArray(sections.network?.network_forensic_insights?.recommended_investigation),
     ]
+      .map((item) => cleanText(String(item)))
+      .filter(Boolean)
 
     const narrative = [
       ...splitActionText(cleanText(sections.final?.report?.incident_response_guidance)),
@@ -453,7 +481,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
           {onDownload && (
             <button
               onClick={() => onDownload("json")}
-              className="px-3 py-1.5 rounded-lg bg-primary text-black font-semibold hover:bg-primary/90 transition-colors text-sm flex items-center gap-2"
+              className="px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-3.5 h-3.5" /> Export
             </button>
@@ -647,7 +675,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                       renderItem={(action: string, idx: number) => (
                         <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-sm text-foreground flex items-start gap-2">
                           <span className="mt-0.5 text-primary">{idx + 1}.</span>
-                          <span>{action}</span>
+                          <span>{action.replace(/^\d+\.\s+/, "")}</span>
                         </div>
                       )}
                     />

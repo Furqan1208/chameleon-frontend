@@ -86,14 +86,6 @@ const pipelineSteps = [
     { icon: FileText, label: "SOC Report" },
 ]
 
-const extractedBehaviors = [
-    { label: "API Calls", value: "2,431 calls", color: "text-primary" },
-    { label: "Registry Changes", value: "118 modifications", color: "text-secondary" },
-    { label: "Network Traffic", value: "17 beacons", color: "text-accent" },
-    { label: "File System Activity", value: "64 write ops", color: "text-primary" },
-    { label: "Memory Artifacts", value: "12 injections", color: "text-secondary" },
-]
-
 const aiCapabilities = [
     {
         icon: Binary,
@@ -307,7 +299,7 @@ export default function LandingPage() {
                     </Reveal>
 
                     <Reveal delay={0.15}>
-                        <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-black/70 p-6 shadow-[0_0_90px_rgba(0,255,136,0.08)]">
+                        <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-black/70 p-6 shadow-[0_0_90px_rgba(0,255,136,0.08)] lg:min-h-[30rem]">
                             <motion.div
                                 className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent"
                                 animate={{ x: ["-100%", "100%"] }}
@@ -377,14 +369,6 @@ export default function LandingPage() {
                             })}
                         </div>
 
-                        <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                            {extractedBehaviors.map((item) => (
-                                <div key={item.label} className="rounded-lg border border-border bg-black/60 p-4">
-                                    <p className="font-[var(--font-inter)] text-xs text-muted-foreground">{item.label}</p>
-                                    <p className={`mt-2 font-[var(--font-jetbrains-mono)] text-sm ${item.color}`}>{item.value}</p>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </section>
 
@@ -793,7 +777,7 @@ export default function LandingPage() {
                 </div>
             </footer>
 
-            <style jsx global>{`
+                        <style>{`
         html {
           scroll-behavior: smooth;
         }

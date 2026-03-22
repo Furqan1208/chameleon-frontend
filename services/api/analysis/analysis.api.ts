@@ -126,6 +126,39 @@ export class AnalysisApi extends BaseApi {
     document.body.removeChild(a);
   }
 
+  async downloadPdfReport(analysisId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/analysis/${analysisId}/download/pdf`,
+      { headers: this.getAuthHeaders() },
+    );
+
+    if (response.status === 401) {
+      this.clearSession();
+      window.location.href = "/login";
+      throw new Error("Session expired.");
+    }
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ detail: "Failed to generate PDF report" }));
+      throw new Error(error.detail || "Failed to generate PDF report");
+    }
+
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get("Content-Disposition") || "";
+    const match = contentDisposition.match(/filename="?([^\";]+)"?/i);
+    const filename = match?.[1] || `analysis_${analysisId}_report.pdf`;
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+
   async deleteAnalysis(analysisId: string) {
     return this.request(`/analysis/${analysisId}`, { method: "DELETE" });
   }

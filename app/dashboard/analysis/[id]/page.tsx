@@ -67,6 +67,7 @@ export default function AnalysisPage() {
   const [loadingComponents, setLoadingComponents] = useState(false)
   const [copied, setCopied] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   const loading = originalLoading || overviewLoading || loadingComponents
   const error = originalError || overviewError
@@ -187,6 +188,18 @@ export default function AnalysisPage() {
     }
   }
 
+  const handlePdfDownload = async () => {
+    try {
+      setPdfLoading(true)
+      await apiService.downloadPdfReport(analysisId)
+    } catch (err) {
+      console.error("PDF report download failed:", err)
+      alert(err instanceof Error ? err.message : "Failed to download PDF report")
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
   // Extract file hashes from parsed data or use initial hash from upload
   const fileHashes = extractFileHashes(parsedData) || (initialHash ? {
     sha256: initialHash,
@@ -251,19 +264,23 @@ export default function AnalysisPage() {
   const analysisVolumeData = [
     {
       name: "Signatures",
-      value: densityCounts.signatures
+      value: densityCounts.signatures,
+      fill: "#2f8f83"
     },
     {
       name: "Processes",
-      value: densityCounts.processes
+      value: densityCounts.processes,
+      fill: "#3f9f8f"
     },
     {
       name: "Indicators",
-      value: densityCounts.indicators
+      value: densityCounts.indicators,
+      fill: "#4fb0a0"
     },
     {
       name: "IOCs",
-      value: densityCounts.iocs
+      value: densityCounts.iocs,
+      fill: "#63c2af"
     }
   ].filter((d) => d.value > 0)
 
@@ -321,7 +338,7 @@ export default function AnalysisPage() {
               <button
                 onClick={() => handleDownload("json")}
                 disabled={downloadProgress > 0}
-                className="px-3 py-1.5 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm relative overflow-hidden font-semibold"
+                className="px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors flex items-center gap-2 text-sm relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {downloadProgress > 0 ? (
                   <>
@@ -347,7 +364,7 @@ export default function AnalysisPage() {
               <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-primary" />
+                    <Activity className="w-4 h-4 text-emerald-400" />
                     Component Health
                   </p>
                   <span className="text-xs text-muted-foreground">{componentReady}/5 ready</span>
@@ -377,11 +394,11 @@ export default function AnalysisPage() {
               <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:col-span-2">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-primary" />
+                    <BarChart3 className="w-4 h-4 text-cyan-300" />
                     Data Density Snapshot
                   </p>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
+                  <span className="text-xs text-slate-300/90 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-teal-300" />
                     Live from {densitySourceLabel}
                   </span>
                 </div>
@@ -389,10 +406,14 @@ export default function AnalysisPage() {
                   <div className="h-40">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={analysisVolumeData}>
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={11} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#6b7280" fontSize={11} tickLine={false} axisLine={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="value" fill="#00ff88" radius={[6, 6, 0, 0]} />
+                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(79,176,160,0.10)" }} />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]} fillOpacity={0.86}>
+                          {analysisVolumeData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.fill as string} />
+                          ))}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -431,6 +452,30 @@ export default function AnalysisPage() {
           {combinedAnalysis && !loading && (
             <>
               {/* View Selector Cards */}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Investigation Views</p>
+                  <p className="text-sm text-foreground/85">Switch between Sandbox and AI deep-dive analysis tabs.</p>
+                </div>
+                <button
+                  onClick={handlePdfDownload}
+                  disabled={pdfLoading || (!hasCape && !hasAi)}
+                  className="px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {pdfLoading ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Generating PDF...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span>Export PDF</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <ViewCard
                   icon={<Layers className="w-4 h-4" />}
@@ -455,11 +500,11 @@ export default function AnalysisPage() {
                 {hasCape && (
                   <ViewCard
                     icon={<FileJson className="w-4 h-4" />}
-                    label="Cape Report"
+                    label="Sandbox Report"
                     active={activeView === "cape"}
                     onClick={() => setActiveView("cape")}
                     color="blue"
-                    description="Raw & structured CAPE data"
+                    description="Raw & structured sandbox data"
                   />
                 )}
 
@@ -490,10 +535,13 @@ export default function AnalysisPage() {
               {components && (
                 <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm text-muted-foreground">Analysis Components</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-indigo-300" />
+                      Analysis Components
+                    </p>
+                    <p className="text-xs text-slate-300/90 flex items-center gap-1">
                       Deep-dive views
-                      <ChevronRight className="w-3 h-3" />
+                      <ChevronRight className="w-3 h-3 text-indigo-300" />
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -509,7 +557,7 @@ export default function AnalysisPage() {
                         className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
                           value
                             ? "bg-primary/10 text-primary border border-primary/20"
-                            : "bg-muted/20 text-muted-foreground border border-border"
+                            : "bg-slate-500/10 text-slate-300 border border-slate-500/25"
                         }`}
                       >
                         {value ? (
@@ -530,7 +578,7 @@ export default function AnalysisPage() {
                   <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
                     <OverviewDashboard
                       combinedAnalysis={combinedAnalysis}
-                      fileHashes={fileHashes}
+                      fileHashes={fileHashes || {}}
                       malscore={malscore}
                       capeData={capeData}
                       parsedData={parsedData}
@@ -540,7 +588,7 @@ export default function AnalysisPage() {
                 )}
 
                 {activeView === "threat-intel" && (
-                  <div className="glass border border-border rounded-xl p-6">
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
                     <div>
                       {fileHashes ? (
                         <ThreatIntelDashboard 
@@ -614,8 +662,8 @@ export default function AnalysisPage() {
                 )}
 
                 {activeView === "ai" && (
-                  <div className="glass border border-border rounded-xl p-6">
-                    <div className="mt-6">
+                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
+                    <div>
                       {loadingComponents ? (
                         <div className="flex items-center justify-center py-8">
                           <Loader className="w-6 h-6 text-primary animate-spin" />

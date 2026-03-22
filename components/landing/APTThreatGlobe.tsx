@@ -128,7 +128,7 @@ export function APTThreatGlobe() {
   }, [state.items])
 
   return (
-    <div className="relative h-80 w-full max-w-full overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-[#06120f] via-[#071018] to-[#101523]">
+    <div className="relative h-[24rem] w-full max-w-full overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-[#06120f] via-[#071018] to-[#101523]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,255,136,0.12),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(0,174,239,0.12),transparent_34%)]" />
       <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(rgba(0,255,136,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.08) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
       <motion.div
@@ -138,7 +138,7 @@ export function APTThreatGlobe() {
       />
 
       <div className="relative z-10 flex h-full min-w-0 flex-col p-4">
-        <div className="flex flex-col items-start justify-between gap-3 rounded-lg border border-border/80 bg-black/45 p-3 backdrop-blur-sm sm:flex-row sm:items-start">
+        <div className="shrink-0 flex flex-col items-start justify-between gap-3 rounded-lg border border-border/80 bg-black/45 p-3 backdrop-blur-sm sm:flex-row sm:items-start">
           <div>
             <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-[var(--font-jetbrains-mono)] text-[10px] uppercase tracking-[0.2em] text-primary">
               <RadioTower className="h-3.5 w-3.5" />
@@ -158,30 +158,23 @@ export function APTThreatGlobe() {
           </div>
         </div>
 
-        <div className="relative mt-3 overflow-hidden rounded-lg border border-primary/25 bg-black/70 py-2">
+        <div className="relative mt-3 shrink-0 overflow-hidden rounded-lg border border-primary/25 bg-black/70 py-2">
           <motion.div
             className="absolute left-0 top-1/2 inline-flex -translate-y-1/2 whitespace-nowrap px-4 font-[var(--font-jetbrains-mono)] text-[11px] uppercase tracking-[0.12em] text-primary"
-            animate={{ x: ["0%", "-100%"] }}
+            animate={{ x: ["0%", "-50%"] }}
             transition={{ duration: MARQUEE_DURATION_SECONDS, repeat: Infinity, ease: "linear" }}
           >
-            {tickerText}     •     
-          </motion.div>
-          <motion.div
-            className="absolute left-0 top-1/2 inline-flex -translate-y-1/2 whitespace-nowrap px-4 font-[var(--font-jetbrains-mono)] text-[11px] uppercase tracking-[0.12em] text-primary"
-            animate={{ x: ["100%", "0%"] }}
-            transition={{ duration: MARQUEE_DURATION_SECONDS, repeat: Infinity, ease: "linear" }}
-          >
-            {tickerText}     •     
+            {`${tickerText}     •     ${tickerText}     •     `}
           </motion.div>
           <div className="h-4" />
         </div>
 
-        <div className="mt-3 grid min-h-0 flex-1 gap-2 overflow-hidden md:grid-cols-2">
+        <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {(state.items.length ? state.items : Array.from({ length: 6 }, (_, idx) => ({
             title: `Loading intelligence item ${idx + 1}`,
             pubDate: new Date().toISOString(),
             link: "#",
-          }))).slice(0, 6).map((item, idx) => {
+          }))).map((item, idx) => {
             const tag = inferThreatTag(item.title)
 
             return (
@@ -190,13 +183,13 @@ export function APTThreatGlobe() {
                 href={item.link}
                 target="_blank"
                 rel="noreferrer"
-                className="group rounded-md border border-border/80 bg-black/55 px-3 py-2 transition-colors hover:border-primary/40"
+                className="group flex min-h-20 min-w-0 flex-col overflow-hidden rounded-md border border-border/80 bg-black/55 px-3 py-2 transition-colors hover:border-primary/40"
               >
-                <div className="flex items-center justify-between gap-2">
+                <div className="shrink-0 flex items-center justify-between gap-2">
                   <span className="font-[var(--font-jetbrains-mono)] text-[10px] uppercase tracking-[0.16em] text-secondary">{tag}</span>
                   <span className="font-[var(--font-jetbrains-mono)] text-[10px] text-muted-foreground">{timeAgo(item.pubDate)}</span>
                 </div>
-                <p className="mt-1 line-clamp-2 break-words font-[var(--font-inter)] text-xs text-foreground/95 transition-colors group-hover:text-primary">
+                <p className="mt-1 min-w-0 flex-1 overflow-hidden text-ellipsis break-words [overflow-wrap:anywhere] font-[var(--font-inter)] text-xs leading-relaxed text-foreground/95 transition-colors line-clamp-3 group-hover:text-primary">
                   {item.title}
                 </p>
               </a>
@@ -204,7 +197,7 @@ export function APTThreatGlobe() {
           })}
         </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <div className="mt-3 shrink-0 grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="rounded-md border border-border bg-black/55 px-2 py-1.5 font-[var(--font-jetbrains-mono)] text-[10px] text-muted-foreground">
             <ShieldCheck className="mr-1 inline h-3 w-3 text-primary" />
             Feed Integrity: Verified

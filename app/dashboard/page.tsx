@@ -33,7 +33,94 @@ import {
 } from "recharts"
 import { apiService } from "@/services/api/api.service"
 import { QuickActions } from "@/components/dashboard/QuickActions"
+import { DashboardSwitcher } from "@/components/dashboard/DashboardSwitcher"
 import { isCompletedStatus, isPendingStatus, isFailedStatus } from "@/lib/analysis-status"
+
+type BehaviorTotals = {
+  apiCalls: number
+  registryChanges: number
+  networkTraffic: number
+  fileSystemActivity: number
+  memoryArtifacts: number
+}
+
+const EMPTY_BEHAVIOR_TOTALS: BehaviorTotals = {
+  apiCalls: 0,
+  registryChanges: 0,
+  networkTraffic: 0,
+  fileSystemActivity: 0,
+  memoryArtifacts: 0,
+}
+
+function safeNumber(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  return 0
+}
+
+function sumByHints(node: unknown, hints: string[], depth = 0): number {
+  if (depth > 7 || node == null) return 0
+  if (Array.isArray(node)) {
+    return node.reduce((acc, item) => acc + sumByHints(item, hints, depth + 1), 0)
+  }
+  if (typeof node !== "object") return 0
+
+  let total = 0
+  for (const [rawKey, value] of Object.entries(node as Record<string, unknown>)) {
+    const key = rawKey.toLowerCase()
+    const match = hints.some((hint) => key.includes(hint))
+
+    if (match) {
+      if (typeof value === "number" || typeof value === "string") {
+        total += safeNumber(value)
+      } else if (Array.isArray(value)) {
+        total += value.length
+      }
+    }
+
+    if (value && typeof value === "object") {
+      total += sumByHints(value, hints, depth + 1)
+    }
+  }
+
+  return total
+}
+
+function extractBehaviorTotals(parsedPayload: any): BehaviorTotals {
+  const sections = parsedPayload?.sections ?? parsedPayload ?? {}
+
+  return {
+    apiCalls: sumByHints(sections, ["api_call", "api", "syscall", "call"]),
+    registryChanges: sumByHints(sections, ["registry", "regkey", "reg_"]),
+    networkTraffic: sumByHints(sections, ["network", "dns", "http", "tcp", "udp", "beacon", "connection", "domain", "host", "ip"]),
+    fileSystemActivity: sumByHints(sections, ["filesystem", "file", "write", "dropped", "created", "modified"]),
+    memoryArtifacts: sumByHints(sections, ["memory", "inject", "injection", "hollow", "shellcode"]),
+  }
+}
+
+function formatCount(value: number, suffix: string): string {
+  const safe = Math.max(0, Math.round(value))
+
+  if (safe >= 1_000_000_000) {
+    const compact = (safe / 1_000_000_000).toFixed(1).replace(/\.0$/, "")
+    return `${compact}B+ ${suffix}`
+  }
+
+  if (safe >= 1_000_000) {
+    const compact = (safe / 1_000_000).toFixed(1).replace(/\.0$/, "")
+    return `${compact}M+ ${suffix}`
+  }
+
+  if (safe >= 100_000) {
+    const compact = (safe / 1_000).toFixed(0)
+    return `${compact}K+ ${suffix}`
+  }
+
+  return `${safe.toLocaleString()} ${suffix}`
+}
 
 const COLORS = {
   primary: "#00ff88",
@@ -97,8 +184,10 @@ export default function DashboardPage() {
   const router = useRouter()
   const [userName, setUserName] = useState("Analyst")
   const [reports, setReports] = useState<any[]>([])
+  const [behaviorTotals, setBehaviorTotals] = useState<BehaviorTotals>(EMPTY_BEHAVIOR_TOTALS)
   const [threatIntelQueries, setThreatIntelQueries] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [behaviorLoading, setBehaviorLoading] = useState(false)
 
   useEffect(() => {
     loadAll()
@@ -108,17 +197,69 @@ export default function DashboardPage() {
     setLoading(true)
     try {
       const [me, rpts] = await Promise.all([apiService.getMe(), apiService.getAllReports()])
+      const nextReports = Array.isArray(rpts) ? rpts : []
       if (me?.name?.trim()) setUserName(me.name.trim())
       setThreatIntelQueries(me?.threat_intel_queries_today ?? 0)
       if (typeof window !== "undefined") localStorage.setItem("user", JSON.stringify(me))
-      setReports(Array.isArray(rpts) ? rpts : [])
+      setReports(nextReports)
+      void loadBehaviorTotals(nextReports)
     } catch {
-      try { setReports(await apiService.getAllReports()) } catch { setReports([]) }
+      try {
+        const fallbackReports = await apiService.getAllReports()
+        const normalized = Array.isArray(fallbackReports) ? fallbackReports : []
+        setReports(normalized)
+        void loadBehaviorTotals(normalized)
+      } catch {
+        setReports([])
+        setBehaviorTotals(EMPTY_BEHAVIOR_TOTALS)
+      }
       const stored = apiService.getStoredUser()
       if (stored?.name?.trim()) setUserName(stored.name.trim())
       setThreatIntelQueries(stored?.threat_intel_queries_today ?? 0)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadBehaviorTotals = async (allReports: any[]) => {
+    const candidates = allReports.filter(
+      (report) =>
+        Boolean(report?.analysis_id) &&
+        report?.components?.parsed !== false,
+    )
+
+    if (!candidates.length) {
+      setBehaviorTotals(EMPTY_BEHAVIOR_TOTALS)
+      setBehaviorLoading(false)
+      return
+    }
+
+    setBehaviorLoading(true)
+    try {
+      const parsedResults = await Promise.allSettled(
+        candidates.map((report) => apiService.getParsedSection(report.analysis_id, "all")),
+      )
+
+      const aggregated = parsedResults.reduce<BehaviorTotals>((acc, result) => {
+        if (result.status !== "fulfilled") return acc
+
+        const payload = result.value?.data ?? result.value
+        const values = extractBehaviorTotals(payload)
+
+        return {
+          apiCalls: acc.apiCalls + values.apiCalls,
+          registryChanges: acc.registryChanges + values.registryChanges,
+          networkTraffic: acc.networkTraffic + values.networkTraffic,
+          fileSystemActivity: acc.fileSystemActivity + values.fileSystemActivity,
+          memoryArtifacts: acc.memoryArtifacts + values.memoryArtifacts,
+        }
+      }, EMPTY_BEHAVIOR_TOTALS)
+
+      setBehaviorTotals(aggregated)
+    } catch {
+      setBehaviorTotals(EMPTY_BEHAVIOR_TOTALS)
+    } finally {
+      setBehaviorLoading(false)
     }
   }
 
@@ -166,19 +307,20 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-sm mt-0.5">Malware analysis &amp; threat intelligence</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <DashboardSwitcher currentPath="/dashboard" />
+              <button
+                onClick={() => router.push("/dashboard/upload")}
+                className="h-10 px-4 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Upload className="w-4 h-4" />
+                New Analysis
+              </button>
               <button
                 onClick={loadAll}
                 className="p-2 rounded-lg border border-[#1a1a1a] text-slate-300 hover:text-foreground hover:border-[#2a2a2a] hover:bg-white/[0.02] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => router.push("/dashboard/upload")}
-                className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm font-semibold"
-              >
-                <Upload className="w-4 h-4" />
-                New Analysis
               </button>
             </div>
           </motion.div>
@@ -350,10 +492,6 @@ export default function DashboardPage() {
                 </Card>
               </motion.div>
 
-              {/* Quick Actions */}
-              <motion.div variants={itemVariants}>
-                <QuickActions />
-              </motion.div>
             </div>
 
             {/* Right 1/3 — threat intel */}
@@ -401,6 +539,50 @@ export default function DashboardPage() {
               </motion.div>
             </div>
           </div>
+
+          {/* ── Quick Actions + Behavior Metrics (Full Width) ─────────── */}
+          <motion.div variants={itemVariants}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+              <QuickActions />
+
+              <Card className="p-5 h-full">
+                <CardHeader
+                  title="Behavior Metrics"
+                  icon={<Activity className="w-4 h-4 text-emerald-300" />}
+                  action={<span className="text-[11px] text-muted-foreground">All reports</span>}
+                />
+
+                {behaviorLoading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="rounded-lg border border-[#1a1a1a] p-3 animate-pulse">
+                        <div className="h-3 w-24 bg-white/5 rounded" />
+                        <div className="mt-3 h-4 w-20 bg-white/5 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 auto-rows-fr">
+                    {[
+                      { label: "API Calls", value: formatCount(behaviorTotals.apiCalls, "calls"), color: "text-primary" },
+                      { label: "Registry Changes", value: formatCount(behaviorTotals.registryChanges, "changes"), color: "text-secondary" },
+                      { label: "Network Traffic", value: formatCount(behaviorTotals.networkTraffic, "events"), color: "text-accent" },
+                      { label: "File System Activity", value: formatCount(behaviorTotals.fileSystemActivity, "ops"), color: "text-primary" },
+                      { label: "Memory Artifacts", value: formatCount(behaviorTotals.memoryArtifacts, "findings"), color: "text-secondary" },
+                    ].map((item, idx, arr) => (
+                      <div
+                        key={item.label}
+                        className={`rounded-lg border border-[#1a1a1a] bg-black/50 p-3 h-full ${arr.length % 2 === 1 && idx === arr.length - 1 ? "sm:col-span-2" : ""}`}
+                      >
+                        <p className="text-xs text-muted-foreground">{item.label}</p>
+                        <p className={`mt-2 text-sm font-mono ${item.color}`}>{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+          </motion.div>
 
           {/* ── Recent Analyses ─────────────────────────────────────────── */}
           <motion.div variants={itemVariants}>

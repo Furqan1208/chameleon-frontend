@@ -16,10 +16,11 @@ export default function ViewCard({
   description
 }: ViewCardProps) {
   const colorClasses = {
-    green: "bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20",
-    blue: "bg-blue-500/10 text-blue-600 border-blue-200 hover:bg-blue-500/20",
-    pink: "bg-pink-500/10 text-pink-600 border-pink-200 hover:bg-pink-500/20",
-    accent: "bg-accent/10 text-accent border-accent/30 hover:bg-accent/20"
+    green: "bg-green-500/15 text-green-300 border-green-400/40 hover:bg-green-500/20",
+    blue: "bg-blue-500/15 text-blue-300 border-blue-400/40 hover:bg-blue-500/20",
+    pink: "bg-pink-500/15 text-pink-300 border-pink-400/40 hover:bg-pink-500/20",
+    purple: "bg-violet-500/15 text-violet-300 border-violet-400/40 hover:bg-violet-500/20",
+    accent: "bg-cyan-500/15 text-cyan-300 border-cyan-400/40 hover:bg-cyan-500/20"
   }
 
   return (
@@ -28,7 +29,7 @@ export default function ViewCard({
       className={`p-3 rounded-lg border-2 transition-all text-left ${
         active
           ? `${colorClasses[color as keyof typeof colorClasses]} border-current`
-          : "bg-muted/5 border-border hover:bg-muted/10"
+          : "bg-muted/5 border-border text-foreground/85 hover:bg-muted/10 hover:text-foreground"
       }`}
     >
       <div className="flex items-center gap-2 mb-1">

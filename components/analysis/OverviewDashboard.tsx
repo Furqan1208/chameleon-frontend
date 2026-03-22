@@ -129,9 +129,11 @@ function ScoreRing({ score, max = 10, label, subtitle }: { score: number; max?: 
 function MetricTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
-      <div className="flex items-center gap-2 text-muted-foreground mb-2">
-        {icon}
-        <span className="text-xs uppercase tracking-wider">{label}</span>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
+          {icon}
+        </span>
+        <span className="text-xs uppercase tracking-wider text-slate-300">{label}</span>
       </div>
       <p className="text-2xl font-semibold text-white">{value}</p>
     </div>
@@ -229,9 +231,9 @@ export default function OverviewDashboard({
       <div className="flex flex-col md:flex-row justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">Overview Intelligence</p>
-          <h2 className="text-2xl font-semibold text-white">CAPE + AI Unified View</h2>
+          <h2 className="text-2xl font-semibold text-white">Sandbox + AI Unified View</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            This overview intentionally uses sandbox and AI outputs only to avoid duplicated CAPE-derived signals.
+            This overview intentionally uses sandbox and AI outputs only to avoid duplicated telemetry-derived signals.
           </p>
         </div>
 
@@ -248,7 +250,7 @@ export default function OverviewDashboard({
           {onDownload && (
             <button
               onClick={() => onDownload("json")}
-              className="px-3 py-1.5 rounded-lg bg-primary text-black font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm"
+              className="px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-3.5 h-3.5" />
               Export
@@ -266,7 +268,7 @@ export default function OverviewDashboard({
           <ScoreRing
             score={sandboxScore}
             label="Sandbox Threat Score"
-            subtitle={`CAPE verdict: ${capeMetrics.malstatus}${capeMetrics.timeout ? " (analysis timeout)" : ""}`}
+            subtitle={`Sandbox verdict: ${capeMetrics.malstatus}${capeMetrics.timeout ? " (analysis timeout)" : ""}`}
           />
 
           <ScoreRing
@@ -320,7 +322,7 @@ export default function OverviewDashboard({
               <h3 className="text-sm font-semibold text-foreground">Execution & Behavior Signals</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-3">
-              High-value behavior extracted from CAPE runtime output for quick triage.
+              High-value behavior extracted from sandbox runtime output for quick triage.
             </p>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">

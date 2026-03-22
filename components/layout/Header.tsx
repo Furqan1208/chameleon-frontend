@@ -21,6 +21,7 @@ const READ_IDS_STORAGE_KEY = "chameleon_news_read_ids"
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
   "/dashboard": { title: "Dashboard", subtitle: "Operational overview" },
+  "/dashboard/mitre": { title: "MITRE Dashboard", subtitle: "ATT&CK operational intelligence" },
   "/dashboard/upload": { title: "Upload & Analyze", subtitle: "Submit binaries and inspect behavior" },
   "/dashboard/reports": { title: "Analysis Reports", subtitle: "Review completed investigations" },
   "/dashboard/threat-intel": { title: "Threat Intelligence", subtitle: "Cross-source IOC intelligence" },
@@ -45,6 +46,7 @@ const breadcrumbNameMap: Record<string, string> = {
   unified: "Unified Scanner",
   integrations: "Integrations",
   frameworks: "Frameworks",
+  mitre: "MITRE Dashboard",
   "mitre-attack": "MITRE ATT&CK",
 }
 
