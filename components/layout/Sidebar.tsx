@@ -157,6 +157,15 @@ const menuItems = [
     description: "Connect services",
     color: "from-gray-500 to-slate-500"
   },
+  // ADDED_ML: Optional model operations dashboard navigation item.
+  {
+    icon: Gauge,
+    label: "ML Dashboard",
+    path: "/dashboard/ml-dashboard",
+    section: "Platform",
+    description: "Hybrid ML model operations",
+    color: "from-emerald-500 to-teal-500"
+  },
   { 
     icon: Layers, 
     label: "Frameworks", 
@@ -200,6 +209,8 @@ const quickShortcutRoutes = [
   { label: "AlienVault", path: "/dashboard/threat-intel/alienvault", icon: Satellite },
   { label: "Filescan", path: "/dashboard/threat-intel/filescan", icon: Scan },
   { label: "Integrations", path: "/dashboard/integrations", icon: Workflow },
+  // ADDED_ML: Quick access shortcut for ML dashboard.
+  { label: "ML", path: "/dashboard/ml-dashboard", icon: Gauge },
   { label: "Frameworks", path: "/dashboard/frameworks", icon: Layers },
 ]
 

@@ -499,24 +499,24 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">Threat Decision Signal</p>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5">
                   <div
-                    className="relative h-24 w-24 rounded-full"
+                    className="relative h-32 w-32 shrink-0 rounded-full sm:h-36 sm:w-36 lg:h-40 lg:w-40"
                     style={{
                       background: `conic-gradient(${unifiedThreat.tone === "high" ? "#ef4444" : unifiedThreat.tone === "medium" ? "#f59e0b" : "#22c55e"} ${Math.min(unifiedThreat.confidence, 100)}%, rgba(255,255,255,0.08) ${Math.min(unifiedThreat.confidence, 100)}% 100%)`,
                     }}
                   >
-                    <div className="absolute inset-[8px] rounded-full bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center">
+                    <div className="absolute inset-[10px] rounded-full bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center sm:inset-[12px]">
                       <div className="text-center">
-                        <p className="text-xl font-bold text-white">{Math.round(unifiedThreat.confidence)}</p>
-                        <p className="text-[10px] text-muted-foreground">/ 100</p>
+                        <p className="text-2xl font-bold text-white sm:text-3xl">{Math.round(unifiedThreat.confidence)}</p>
+                        <p className="text-[10px] text-muted-foreground sm:text-xs">/ 100</p>
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-base font-semibold text-white">{unifiedThreat.threatLevel}</p>
-                    <p className="text-sm text-muted-foreground">Confidence-driven synthesis signal</p>
-                    <span className={`inline-flex mt-2 text-[11px] px-2 py-0.5 rounded border ${toneClasses(unifiedThreat.tone)}`}>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <p className="text-xl font-semibold leading-none text-white sm:text-2xl">{unifiedThreat.threatLevel}</p>
+                    <p className="text-base text-muted-foreground">Confidence-driven synthesis signal</p>
+                    <span className={`inline-flex text-xs px-3 py-1 rounded border font-medium ${toneClasses(unifiedThreat.tone)}`}>
                       {unifiedThreat.tone === "high" ? "High Risk Confidence" : unifiedThreat.tone === "medium" ? "Medium Risk Confidence" : "Low Risk Confidence"}
                     </span>
                   </div>

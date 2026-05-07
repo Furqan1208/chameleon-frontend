@@ -6,9 +6,10 @@ interface UploadProgressProps {
   progress: number
   stage: "idle" | "uploading" | "analyzing" | "complete"
   fileName: string
+  detail?: string
 }
 
-export function UploadProgress({ progress, stage, fileName }: UploadProgressProps) {
+export function UploadProgress({ progress, stage, fileName, detail }: UploadProgressProps) {
   const getStageText = () => {
     switch (stage) {
       case "uploading":
@@ -32,7 +33,7 @@ export function UploadProgress({ progress, stage, fileName }: UploadProgressProp
         )}
         <div className="flex-1">
           <p className="text-foreground font-medium mb-1">{getStageText()}</p>
-          <p className="text-sm text-muted-foreground">{fileName}</p>
+          <p className="text-sm text-muted-foreground">{detail || fileName}</p>
         </div>
       </div>
 

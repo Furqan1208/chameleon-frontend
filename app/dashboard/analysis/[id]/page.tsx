@@ -46,6 +46,7 @@ import {
   extractFileHashes,
   getMalscore
 } from "@/components/analysis"
+import MLPredictionTab from "@/components/MLPredictionTab"
 
 // Import helper components
 import ViewCard from "@/components/shared/ViewCard"
@@ -59,6 +60,7 @@ export default function AnalysisPage() {
   const { analysis: originalAnalysis, loading: originalLoading, error: originalError } = useAnalysis(analysisId)
   const { overviewData, loading: overviewLoading, error: overviewError } = useAnalysisData(analysisId)
 
+  // ADDED_ML: ML is integrated into AI view to keep investigation flow unified.
   const [activeView, setActiveView] = useState<"overview" | "cape" | "parsed" | "ai" | "threat-intel">("overview")
   const [components, setComponents] = useState<any>(null)
   const [capeData, setCapeData] = useState<any>(null)
@@ -519,16 +521,14 @@ export default function AnalysisPage() {
                   />
                 )}
 
-                {hasAi && (
-                  <ViewCard
-                    icon={<Brain className="w-4 h-4" />}
-                    label="AI Analysis"
-                    active={activeView === "ai"}
-                    onClick={() => setActiveView("ai")}
-                    color="accent"
-                    description="AI-powered insights"
-                  />
-                )}
+                <ViewCard
+                  icon={<Brain className="w-4 h-4" />}
+                  label="AI and ML"
+                  active={activeView === "ai"}
+                  onClick={() => setActiveView("ai")}
+                  color="accent"
+                  description="AI narrative + ML classification"
+                />
               </div>
 
               {/* Component Status */}
@@ -663,7 +663,7 @@ export default function AnalysisPage() {
 
                 {activeView === "ai" && (
                   <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:p-5">
-                    <div>
+                    <div className="space-y-4">
                       {loadingComponents ? (
                         <div className="flex items-center justify-center py-8">
                           <Loader className="w-6 h-6 text-primary animate-spin" />
@@ -682,6 +682,11 @@ export default function AnalysisPage() {
                           <p className="text-muted-foreground">No AI analysis available</p>
                         </div>
                       )}
+
+                      <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-3">
+                        <p className="text-sm font-semibold text-foreground mb-3">ML Classification</p>
+                        <MLPredictionTab analysisId={analysisId} />
+                      </div>
                     </div>
                   </div>
                 )}

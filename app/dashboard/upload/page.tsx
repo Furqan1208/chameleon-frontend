@@ -1,13 +1,14 @@
 // app/dashboard/upload/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { DropZone } from "@/components/upload/DropZone"
 import { FilePreview } from "@/components/upload/FilePreview"
 import { UploadProgress } from "@/components/upload/UploadProgress"
 import { apiService } from "@/services/api/api.service"
 import { calculateFileHash, simpleHashExtraction } from "@/lib/hash-utils"
+import { isCompletedStatus, isFailedStatus } from "@/lib/analysis-status"
 import { FileText, Shield, Zap, Info, Layers, Globe } from "lucide-react"
 
 const ICON_TONES = {
@@ -25,8 +26,137 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStage, setUploadStage] = useState<"idle" | "uploading" | "analyzing" | "complete">("idle")
+  const [uploadDetail, setUploadDetail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [fileHash, setFileHash] = useState<string | null>(null)
+
+  const targetProgressRef = useRef(0)
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const trackedAnalysisIdRef = useRef<string | null>(null)
+  const stageTimingRef = useRef<{ key: string; startedAt: number }>({
+    key: "",
+    startedAt: Date.now(),
+  })
+
+  useEffect(() => {
+    return () => {
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current)
+      }
+    }
+  }, [])
+
+  const setTargetProgress = (value: number) => {
+    targetProgressRef.current = Math.max(targetProgressRef.current, Math.min(value, 99))
+  }
+
+  const startSmoothProgress = () => {
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current)
+    }
+
+    progressTimerRef.current = setInterval(() => {
+      setUploadProgress((prev) => {
+        const target = targetProgressRef.current
+        if (prev >= target) return prev
+        const delta = target - prev
+        const step = delta > 15 ? 1.8 : delta > 6 ? 0.9 : 0.35
+        return Math.min(target, prev + step)
+      })
+    }, 180)
+  }
+
+  const stepStageProgress = (
+    key: string,
+    label: string,
+    base: number,
+    max: number,
+    perSecond: number,
+  ) => {
+    if (stageTimingRef.current.key !== key) {
+      stageTimingRef.current = { key, startedAt: Date.now() }
+    }
+
+    const elapsedSeconds = (Date.now() - stageTimingRef.current.startedAt) / 1000
+    const nextTarget = Math.min(max, base + elapsedSeconds * perSecond)
+
+    setUploadDetail(label)
+    setTargetProgress(nextTarget)
+  }
+
+  const extractReports = (payload: any): any[] => {
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.data)) return payload.data
+    return []
+  }
+
+  const detectCurrentAnalysisId = async (fileName: string, startMs: number) => {
+    const reportsPayload = await apiService.getAllReports()
+    const reports = extractReports(reportsPayload)
+
+    const candidates = reports
+      .filter((report) => report?.filename === fileName)
+      .filter((report) => {
+        const createdAt = new Date(report?.created_at || 0).getTime()
+        return createdAt >= startMs - 180000
+      })
+      .sort(
+        (a, b) =>
+          new Date(b?.created_at || 0).getTime() - new Date(a?.created_at || 0).getTime(),
+      )
+
+    return candidates[0]?.analysis_id || null
+  }
+
+  const updateProgressFromAnalysis = (analysis: any, type: "complete" | "parse" | "parse_and_ai") => {
+    const components = analysis?.components || {}
+
+    if (isCompletedStatus(analysis?.status)) {
+      stepStageProgress("finalize", "Finalizing report and preparing dashboard...", 97, 99, 0.25)
+      return
+    }
+
+    if (type === "parse") {
+      if (!components.parsed) {
+        stepStageProgress("parse_only_parse", "Parsing CAPE sections (target, behavior, signatures, strings)...", 42, 84, 1.1)
+      } else {
+        stepStageProgress("parse_only_finalize", "Saving parsed sections and indexing analysis...", 90, 96, 0.45)
+      }
+      return
+    }
+
+    if (type === "complete") {
+      if (!components.cape) {
+        stepStageProgress("complete_cape", "Running CAPE sandbox analysis...", 18, 50, 0.65)
+        return
+      }
+
+      if (!components.parsed) {
+        stepStageProgress("complete_parse", "Parsing CAPE report into structured sections...", 52, 76, 0.85)
+        return
+      }
+
+      if (!components.ai_analysis) {
+        stepStageProgress("complete_ai", "Running AI section analysis and final synthesis...", 78, 95, 0.4)
+        return
+      }
+
+      stepStageProgress("complete_finalize", "Storing AI results and scoring threat confidence...", 96, 99, 0.25)
+      return
+    }
+
+    if (!components.parsed) {
+      stepStageProgress("parse_ai_parse", "Parsing CAPE report sections and extracting IOCs...", 40, 72, 0.9)
+      return
+    }
+
+    if (!components.ai_analysis) {
+      stepStageProgress("parse_ai_ai", "Running AI priorities and final synthesis...", 74, 95, 0.45)
+      return
+    }
+
+    stepStageProgress("parse_ai_finalize", "Persisting AI output and preparing report...", 96, 99, 0.25)
+  }
 
   const handleFileDrop = async (file: File) => {
     setSelectedFile(file)
@@ -50,40 +180,85 @@ export default function UploadPage() {
   const handleStartAnalysis = async () => {
     if (!selectedFile) return
 
+    const fileToUpload = selectedFile
+    const startedAt = Date.now()
+    let monitorEnabled = true
+
     setIsUploading(true)
     setUploadStage("uploading")
     setUploadProgress(0)
+    setUploadDetail("Uploading file and creating analysis job...")
     setError(null)
+    targetProgressRef.current = 0
+    trackedAnalysisIdRef.current = null
+    stageTimingRef.current = { key: "", startedAt: Date.now() }
+    startSmoothProgress()
 
     try {
-      // Upload progress animation — phase 1
-      for (let i = 0; i < 30; i += Math.random() * 10) {
-        setUploadProgress(Math.min(i, 30))
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
+      const uploadPromise = apiService.uploadFile(fileToUpload, analysisType, aiModel)
 
-      setUploadStage("analyzing")
+      const monitorPromise = (async () => {
+        while (monitorEnabled) {
+          try {
+            if (!trackedAnalysisIdRef.current) {
+              const discoveredId = await detectCurrentAnalysisId(fileToUpload.name, startedAt)
+              if (discoveredId) {
+                trackedAnalysisIdRef.current = discoveredId
+                setUploadStage("analyzing")
+              } else {
+                stepStageProgress("discover", "Uploading file and preparing analysis workspace...", 6, 24, 0.8)
+              }
+            }
 
-      // ✅ Use apiService.uploadFile — automatically attaches Bearer token
-      const result = await apiService.uploadFile(selectedFile, analysisType, aiModel)
+            if (trackedAnalysisIdRef.current) {
+              const analysis = await apiService.getAnalysis(trackedAnalysisIdRef.current)
 
-      // Upload progress animation — phase 2
-      for (let i = 30; i < 90; i += Math.random() * 15) {
-        setUploadProgress(Math.min(i, 90))
-        await new Promise((resolve) => setTimeout(resolve, 150))
-      }
+              if (isFailedStatus(analysis?.status)) {
+                throw new Error(analysis?.error || "Analysis failed during processing")
+              }
+
+              setUploadStage("analyzing")
+              updateProgressFromAnalysis(analysis, analysisType)
+            }
+          } catch (monitorError) {
+            const message =
+              monitorError instanceof Error
+                ? monitorError.message
+                : "Failed to monitor analysis progress"
+            setError(message)
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1600))
+        }
+      })()
+
+      const result = await uploadPromise
+      monitorEnabled = false
+      await monitorPromise
 
       setUploadStage("complete")
+      setUploadDetail("Analysis complete. Redirecting to results...")
       setUploadProgress(100)
+      targetProgressRef.current = 100
+
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current)
+      }
 
       setTimeout(() => {
         router.push(`/dashboard/analysis/${result.analysis_id}?hash=${fileHash || ""}`)
       }, 1000)
     } catch (err) {
+      monitorEnabled = false
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current)
+      }
+
       const errorMsg = err instanceof Error ? err.message : "Upload failed"
       setError(errorMsg)
       setIsUploading(false)
       setUploadStage("idle")
+      setUploadDetail("")
     }
   }
 
@@ -177,6 +352,7 @@ export default function UploadPage() {
                 progress={uploadProgress}
                 stage={uploadStage}
                 fileName={selectedFile?.name || ""}
+                detail={uploadDetail}
               />
             )}
 
