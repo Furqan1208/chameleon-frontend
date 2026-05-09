@@ -168,7 +168,7 @@ export function HAScanner() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Hybrid Analysis Workspace</p>
-          <h3 className="text-xl font-semibold text-white">Scanner & Threat Feed</h3>
+          <h3 className="text-xl font-semibold text-foreground">Scanner & Threat Feed</h3>
           <p className="text-sm text-muted-foreground mt-1">Upload files or submit hashes to retrieve sandbox verdicts and behavioral context.</p>
         </div>
 
@@ -182,7 +182,7 @@ export function HAScanner() {
               }
             }}
             disabled={results.length === 0 && uploadedFiles.length === 0}
-            className="px-3 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+            className="px-3 py-2 rounded-lg border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
           >
             <Trash2 className="w-4 h-4" />
             Clear
@@ -190,19 +190,19 @@ export function HAScanner() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+      <div className="rounded-lg border border-border bg-card p-3">
         <div className="flex items-center gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('scanner')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'scanner'
                 ? 'bg-primary text-black'
-                : 'bg-black/20 border border-[#1a1a1a] text-muted-foreground hover:text-white'
+                : 'bg-card/50 border border-border text-muted-foreground hover:text-foreground'
             }`}
           >
             <Search className="w-4 h-4" />
             Scanner
-            <span className={`text-[11px] px-1.5 py-0.5 rounded ${activeTab === 'scanner' ? 'bg-black/20' : 'bg-primary/10 text-primary'}`}>
+            <span className={`text-[11px] px-1.5 py-0.5 rounded ${activeTab === 'scanner' ? 'bg-card/50' : 'bg-primary/10 text-primary'}`}>
               {results.length}
             </span>
           </button>
@@ -212,12 +212,12 @@ export function HAScanner() {
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'threats'
                 ? 'bg-primary text-black'
-                : 'bg-black/20 border border-[#1a1a1a] text-muted-foreground hover:text-white'
+                : 'bg-card/50 border border-border text-muted-foreground hover:text-foreground'
             }`}
           >
             <Flame className="w-4 h-4" />
             Latest Threats
-            <span className={`text-[11px] px-1.5 py-0.5 rounded ${activeTab === 'threats' ? 'bg-black/20' : 'bg-destructive/10 text-destructive'}`}>
+            <span className={`text-[11px] px-1.5 py-0.5 rounded ${activeTab === 'threats' ? 'bg-card/50' : 'bg-destructive/10 text-destructive'}`}>
               {threatFeed.filter((t) => t.verdict === 60).length}
             </span>
           </button>
@@ -225,7 +225,7 @@ export function HAScanner() {
           <button
             onClick={() => loadThreatFeed()}
             disabled={feedLoading}
-            className="ml-auto px-3 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+            className="ml-auto px-3 py-2 rounded-lg border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
           >
             <RefreshCw className={`w-4 h-4 ${feedLoading ? 'animate-spin' : ''}`} />
             Refresh Feed
@@ -239,7 +239,7 @@ export function HAScanner() {
             className={`rounded-xl border-2 border-dashed p-8 transition-colors cursor-pointer ${
               isDragging
                 ? 'border-primary bg-primary/5'
-                : 'border-[#2a2a2a] bg-[#0d0d0d] hover:border-primary/40'
+                : 'border-border bg-card hover:border-primary/40'
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -250,7 +250,7 @@ export function HAScanner() {
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/25 mb-4">
                 <Upload className="w-7 h-7 text-primary" />
               </div>
-              <h4 className="text-white font-semibold">Upload Files for Sandbox Lookup</h4>
+              <h4 className="text-foreground font-semibold">Upload Files for Sandbox Lookup</h4>
               <p className="text-sm text-muted-foreground max-w-xl mt-2 mb-5">
                 Drop files here or click to browse. The scanner computes SHA256 locally and queries Hybrid Analysis automatically.
               </p>
@@ -278,10 +278,10 @@ export function HAScanner() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5 space-y-4">
+            <div className="lg:col-span-2 rounded-lg border border-border bg-card p-5 space-y-4">
               <div className="flex items-center gap-2">
                 <Hash className="w-4 h-4 text-primary" />
-                <h4 className="font-semibold text-white">Manual Hash Lookup</h4>
+                <h4 className="font-semibold text-foreground">Manual Hash Lookup</h4>
               </div>
               <p className="text-xs text-muted-foreground">Paste MD5/SHA1/SHA256/SHA512 to run immediate sandbox intelligence lookup.</p>
 
@@ -291,7 +291,7 @@ export function HAScanner() {
                   value={hashInput}
                   onChange={(e) => setHashInput(e.target.value)}
                   placeholder="e.g. 275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
-                  className="w-full px-3 py-2.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-white placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm"
                 />
                 <button
                   onClick={() => handleHashScan(hashInput)}
@@ -321,16 +321,16 @@ export function HAScanner() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5">
-              <h4 className="font-semibold text-white mb-3">Scanner Status</h4>
+            <div className="rounded-lg border border-border bg-card p-5">
+              <h4 className="font-semibold text-foreground mb-3">Scanner Status</h4>
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Scans queued</span>
-                  <span className="text-white font-medium">{uploadedFiles.length}</span>
+                  <span className="text-foreground font-medium">{uploadedFiles.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Results available</span>
-                  <span className="text-white font-medium">{results.length}</span>
+                  <span className="text-foreground font-medium">{results.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Engine state</span>
@@ -340,11 +340,11 @@ export function HAScanner() {
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-[#1a1a1a]">
+              <div className="mt-4 pt-4 border-t border-border">
                 <p className="text-xs text-muted-foreground">Supported input</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {['MD5', 'SHA1', 'SHA256', 'SHA512', 'URL reports'].map((item) => (
-                    <span key={item} className="px-2 py-1 rounded-full text-[11px] border border-[#1a1a1a] bg-black/20 text-muted-foreground">
+                    <span key={item} className="px-2 py-1 rounded-full text-[11px] border border-border bg-card/50 text-muted-foreground">
                       {item}
                     </span>
                   ))}
@@ -382,12 +382,12 @@ export function HAScanner() {
           )}
 
           {uploadedFiles.length > 0 && (
-            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-white">Uploaded Files ({uploadedFiles.length})</h4>
+                <h4 className="font-semibold text-foreground">Uploaded Files ({uploadedFiles.length})</h4>
                 <button
                   onClick={clearUploads}
-                  className="text-xs px-2.5 py-1.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white transition-colors flex items-center gap-1"
+                  className="text-xs px-2.5 py-1.5 rounded-lg border border-border bg-card/50 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
                 >
                   <X className="w-3.5 h-3.5" />
                   Clear uploads
@@ -396,11 +396,11 @@ export function HAScanner() {
 
               <div className="space-y-2">
                 {uploadedFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between rounded-lg border border-border bg-card/50 p-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <FileCheck className="w-4 h-4 text-primary shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-sm text-white truncate">{file.name}</p>
+                        <p className="text-sm text-foreground truncate">{file.name}</p>
                         <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
                       </div>
                     </div>
@@ -419,11 +419,11 @@ export function HAScanner() {
           {results.length > 0 ? (
             <HAResults results={results} selectedHash={selectedHash} onSelectHash={setSelectedHash} />
           ) : !scanning && !calculatingHash ? (
-            <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-8 text-center">
+            <div className="rounded-lg border border-border bg-card p-8 text-center">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/25 mb-4">
                 <Cpu className="w-7 h-7 text-primary" />
               </div>
-              <h4 className="text-white font-semibold">No Scan Results Yet</h4>
+              <h4 className="text-foreground font-semibold">No Scan Results Yet</h4>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
                 Start with file upload or hash lookup to build your Hybrid Analysis evidence panel.
               </p>
@@ -436,22 +436,22 @@ export function HAScanner() {
         <HATopThreats threats={threatFeed} loading={feedLoading} onRefresh={loadThreatFeed} />
       )}
 
-      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5">
-        <h4 className="text-white font-semibold flex items-center gap-2 mb-3">
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h4 className="text-foreground font-semibold flex items-center gap-2 mb-3">
           <Info className="w-4 h-4 text-primary" />
           Scanner Workflow
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
-            <p className="text-white font-medium mb-1">1. Submit</p>
+          <div className="rounded-lg border border-border bg-card/50 p-3">
+            <p className="text-foreground font-medium mb-1">1. Submit</p>
             <p className="text-muted-foreground text-xs">Upload files or paste hashes for immediate sandbox lookup.</p>
           </div>
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
-            <p className="text-white font-medium mb-1">2. Triage</p>
+          <div className="rounded-lg border border-border bg-card/50 p-3">
+            <p className="text-foreground font-medium mb-1">2. Triage</p>
             <p className="text-muted-foreground text-xs">Review verdict, threat score, signatures, and MITRE techniques.</p>
           </div>
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
-            <p className="text-white font-medium mb-1">3. Investigate</p>
+          <div className="rounded-lg border border-border bg-card/50 p-3">
+            <p className="text-foreground font-medium mb-1">3. Investigate</p>
             <p className="text-muted-foreground text-xs">Open environment reports for detailed behavioral and network telemetry.</p>
           </div>
         </div>

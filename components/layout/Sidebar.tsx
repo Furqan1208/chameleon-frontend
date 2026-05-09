@@ -44,10 +44,13 @@ import {
   Satellite,
   Atom,
   Search,
-  Command
+  Command,
+  Settings
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
+import { useUiPreferences } from "@/hooks/useUiPreferences"
+import { SidebarPreferences } from "@/lib/types/preferences"
 import { Logo } from "@/components/ui/Logo"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -150,21 +153,20 @@ const menuItems = [
     ]
   },
   { 
+    icon: Sparkles, 
+    label: "ML Dashboard", 
+    path: "/dashboard/ml-dashboard",
+    section: "Intelligence",
+    description: "ML model & classification",
+    color: "from-amber-500 to-orange-500"
+  },
+  { 
     icon: Workflow, 
     label: "Integrations", 
     path: "/dashboard/integrations",
     section: "Platform",
     description: "Connect services",
     color: "from-gray-500 to-slate-500"
-  },
-  // ADDED_ML: Optional model operations dashboard navigation item.
-  {
-    icon: Gauge,
-    label: "ML Dashboard",
-    path: "/dashboard/ml-dashboard",
-    section: "Platform",
-    description: "Hybrid ML model operations",
-    color: "from-emerald-500 to-teal-500"
   },
   { 
     icon: Layers, 
@@ -182,6 +184,14 @@ const menuItems = [
         color: "from-red-500 to-rose-500"
       }
     ]
+  },
+  {
+    icon: Settings,
+    label: "Settings",
+    path: "/dashboard/settings",
+    section: "Platform",
+    description: "UI preferences & configuration",
+    color: "from-slate-500 to-gray-500"
   },
 ]
 
@@ -208,24 +218,15 @@ const quickShortcutRoutes = [
   { label: "Abuse.ch", path: "/dashboard/threat-intel/abusech", icon: Network },
   { label: "AlienVault", path: "/dashboard/threat-intel/alienvault", icon: Satellite },
   { label: "Filescan", path: "/dashboard/threat-intel/filescan", icon: Scan },
+  { label: "ML Dashboard", path: "/dashboard/ml-dashboard", icon: Sparkles },
   { label: "Integrations", path: "/dashboard/integrations", icon: Workflow },
-  // ADDED_ML: Quick access shortcut for ML dashboard.
-  { label: "ML", path: "/dashboard/ml-dashboard", icon: Gauge },
   { label: "Frameworks", path: "/dashboard/frameworks", icon: Layers },
 ]
-
-const quickShortcuts = quickShortcutRoutes.map((item, idx) => {
-  const key = idx < 9 ? String(idx + 1) : null
-  return {
-    ...item,
-    key,
-    combo: key ? `Alt+${key}` : "Click",
-  }
-})
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { preferences: uiPreferences } = useUiPreferences()
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({})
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -378,7 +379,7 @@ export function Sidebar() {
             "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
             isItemActive
               ? "bg-gradient-to-r from-primary/18 via-primary/10 to-transparent text-primary border border-primary/25 shadow-[0_0_0_1px_rgba(0,255,136,0.06),0_10px_30px_rgba(0,255,136,0.09)]"
-              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent hover:border-[#1a1a1a]",
+              : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent hover:border-border",
             depth > 0 && "ml-3",
             isCollapsed && "justify-center px-2"
           )}
@@ -465,17 +466,51 @@ export function Sidebar() {
     )
   }
 
+  // Map menu item labels to preference keys
+  const preferenceMap: Record<string, keyof SidebarPreferences> = {
+    "Dashboard": "dashboard",
+    "Upload & Analyze": "upload",
+    "Reports": "reports",
+    "Threat Intel": "threat_intel",
+    "ML Dashboard": "ml_dashboard",
+    "Integrations": "integrations",
+    "Frameworks": "frameworks",
+  }
+
+  // Filter menu items based on sidebar preferences
+  const filteredMenuItems = menuItems.filter((item) => {
+    const prefKey = preferenceMap[item.label]
+    if (!prefKey) return true // Items without a preference key are always shown
+    return uiPreferences.sidebar?.[prefKey] ?? true // Default to true if not set
+  })
+
   const groupedMenuItems = sectionOrder
     .map((section) => ({
       section,
-      items: menuItems.filter((item) => item.section === section),
+      items: filteredMenuItems.filter((item) => item.section === section),
     }))
     .filter((group) => group.items.length > 0)
+
+  // Create filtered quick shortcuts based on preferences
+  const filteredQuickShortcutRoutes = quickShortcutRoutes.filter((item) => {
+    const prefKey = preferenceMap[item.label]
+    if (!prefKey) return true // Items without a preference key are always shown
+    return uiPreferences.sidebar?.[prefKey] ?? true // Default to true if not set
+  })
+
+  const quickShortcuts = filteredQuickShortcutRoutes.map((item, idx) => {
+    const key = idx < 9 ? String(idx + 1) : null
+    return {
+      ...item,
+      key,
+      combo: key ? `Alt+${key}` : "Click",
+    }
+  })
 
   // Don't render sidebar until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <div className="border-r border-[#1a1a1a] flex flex-col w-16 md:w-64 h-screen z-40 bg-[#0d0d0d]">
+      <div className="border-r border-border flex flex-col w-16 md:w-64 h-screen z-40 bg-card">
         <div className="border-b border-border/50 p-4">
           <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse" />
         </div>
@@ -504,9 +539,9 @@ export function Sidebar() {
         variants={sidebarVariants}
         initial="expanded"
         animate={isCollapsed ? "collapsed" : "expanded"}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "border-r border-[#1a1a1a] flex flex-col h-screen z-40 bg-[#0d0d0d]",
+          "border-r border-border flex flex-col h-screen z-40 bg-card overflow-hidden",
           "fixed md:relative shadow-2xl md:shadow-none",
           "md:translate-x-0 transition-transform",
           isMobile && isCollapsed && "-translate-x-full",
@@ -558,7 +593,7 @@ export function Sidebar() {
         <nav className="flex-1 p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted/50 hover:scrollbar-thumb-muted">
           {!isCollapsed && (
             <button
-              className="w-full mb-3 flex items-center justify-between gap-2 rounded-xl border border-[#1a1a1a] bg-[#111111] px-3 py-2 text-xs text-muted-foreground hover:bg-[#141414] transition-colors"
+              className="w-full mb-3 flex items-center justify-between gap-2 rounded-xl border border-border bg-[#111111] px-3 py-2 text-xs text-muted-foreground hover:bg-[#141414] transition-colors"
               title="Quick search coming soon"
             >
               <span className="inline-flex items-center gap-2">
@@ -589,9 +624,9 @@ export function Sidebar() {
         </nav>
 
         {/* Footer section */}
-        <div className="p-4 border-t border-[#1a1a1a]">
+        <div className="p-4 border-t border-border">
           {!isCollapsed && !isMobile && (
-            <div className="mb-3 rounded-xl border border-[#1a1a1a] bg-[#111111] p-3">
+            <div className="mb-3 rounded-xl border border-border bg-[#111111] p-3">
               <button
                 onClick={() => setShortcutsExpanded((prev) => !prev)}
                 className="w-full flex items-center justify-between text-xs"
@@ -646,7 +681,7 @@ export function Sidebar() {
                 onClick={toggleSidebar}
                 className={cn(
                   "p-2 rounded-lg hover:bg-white/[0.05] transition-colors flex items-center justify-center",
-                  "border border-[#1a1a1a]",
+                  "border border-border",
                   isCollapsed ? "w-8 h-8" : "w-8 h-8"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}

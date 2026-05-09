@@ -218,7 +218,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
   return (
     <div className="space-y-4">
       {loading && (
-        <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-8 flex items-center justify-center gap-3 text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card p-8 flex items-center justify-center gap-3 text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin" />
           Loading ML classification...
         </div>
@@ -244,7 +244,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
       {!loading && prediction && prediction.ml_available && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <p className="text-sm font-semibold text-foreground mb-3">Confidence Gauge</p>
               <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
@@ -268,7 +268,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
               <p className="text-center text-sm text-muted-foreground">Overall confidence: <span className="text-foreground font-semibold">{Math.round((prediction.confidence || 0) * 100)}%</span></p>
             </div>
 
-            <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 lg:col-span-2">
+            <div className="rounded-xl border border-border bg-card p-4 lg:col-span-2">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <p className="text-sm font-semibold text-foreground">Classification Verdict</p>
                 {badge && (
@@ -322,22 +322,22 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
           </div>
 
           {prediction.vt_assisted && prediction.vt_insights && (
-            <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <p className="text-sm font-semibold text-foreground mb-3">VirusTotal Label Assist</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                <div className="rounded-lg border border-border bg-card/50 p-3">
                   <p className="text-muted-foreground">Popular Threat Label</p>
                   <p className="text-foreground break-all">{prediction.vt_insights.popular_threat_label || "N/A"}</p>
                 </div>
-                <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                <div className="rounded-lg border border-border bg-card/50 p-3">
                   <p className="text-muted-foreground">Threat Categories</p>
                   <p className="text-foreground">{prediction.vt_insights.popular_threat_category?.join(", ") || "N/A"}</p>
                 </div>
-                <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                <div className="rounded-lg border border-border bg-card/50 p-3">
                   <p className="text-muted-foreground">Family Labels</p>
                   <p className="text-foreground">{prediction.vt_insights.family_labels?.join(", ") || "N/A"}</p>
                 </div>
-                <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                <div className="rounded-lg border border-border bg-card/50 p-3">
                   <p className="text-muted-foreground">VT Threat Score</p>
                   <p className="text-foreground">{prediction.vt_insights.threat_score ?? 0}%</p>
                 </div>
@@ -345,18 +345,18 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
             </div>
           )}
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+          <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold text-foreground mb-3">Prediction Metadata</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-              <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+              <div className="rounded-lg border border-border bg-card/50 p-3">
                 <p className="text-muted-foreground">Model</p>
                 <p className="text-foreground">{prediction.model_used}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+              <div className="rounded-lg border border-border bg-card/50 p-3">
                 <p className="text-muted-foreground">Training Samples</p>
                 <p className="text-foreground">{prediction.training_samples_count}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+              <div className="rounded-lg border border-border bg-card/50 p-3">
                 <p className="text-muted-foreground">Prediction Time</p>
                 <p className="text-foreground">{prediction.prediction_time_ms.toFixed(2)} ms</p>
               </div>
@@ -364,7 +364,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
           </div>
 
           {!feedbackSubmitted && (
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+          <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-semibold text-foreground mb-3">Feedback</p>
             <div className="flex flex-wrap gap-2">
               <button
@@ -386,7 +386,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
             </div>
 
             {showCorrection && (
-              <div className="mt-4 rounded-lg border border-[#1a1a1a] bg-black/20 p-4 space-y-3">
+              <div className="mt-4 rounded-lg border border-border bg-card/50 p-4 space-y-3">
                 <p className="text-sm text-muted-foreground">Provide corrected labels to improve the model over time.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
@@ -394,7 +394,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
                     <select
                       value={correctedFamily}
                       onChange={(e) => setCorrectedFamily(e.target.value)}
-                      className="w-full rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
                     >
                       {FAMILY_OPTIONS.map((family) => (
                         <option key={family} value={family}>{family}</option>
@@ -405,7 +405,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
                       placeholder="Or enter custom family (e.g., cryptolocker)"
                       value={customFamily}
                       onChange={(e) => setCustomFamily(e.target.value)}
-                      className="mt-2 w-full rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-sm"
+                      className="mt-2 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
@@ -413,7 +413,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
                     <select
                       value={correctedType}
                       onChange={(e) => setCorrectedType(e.target.value)}
-                      className="w-full rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
                     >
                       {TYPE_OPTIONS.map((mtype) => (
                         <option key={mtype} value={mtype}>{mtype}</option>
@@ -424,7 +424,7 @@ export default function MLPredictionTab({ analysisId }: { analysisId: string }) 
                       placeholder="Or enter custom type (e.g., ransomware)"
                       value={customType}
                       onChange={(e) => setCustomType(e.target.value)}
-                      className="mt-2 w-full rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-sm"
+                      className="mt-2 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm"
                     />
                   </div>
                 </div>

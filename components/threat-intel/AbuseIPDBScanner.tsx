@@ -44,7 +44,7 @@ export function AbuseIPDBScanner() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">AbuseIPDB Workspace</p>
-          <h3 className="text-xl font-semibold text-white">IP Reputation Scanner</h3>
+          <h3 className="text-xl font-semibold text-foreground">IP Reputation Scanner</h3>
           <p className="text-sm text-muted-foreground mt-1">Investigate IP abuse confidence, report evidence, and historical community activity.</p>
         </div>
 
@@ -52,7 +52,7 @@ export function AbuseIPDBScanner() {
           <button
             onClick={clearResults}
             disabled={results.length === 0}
-            className="px-3 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+            className="px-3 py-2 rounded-lg border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
             title="Clear results"
           >
             <Trash2 className="w-4 h-4" />
@@ -61,7 +61,7 @@ export function AbuseIPDBScanner() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5 space-y-4">
+      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
         <form onSubmit={handleCheckIP} className="space-y-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
@@ -72,7 +72,7 @@ export function AbuseIPDBScanner() {
                 onChange={(e) => setIpInput(e.target.value)}
                 placeholder="Enter IPv4 address (e.g., 8.8.8.8)"
                 disabled={checking}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-white placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm disabled:opacity-60"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm disabled:opacity-60"
                 pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
                 title="Enter a valid IPv4 address"
               />
@@ -88,21 +88,21 @@ export function AbuseIPDBScanner() {
             </button>
           </div>
 
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+          <div className="rounded-lg border border-border bg-card/50 p-3">
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs text-muted-foreground hover:text-white transition-colors flex items-center gap-2"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               {showAdvanced ? 'Hide' : 'Show'} Advanced Options
             </button>
 
             {showAdvanced && (
-              <div className="mt-3 pt-3 border-t border-[#1a1a1a] space-y-2">
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <label className="text-muted-foreground">Max report age</label>
-                  <span className="text-white font-medium">{maxAgeDays} days</span>
+                  <span className="text-foreground font-medium">{maxAgeDays} days</span>
                 </div>
                 <input
                   type="range"
@@ -124,7 +124,7 @@ export function AbuseIPDBScanner() {
                 key={ip}
                 type="button"
                 onClick={() => handleQuickSearch(ip)}
-                className="px-2 py-1 rounded border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors"
+                className="px-2 py-1 rounded border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
               >
                 {ip}
               </button>
@@ -144,9 +144,9 @@ export function AbuseIPDBScanner() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+        <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1"><Radar className="w-3 h-3" /> Queries</p>
-          <p className="text-xl font-semibold text-white">{results.length}</p>
+          <p className="text-xl font-semibold text-foreground">{results.length}</p>
         </div>
         <div className="rounded-lg border border-destructive/25 bg-destructive/10 p-3">
           <p className="text-[11px] uppercase tracking-wider text-destructive/80 mb-1 flex items-center gap-1"><Shield className="w-3 h-3" /> High Risk</p>
@@ -165,11 +165,11 @@ export function AbuseIPDBScanner() {
       {results.length > 0 ? (
         <AbuseIPDBResults results={results} />
       ) : !checking ? (
-        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/25 mb-4">
             <Search className="w-7 h-7 text-primary" />
           </div>
-          <h4 className="text-white font-semibold">No Checks Yet</h4>
+          <h4 className="text-foreground font-semibold">No Checks Yet</h4>
           <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">Run an IP lookup to see confidence score, abuse categories, and report history.</p>
         </div>
       ) : null}

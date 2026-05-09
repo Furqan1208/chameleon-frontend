@@ -280,8 +280,8 @@ export function Header() {
               <Bell className="w-4 h-4" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="bottom" align="end" className="z-[100] w-[360px] border border-[#1a1a1a] bg-[#0d0d0d] p-0">
-              <div className="flex items-center justify-between border-b border-[#1a1a1a] px-3 py-2.5">
+          <DropdownMenuContent side="bottom" align="end" className="z-[100] w-[360px] border border-border bg-card p-0">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
                 <div>
                   <p className="text-sm font-semibold text-foreground">Threat News Feed</p>
                   <p className="text-[11px] text-muted-foreground">The Hacker News live feed</p>
@@ -294,7 +294,7 @@ export function Header() {
                   )}
                   <button
                     onClick={markAllAsRead}
-                    className="inline-flex items-center gap-1 rounded-md border border-[#1a1a1a] px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
                   >
                     <CheckCheck className="h-3 w-3" />
                     Mark all read
@@ -308,7 +308,7 @@ export function Header() {
                 )}
 
                 {newsError && newsItems.length === 0 && (
-                  <div className="mx-1 mb-2 flex items-center gap-2 rounded-lg border border-[#2a1a1a] bg-[#1a1111] px-2 py-2 text-xs text-amber-200">
+                  <div className="mx-1 mb-2 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-2 py-2 text-xs text-destructive">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     {newsError}
                   </div>
@@ -325,7 +325,7 @@ export function Header() {
                       key={item.id}
                       className={`mb-1 rounded-lg border px-2.5 py-2 ${
                         isRead
-                          ? "border-[#1a1a1a] bg-[#0a0a0a]"
+                          ? "border-border bg-card"
                           : "border-primary/30 bg-primary/5"
                       }`}
                     >
@@ -338,7 +338,7 @@ export function Header() {
                         </button>
                         <button
                           onClick={() => markOneAsRead(item.id)}
-                          className="shrink-0 rounded-md border border-[#1a1a1a] p-1 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                          className="shrink-0 rounded-md border border-border p-1 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
                           title="Mark as read"
                         >
                           <Check className="h-3 w-3" />

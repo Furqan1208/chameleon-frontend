@@ -90,7 +90,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="text-lg font-semibold text-foreground">
           Analysis Results ({results.length})
         </h3>
         <div className="text-sm text-muted-foreground">
@@ -99,9 +99,9 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+        <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</p>
-          <p className="text-xl font-semibold text-white mt-1">{results.length}</p>
+          <p className="text-xl font-semibold text-foreground mt-1">{results.length}</p>
         </div>
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
           <p className="text-[11px] uppercase tracking-wider text-destructive/80">Malicious</p>
@@ -125,11 +125,11 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
         return (
           <div
             key={`result-${index}`}
-            className={`border rounded-xl overflow-hidden transition-all duration-300 bg-[#0d0d0d] ${
+            className={`border rounded-xl overflow-hidden transition-all duration-300 bg-card ${
               result.threat_level === 'malicious' ? 'border-destructive/30' :
               result.threat_level === 'suspicious' ? 'border-accent/30' :
               result.threat_level === 'whitelisted' ? 'border-green-500/30' :
-              'border-[#1a1a1a]'
+              'border-border'
             }`}
           >
             <div className="p-4 cursor-pointer" onClick={() => toggleExpand(result.sha256)}>
@@ -161,7 +161,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                       )}
                     </div>
                     
-                    <p className="font-mono text-sm break-all mb-1 text-white">
+                    <p className="font-mono text-sm break-all mb-1 text-foreground">
                       {result.sha256.substring(0, 16)}...{result.sha256.substring(48)}
                     </p>
                     
@@ -239,7 +239,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
             </div>
 
             {isExpanded && (
-              <div className="border-t border-[#1a1a1a] bg-black/20">
+              <div className="border-t border-border bg-card/50">
                 <div className="p-6 space-y-8">
                   {/* File Information Section */}
                   <div>
@@ -464,7 +464,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                                   <code className="font-mono truncate">{domain}</code>
                                   <button
                                     onClick={() => handleCopy(domain, `copy-domain-${index}-${idx}`)}
-                                    className="p-1 rounded hover:bg-black/20 transition-colors"
+                                    className="p-1 rounded hover:bg-card/50 transition-colors"
                                   >
                                     <Copy className="w-3 h-3" />
                                   </button>
@@ -488,7 +488,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                                   <code className="font-mono truncate">{host}</code>
                                   <button
                                     onClick={() => handleCopy(host, `copy-host-${index}-${idx}`)}
-                                    className="p-1 rounded hover:bg-black/20 transition-colors"
+                                    className="p-1 rounded hover:bg-card/50 transition-colors"
                                   >
                                     <Copy className="w-3 h-3" />
                                   </button>
@@ -518,7 +518,7 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
                             : `report-${result.sha256}-${idx}`;
 
                           return (
-                              <div key={uniqueReportKey} className="p-3 border border-[#1a1a1a] bg-black/20 rounded-lg hover:border-primary/30 transition-colors">
+                              <div key={uniqueReportKey} className="p-3 border border-border bg-card/50 rounded-lg hover:border-primary/30 transition-colors">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-foreground text-sm">
                                   {report.environment_description || `Env ${report.environment_id}`}
@@ -558,13 +558,13 @@ export function HAResults({ results, selectedHash, onSelectHash }: HAResultsProp
 
                   {result.raw_data && (
                     <div>
-                      <details className="group rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                      <details className="group rounded-lg border border-border bg-card/50 p-3">
                         <summary className="cursor-pointer text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-2">
                           <Code className="w-4 h-4" />
                           View Raw Data
                           <span className="ml-auto group-open:rotate-90 transition-transform">→</span>
                         </summary>
-                        <div className="mt-3 p-3 bg-black/30 rounded-lg overflow-x-auto border border-[#1a1a1a]">
+                        <div className="mt-3 p-3 bg-black/30 rounded-lg overflow-x-auto border border-border">
                           <pre className="text-xs font-mono text-foreground/80">
                             {JSON.stringify(result.raw_data, null, 2)}
                           </pre>

@@ -38,7 +38,7 @@ export function SearchFilters({
   const hasActiveFilters = searchQuery || selectedPlatforms.size > 0 || !showDeprecated || !showRevoked
 
   return (
-    <div className="border border-[#1a1a1a] bg-[#0d0d0d] rounded-xl p-4">
+    <div className="border border-border bg-card rounded-xl p-4">
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
@@ -48,7 +48,7 @@ export function SearchFilters({
               placeholder="Search techniques by name, ID, or description..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-[#080808] border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-[#080808] border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
             />
           </div>
         </div>
@@ -61,7 +61,7 @@ export function SearchFilters({
             className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
               showFilters || selectedPlatforms.size > 0
                 ? 'bg-primary/20 border-primary/50 text-primary' 
-                : 'border-[#1a1a1a] hover:border-[#2a2a2a] hover:bg-[#141a21]'
+                : 'border-border hover:border-border hover:bg-muted/20'
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -76,7 +76,7 @@ export function SearchFilters({
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
-              className="px-3 py-2 border border-[#1a1a1a] bg-[#080808] rounded-lg hover:border-[#2a2a2a] hover:bg-[#141a21] transition-colors text-sm"
+              className="px-3 py-2 border border-border bg-[#080808] rounded-lg hover:border-border hover:bg-muted/20 transition-colors text-sm"
             >
               Clear
             </button>
@@ -91,12 +91,12 @@ export function SearchFilters({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 pt-4 border-t border-[#1a1a1a] overflow-hidden"
+            className="mt-4 pt-4 border-t border-border overflow-hidden"
           >
             <div className="space-y-4">
               {/* Platform Filters */}
               <div>
-                <h3 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <Cpu className="w-4 h-4 text-cyan-300" />
                   Platforms
                 </h3>
@@ -110,14 +110,14 @@ export function SearchFilters({
                         className={`px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
                           selectedPlatforms.has(platform)
                             ? 'bg-primary text-black font-medium shadow-md'
-                            : 'border border-[#1a1a1a] hover:bg-[#141a21] hover:border-[#2a2a2a]'
+                            : 'border border-border hover:bg-muted/20 hover:border-border'
                         }`}
                         disabled={count === 0}
                       >
                         {platform}
                         <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                           selectedPlatforms.has(platform)
-                            ? 'bg-black/20'
+                            ? 'bg-card/50'
                             : 'bg-[#1a1a1a] text-muted-foreground'
                         }`}>
                           {count}
@@ -130,7 +130,7 @@ export function SearchFilters({
 
               {/* Status Filters */}
               <div>
-                <h3 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <Info className="w-4 h-4 text-amber-300" />
                   Status
                 </h3>
@@ -140,7 +140,7 @@ export function SearchFilters({
                     className={`px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
                       !showDeprecated
                         ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
-                        : 'border border-[#1a1a1a] hover:bg-[#141a21]'
+                        : 'border border-border hover:bg-muted/20'
                     }`}
                   >
                     {!showDeprecated ? (
@@ -160,7 +160,7 @@ export function SearchFilters({
                     className={`px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
                       !showRevoked
                         ? 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
-                        : 'border border-[#1a1a1a] hover:bg-[#141a21]'
+                        : 'border border-border hover:bg-muted/20'
                     }`}
                   >
                     {!showRevoked ? (
@@ -180,7 +180,7 @@ export function SearchFilters({
 
               {/* Active Filters Summary */}
               {hasActiveFilters && (
-                <div className="pt-2 border-t border-[#1a1a1a]">
+                <div className="pt-2 border-t border-border">
                   <p className="text-xs text-muted-foreground mb-2">Active Filters:</p>
                   <div className="flex flex-wrap gap-2">
                     {searchQuery && (

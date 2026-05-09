@@ -97,7 +97,7 @@ function ScoreRing({ score, max = 10, label, subtitle }: { score: number; max?: 
   const ringColor = getRingColorClass(colorType)
 
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">{label}</p>
       <div className="flex items-center gap-4">
         <div
@@ -106,16 +106,16 @@ function ScoreRing({ score, max = 10, label, subtitle }: { score: number; max?: 
             background: `conic-gradient(${ringColor} ${percent}%, rgba(255,255,255,0.08) ${percent}% 100%)`,
           }}
         >
-          <div className="absolute inset-[8px] rounded-full bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center">
+          <div className="absolute inset-[8px] rounded-full bg-background border border-border flex items-center justify-center">
             <div className="text-center">
-              <div className="text-xl font-bold text-white">{clamped.toFixed(1)}</div>
+              <div className="text-xl font-bold text-foreground">{clamped.toFixed(1)}</div>
               <div className="text-[10px] text-muted-foreground">/ {max}</div>
             </div>
           </div>
         </div>
 
         <div className="space-y-1">
-          <p className="text-base font-semibold text-white">{scoreLabel(clamped)} Risk</p>
+          <p className="text-base font-semibold text-foreground">{scoreLabel(clamped)} Risk</p>
           <p className="text-sm text-muted-foreground">{subtitle || "Threat score"}</p>
           <div className="h-1.5 w-36 rounded-full bg-white/5 overflow-hidden">
             <div className="h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: ringColor }} />
@@ -128,21 +128,21 @@ function ScoreRing({ score, max = 10, label, subtitle }: { score: number; max?: 
 
 function MetricTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+    <div className="rounded-lg border border-border bg-card/50 p-3">
       <div className="flex items-center gap-2 mb-2">
         <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
           {icon}
         </span>
         <span className="text-xs uppercase tracking-wider text-slate-300">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-white">{value}</p>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
   )
 }
 
 function PreviewListCard({ title, items, accent }: { title: string; items: string[]; accent: string }) {
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+    <div className="rounded-lg border border-border bg-card/50 p-3">
       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{title}</p>
       {items.length === 0 ? (
         <p className="text-xs text-muted-foreground">No entries in this run.</p>
@@ -231,7 +231,7 @@ export default function OverviewDashboard({
       <div className="flex flex-col md:flex-row justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">Overview Intelligence</p>
-          <h2 className="text-2xl font-semibold text-white">Sandbox + AI Unified View</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Sandbox + AI Unified View</h2>
           <p className="text-sm text-muted-foreground mt-1">
             This overview intentionally uses sandbox and AI outputs only to avoid duplicated telemetry-derived signals.
           </p>
@@ -241,7 +241,7 @@ export default function OverviewDashboard({
           {onCopyJson && (
             <button
               onClick={onCopyJson}
-              className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
+              className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
             >
               <Copy className="w-3.5 h-3.5" />
               {copied ? "Copied" : "Copy JSON"}
@@ -262,7 +262,7 @@ export default function OverviewDashboard({
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5"
+        className="rounded-xl border border-border bg-card p-5"
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ScoreRing
@@ -281,7 +281,7 @@ export default function OverviewDashboard({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-semibold text-foreground">Sandbox Activity Metrics</h3>
@@ -297,26 +297,26 @@ export default function OverviewDashboard({
             </div>
 
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Mutexes</p>
-                <p className="text-white font-semibold mt-1">{capeMetrics.mutexes}</p>
+                <p className="text-foreground font-semibold mt-1">{capeMetrics.mutexes}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Write Files</p>
-                <p className="text-white font-semibold mt-1">{capeMetrics.writeFiles}</p>
+                <p className="text-foreground font-semibold mt-1">{capeMetrics.writeFiles}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Delete Files</p>
-                <p className="text-white font-semibold mt-1">{capeMetrics.deleteFiles}</p>
+                <p className="text-foreground font-semibold mt-1">{capeMetrics.deleteFiles}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">MITRE Mappings</p>
-                <p className="text-white font-semibold mt-1">{capeMetrics.ttps}</p>
+                <p className="text-foreground font-semibold mt-1">{capeMetrics.ttps}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <FileCode className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-semibold text-foreground">Execution & Behavior Signals</h3>
@@ -326,21 +326,21 @@ export default function OverviewDashboard({
             </p>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Package</p>
-                <p className="text-white font-semibold mt-1 break-all">{behaviorSignals.package}</p>
+                <p className="text-foreground font-semibold mt-1 break-all">{behaviorSignals.package}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Route</p>
-                <p className="text-white font-semibold mt-1 break-all">{behaviorSignals.route}</p>
+                <p className="text-foreground font-semibold mt-1 break-all">{behaviorSignals.route}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Started</p>
-                <p className="text-white font-semibold mt-1">{behaviorSignals.started || "Unknown"}</p>
+                <p className="text-foreground font-semibold mt-1">{behaviorSignals.started || "Unknown"}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Ended</p>
-                <p className="text-white font-semibold mt-1">{behaviorSignals.ended || "Unknown"}</p>
+                <p className="text-foreground font-semibold mt-1">{behaviorSignals.ended || "Unknown"}</p>
               </div>
             </div>
 
@@ -367,20 +367,20 @@ export default function OverviewDashboard({
         </div>
 
         <div className="space-y-6">
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <Brain className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-semibold text-foreground">AI Highlights</h3>
             </div>
 
             {aiInsights.length === 0 ? (
-              <div className="text-sm text-muted-foreground border border-[#1a1a1a] rounded-lg p-3">
+              <div className="text-sm text-muted-foreground border border-border rounded-lg p-3">
                 AI insights are not available for this report yet.
               </div>
             ) : (
               <div className="space-y-3">
                 {aiInsights.map((insight, idx) => (
-                  <div key={idx} className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                  <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
                     <p className="text-xs uppercase tracking-wider text-primary mb-1">{insight.title}</p>
                     <p className="text-sm text-foreground/90">{insight.description}</p>
                   </div>
@@ -388,48 +388,48 @@ export default function OverviewDashboard({
               </div>
             )}
 
-            <div className="mt-4 border-t border-[#1a1a1a] pt-4 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+            <div className="mt-4 border-t border-border pt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">AI Level</p>
-                <p className="text-white font-semibold mt-1">{aiThreat.aiThreatLevel}</p>
+                <p className="text-foreground font-semibold mt-1">{aiThreat.aiThreatLevel}</p>
               </div>
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Confidence</p>
-                <p className="text-white font-semibold mt-1">{aiThreat.confidence.toFixed(1)}%</p>
+                <p className="text-foreground font-semibold mt-1">{aiThreat.confidence.toFixed(1)}%</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-semibold text-foreground">Report Identity</h3>
             </div>
 
             <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Filename</p>
-                <p className="text-white mt-1 break-all">{fileHashes?.filename || combinedAnalysis?.filename || "Unknown"}</p>
+                <p className="text-foreground mt-1 break-all">{fileHashes?.filename || combinedAnalysis?.filename || "Unknown"}</p>
               </div>
 
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Analysis Date</p>
-                <p className="text-white mt-1">{formatDate(combinedAnalysis?.created_at || capeData?.info?.started)}</p>
+                <p className="text-foreground mt-1">{formatDate(combinedAnalysis?.created_at || capeData?.info?.started)}</p>
               </div>
 
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Engine</p>
-                <p className="text-white mt-1">{capeData?.info?.version || "CAPE"}</p>
+                <p className="text-foreground mt-1">{capeData?.info?.version || "CAPE"}</p>
               </div>
 
-              <div className="rounded-lg border border-[#1a1a1a] p-3">
+              <div className="rounded-lg border border-border p-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Run Duration</p>
-                <p className="text-white mt-1">{capeMetrics.duration ? `${capeMetrics.duration}s` : "Unknown"}</p>
+                <p className="text-foreground mt-1">{capeMetrics.duration ? `${capeMetrics.duration}s` : "Unknown"}</p>
               </div>
             </div>
 
             {(fileHashes?.sha256 || capeData?.target?.file?.sha256) && (
-              <div className="mt-4 rounded-lg border border-[#1a1a1a] p-3">
+              <div className="mt-4 rounded-lg border border-border p-3">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">SHA256</p>
                 <code className="text-xs text-primary block mt-1 break-all">
                   {fileHashes?.sha256 || capeData?.target?.file?.sha256}

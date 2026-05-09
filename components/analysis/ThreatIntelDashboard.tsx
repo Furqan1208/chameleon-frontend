@@ -161,7 +161,7 @@ function toneClasses(tone: ThreatTone) {
   }
   return {
     text: "text-muted-foreground",
-    border: "border-[#2a2a2a]",
+    border: "border-border",
     bg: "bg-muted/10",
     bar: "#64748b",
   }
@@ -199,7 +199,7 @@ function CopyableHash({ label, value }: { label: string; value?: string }) {
   if (!value) return null
 
   return (
-    <div className="flex items-center gap-2 border border-[#1a1a1a] bg-black/20 rounded-md px-2 py-1.5">
+    <div className="flex items-center gap-2 border border-border bg-card/50 rounded-md px-2 py-1.5">
       <span className="text-[10px] text-muted-foreground w-12 shrink-0">{label}</span>
       <code className="text-xs text-primary truncate flex-1">{value}</code>
       <button
@@ -248,7 +248,7 @@ function VTDetails({ data }: { data: any }) {
             <div className="text-lg font-semibold text-green-400">{stats?.harmless || 0}</div>
             <div className="text-[10px] text-green-300">Harmless</div>
           </div>
-          <div className="rounded-md border border-[#2a2a2a] bg-muted/10 p-2">
+          <div className="rounded-md border border-border bg-muted/10 p-2">
             <div className="text-lg font-semibold text-muted-foreground">{stats?.undetected || 0}</div>
             <div className="text-[10px] text-muted-foreground">Undetected</div>
           </div>
@@ -261,7 +261,7 @@ function VTDetails({ data }: { data: any }) {
         </div>
       </div>
 
-      <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-3 space-y-1.5 text-xs">
+      <div className="rounded-md border border-border bg-card/50 p-3 space-y-1.5 text-xs">
         <div className="flex justify-between gap-3"><span className="text-muted-foreground">Name</span><span className="text-foreground break-all text-right">{fi?.filename || "N/A"}</span></div>
         <div className="flex justify-between gap-3"><span className="text-muted-foreground">Type</span><span className="text-foreground text-right">{fi?.type_description || "N/A"}</span></div>
         <div className="flex justify-between gap-3"><span className="text-muted-foreground">Size</span><span className="text-foreground text-right">{formatBytes(fi?.size)}</span></div>
@@ -285,10 +285,10 @@ function MBDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">Filename</span><span className="text-foreground break-all">{sample?.filename || "N/A"}</span></div>
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">File Type</span><span className="text-foreground">{sample?.file_type || "N/A"}</span></div>
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">Size</span><span className="text-foreground">{formatBytes(sample?.file_size)}</span></div>
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">First Seen</span><span className="text-foreground">{formatDate(sample?.first_seen)}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">Filename</span><span className="text-foreground break-all">{sample?.filename || "N/A"}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">File Type</span><span className="text-foreground">{sample?.file_type || "N/A"}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">Size</span><span className="text-foreground">{formatBytes(sample?.file_size)}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">First Seen</span><span className="text-foreground">{formatDate(sample?.first_seen)}</span></div>
       </div>
 
       {sample?.signature && (
@@ -326,11 +326,11 @@ function HADetails({ data }: { data: any }) {
           <div className="h-2 rounded-full bg-white/5 flex-1 overflow-hidden">
             <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, threatScore))}%`, background: bar }} />
           </div>
-          <span className="text-sm font-semibold text-white w-10 text-right">{threatScore}</span>
+          <span className="text-sm font-semibold text-foreground w-10 text-right">{threatScore}</span>
         </div>
       </div>
 
-      <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-3 space-y-1.5 text-xs">
+      <div className="rounded-md border border-border bg-card/50 p-3 space-y-1.5 text-xs">
         <div className="flex justify-between gap-3"><span className="text-muted-foreground">Verdict</span><span className="text-foreground">{data?.verdict || data?.threat_level || "N/A"}</span></div>
         <div className="flex justify-between gap-3"><span className="text-muted-foreground">Family</span><span className="text-foreground">{data?.vx_family || "N/A"}</span></div>
         <div className="flex justify-between gap-3"><span className="text-muted-foreground">File</span><span className="text-foreground break-all text-right">{data?.last_file_name || "N/A"}</span></div>
@@ -370,10 +370,10 @@ function OTXDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">Pulse Count</span><span className="text-foreground">{data?.pulse_count ?? 0}</span></div>
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">Threat Level</span><span className="text-foreground">{String(data?.threat_level || "unknown")}</span></div>
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">File Class</span><span className="text-foreground">{infoResults?.file_class || "N/A"}</span></div>
-        <div className="rounded-md border border-[#1a1a1a] bg-black/20 p-2"><span className="text-muted-foreground block mb-1">File Size</span><span className="text-foreground">{formatBytes(infoResults?.filesize)}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">Pulse Count</span><span className="text-foreground">{data?.pulse_count ?? 0}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">Threat Level</span><span className="text-foreground">{String(data?.threat_level || "unknown")}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">File Class</span><span className="text-foreground">{infoResults?.file_class || "N/A"}</span></div>
+        <div className="rounded-md border border-border bg-card/50 p-2"><span className="text-muted-foreground block mb-1">File Size</span><span className="text-foreground">{formatBytes(infoResults?.filesize)}</span></div>
       </div>
 
       <div className="space-y-1">
@@ -387,7 +387,7 @@ function OTXDetails({ data }: { data: any }) {
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Plugin Signals</p>
           <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
             {pluginSignals.slice(0, 12).map((p, idx) => (
-              <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+              <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                 <div className="text-foreground font-medium">{p.name}</div>
                 {p.alert && <div className="text-amber-300 mt-0.5">{p.alert}</div>}
                 {p.detection && <div className="text-red-300 mt-0.5">Detection: {p.detection}</div>}
@@ -416,7 +416,7 @@ function OTXDetails({ data }: { data: any }) {
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">References</p>
           <div className="space-y-1">
             {refs.slice(0, 8).map((r: string, idx: number) => (
-              <div key={idx} className="text-xs rounded-md border border-[#1a1a1a] bg-black/20 p-1.5 text-foreground break-all">
+              <div key={idx} className="text-xs rounded-md border border-border bg-card/50 p-1.5 text-foreground break-all">
                 {r}
               </div>
             ))}
@@ -467,9 +467,9 @@ function ServiceCard({
   const tone = toneClasses(threat.tone)
 
   return (
-    <div className={`rounded-xl border bg-[#0d0d0d] overflow-hidden transition-colors ${hasResult ? tone.border : "border-[#1a1a1a]"}`}>
+    <div className={`rounded-xl border bg-card overflow-hidden transition-colors ${hasResult ? tone.border : "border-border"}`}>
       <div className="p-4 flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-black/20" style={{ color: cfg.color }}>{cfg.icon}</div>
+        <div className="p-2 rounded-lg bg-card/50" style={{ color: cfg.color }}>{cfg.icon}</div>
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground">{cfg.label}</p>
@@ -501,7 +501,7 @@ function ServiceCard({
           <button
             onClick={onRun}
             disabled={state.status === "loading"}
-            className="px-3 py-1.5 rounded-lg border border-[#2a2a2a] text-xs hover:bg-muted/20 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+            className="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-muted/20 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
           >
             {state.status === "loading" ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
             {state.status === "idle" ? "Scan" : "Re-scan"}
@@ -528,7 +528,7 @@ function ServiceCard({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="border-t border-[#1a1a1a] overflow-hidden"
+            className="border-t border-border overflow-hidden"
           >
             <div className="p-4">
               {state.status === "error" ? (
@@ -610,7 +610,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
 
   if (!fileHashes) {
     return (
-      <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-8 text-center">
+      <div className="rounded-xl border border-border bg-card p-8 text-center">
         <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
         <p className="text-muted-foreground">No file hashes available for threat intelligence lookup</p>
       </div>
@@ -626,7 +626,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
       <div className="flex flex-col md:flex-row justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">Threat Intel Command</p>
-          <h2 className="text-2xl font-semibold text-white">Multi-Source Intelligence Fusion</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Multi-Source Intelligence Fusion</h2>
           <p className="text-sm text-muted-foreground mt-1">VirusTotal, MalwareBazaar, Hybrid Analysis, and AlienVault OTX in one triage surface.</p>
         </div>
 
@@ -643,7 +643,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
           {onCopyJson && (
             <button
               onClick={onCopyJson}
-              className="h-8 px-3 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-1.5 text-sm whitespace-nowrap"
+              className="h-8 px-3 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-1.5 text-sm whitespace-nowrap"
             >
               <Copy className="w-3.5 h-3.5" />
               {copied ? "Copied" : "Copy JSON"}
@@ -652,7 +652,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+      <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center gap-2 mb-3">
           <Hash className="w-3.5 h-3.5 text-sky-300" />
           <code className="text-xs text-primary truncate">{hash}</code>
@@ -662,12 +662,12 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-2 text-center">
-            <p className="text-lg font-semibold text-white">{summary.scanned}/4</p>
+          <div className="rounded-lg border border-border bg-card/50 p-2 text-center">
+            <p className="text-lg font-semibold text-foreground">{summary.scanned}/4</p>
             <p className="text-[10px] text-muted-foreground uppercase">Scanned</p>
           </div>
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-2 text-center">
-            <p className="text-lg font-semibold text-white">{summary.found}</p>
+          <div className="rounded-lg border border-border bg-card/50 p-2 text-center">
+            <p className="text-lg font-semibold text-foreground">{summary.found}</p>
             <p className="text-[10px] text-muted-foreground uppercase">Found</p>
           </div>
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-center">
@@ -682,8 +682,8 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
             <p className="text-lg font-semibold text-green-400">{summary.clean}</p>
             <p className="text-[10px] text-green-300 uppercase">Clean</p>
           </div>
-          <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-2 text-center">
-            <p className="text-lg font-semibold text-white">{summary.errors}</p>
+          <div className="rounded-lg border border-border bg-card/50 p-2 text-center">
+            <p className="text-lg font-semibold text-foreground">{summary.errors}</p>
             <p className="text-[10px] text-muted-foreground uppercase">Errors</p>
           </div>
         </div>

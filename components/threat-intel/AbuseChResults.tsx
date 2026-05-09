@@ -173,7 +173,7 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="text-lg font-semibold text-foreground">
           Recent Checks ({results.length})
         </h3>
         <div className="text-sm text-muted-foreground">
@@ -200,7 +200,7 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
                 ? 'border-primary/25 bg-primary/10'
                 : hasThreatFox 
                   ? 'border-sky-500/25 bg-sky-500/10'
-                  : 'border-[#1a1a1a] bg-[#0d0d0d]'
+                  : 'border-border bg-card'
             }`}
           >
             {/* Result Header */}
@@ -325,17 +325,17 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
 
             {/* Expanded Details */}
             {isExpanded && (
-              <div className="border-t border-[#1a1a1a] bg-black/20">
+              <div className="border-t border-border bg-card/50">
                 <div className="p-4 space-y-6">
                   {/* Service Tabs */}
                   {(hasURLhaus || hasThreatFox) && (
-                    <div className="flex items-center gap-2 border-b border-[#1a1a1a] pb-2">
+                    <div className="flex items-center gap-2 border-b border-border pb-2">
                       {hasURLhaus && (
                         <button
                           onClick={() => setActiveTab('urlhaus')}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             activeTab === 'urlhaus'
-                              ? 'bg-green-500 text-white'
+                              ? 'bg-green-500 text-foreground'
                               : 'hover:bg-muted/20 text-muted-foreground'
                           }`}
                         >
@@ -349,7 +349,7 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
                           onClick={() => setActiveTab('threatfox')}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             activeTab === 'threatfox'
-                              ? 'bg-purple-500 text-white'
+                              ? 'bg-purple-500 text-foreground'
                               : 'hover:bg-muted/20 text-muted-foreground'
                           }`}
                         >
@@ -658,7 +658,7 @@ export function AbuseChResults({ results, onDownloadMalware }: AbuseChResultsPro
                                     {typeof tag === 'string' ? tag : tag.tag || 'Unknown'}
                                   </span>
                                   {typeof tag === 'object' && tag.tagset && (
-                                    <span className="text-xs px-1.5 py-0.5 bg-black/20 rounded">
+                                    <span className="text-xs px-1.5 py-0.5 bg-card/50 rounded">
                                       {tag.tagset}
                                     </span>
                                   )}

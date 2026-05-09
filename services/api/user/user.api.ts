@@ -1,4 +1,5 @@
 import { BaseApi } from "../base.api";
+import { UiPreferences } from "@/lib/types/preferences";
 
 export type UserProfileUpdate = {
   name?: string;
@@ -11,6 +12,12 @@ export type UserProfileUpdate = {
 };
 
 export class UserApi extends BaseApi {
+  async getCurrentUser() {
+    return this.request("/users/me", {
+      method: "GET",
+    });
+  }
+
   async updateProfile(data: UserProfileUpdate) {
     return this.request("/users/me", {
       method: "PUT",
@@ -21,6 +28,20 @@ export class UserApi extends BaseApi {
 
   async deleteAccount() {
     return this.request("/users/me", { method: "DELETE" });
+  }
+
+  async getPreferences(): Promise<UiPreferences> {
+    return this.request("/users/preferences", {
+      method: "GET",
+    });
+  }
+
+  async updatePreferences(preferences: Partial<UiPreferences>) {
+    return this.request("/users/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(preferences),
+    });
   }
 }
 

@@ -71,8 +71,8 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 				};
 			default:
 				return {
-					badge: 'bg-muted/20 text-muted-foreground border-[#1a1a1a]',
-					border: 'border-[#1a1a1a]',
+					badge: 'bg-muted/20 text-muted-foreground border-border',
+					border: 'border-border',
 					icon: <Shield className="w-5 h-5 text-muted-foreground" />,
 					label: 'Unknown',
 				};
@@ -101,7 +101,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h3 className="text-lg font-semibold text-white">Result Intelligence</h3>
+				<h3 className="text-lg font-semibold text-foreground">Result Intelligence</h3>
 				<div className="text-sm text-muted-foreground">
 					{results.filter((r) => r.found).length} found • {results.filter((r) => r.threat_level === 'high').length} high risk
 				</div>
@@ -112,11 +112,11 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 				const tone = getThreatTone(result.threat_level);
 
 				return (
-					<div key={`${result.ioc}-${index}`} className={`border rounded-xl overflow-hidden bg-[#0d0d0d] ${tone.border}`}>
+					<div key={`${result.ioc}-${index}`} className={`border rounded-xl overflow-hidden bg-card ${tone.border}`}>
 						<div className="p-4 cursor-pointer" onClick={() => toggleExpand(result.ioc)}>
 							<div className="flex items-start justify-between gap-3">
 								<div className="flex items-start gap-3 flex-1 min-w-0">
-									<div className="p-2 rounded-lg bg-black/20 border border-[#1a1a1a]">{tone.icon}</div>
+									<div className="p-2 rounded-lg bg-card/50 border border-border">{tone.icon}</div>
 
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -124,24 +124,24 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 											<span className={`px-2 py-0.5 rounded text-xs font-medium border ${tone.badge}`}>{tone.label}</span>
 										</div>
 
-										<p className="font-mono text-sm break-all text-white mb-1">{result.ioc}</p>
+										<p className="font-mono text-sm break-all text-foreground mb-1">{result.ioc}</p>
 
 										<div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-											<div className="rounded-lg border border-[#1a1a1a] bg-black/20 px-2 py-1.5">
+											<div className="rounded-lg border border-border bg-card/50 px-2 py-1.5">
 												<p className="text-muted-foreground">Confidence</p>
-												<p className="text-white font-medium">{result.confidence_score}%</p>
+												<p className="text-foreground font-medium">{result.confidence_score}%</p>
 											</div>
-											<div className="rounded-lg border border-[#1a1a1a] bg-black/20 px-2 py-1.5">
+											<div className="rounded-lg border border-border bg-card/50 px-2 py-1.5">
 												<p className="text-muted-foreground">Reports</p>
-												<p className="text-white font-medium">{result.total_reports || 0}</p>
+												<p className="text-foreground font-medium">{result.total_reports || 0}</p>
 											</div>
-											<div className="rounded-lg border border-[#1a1a1a] bg-black/20 px-2 py-1.5">
+											<div className="rounded-lg border border-border bg-card/50 px-2 py-1.5">
 												<p className="text-muted-foreground">Distinct Users</p>
-												<p className="text-white font-medium">{result.num_distinct_users || 0}</p>
+												<p className="text-foreground font-medium">{result.num_distinct_users || 0}</p>
 											</div>
-											<div className="rounded-lg border border-[#1a1a1a] bg-black/20 px-2 py-1.5">
+											<div className="rounded-lg border border-border bg-card/50 px-2 py-1.5">
 												<p className="text-muted-foreground">Country</p>
-												<p className="text-white font-medium truncate">{result.country_name || result.country_code || 'N/A'}</p>
+												<p className="text-foreground font-medium truncate">{result.country_name || result.country_code || 'N/A'}</p>
 											</div>
 										</div>
 									</div>
@@ -184,9 +184,9 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 						</div>
 
 						{isExpanded && (
-							<div className="border-t border-[#1a1a1a] bg-black/20 p-4 space-y-6">
+							<div className="border-t border-border bg-card/50 p-4 space-y-6">
 								<div>
-									<h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+									<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 										<Globe className="w-4 h-4 text-primary" />
 										IP Context
 									</h4>
@@ -201,7 +201,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 								</div>
 
 								<div>
-									<h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+									<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 										<Radar className="w-4 h-4 text-primary" />
 										Report Stats
 									</h4>
@@ -215,14 +215,14 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 
 								{result.categories && result.categories.length > 0 && (
 									<div>
-										<h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+										<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 											<Tag className="w-4 h-4 text-primary" />
 											Abuse Categories ({result.categories.length})
 										</h4>
 										<div className="flex flex-wrap gap-2">
 											{result.categories.map((category: any, idx: number) => (
-												<div key={`${category.name || 'cat'}-${idx}`} className="px-3 py-1.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-xs">
-													<span className="text-white font-medium">{category.name}</span>
+												<div key={`${category.name || 'cat'}-${idx}`} className="px-3 py-1.5 rounded-lg border border-border bg-card/50 text-xs">
+													<span className="text-foreground font-medium">{category.name}</span>
 													<span className="ml-2 text-muted-foreground">x{category.count}</span>
 												</div>
 											))}
@@ -232,13 +232,13 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 
 								{result.reports && result.reports.length > 0 && (
 									<div>
-										<h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+										<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 											<MessageSquare className="w-4 h-4 text-primary" />
 											Recent Reports ({result.reports.length})
 										</h4>
 										<div className="space-y-3 max-h-[28rem] overflow-y-auto pr-1">
 											{result.reports.map((report: any, idx: number) => (
-												<div key={`${result.ioc}-report-${idx}`} className="p-3 rounded-lg border border-[#1a1a1a] bg-black/20">
+												<div key={`${result.ioc}-report-${idx}`} className="p-3 rounded-lg border border-border bg-card/50">
 													<div className="flex items-start justify-between gap-2 mb-2">
 														<div className="flex items-center gap-2 text-xs text-muted-foreground">
 															<Flag className="w-3 h-3" />
@@ -269,13 +269,13 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 
 								{result.hostnames && result.hostnames.length > 0 && (
 									<div>
-										<h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+										<h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
 											<Network className="w-4 h-4 text-primary" />
 											Associated Hostnames ({result.hostnames.length})
 										</h4>
 										<div className="flex flex-wrap gap-2">
 											{result.hostnames.slice(0, 12).map((hostname: string, idx: number) => (
-												<code key={`${result.ioc}-host-${idx}`} className="px-2 py-1 text-xs border border-[#1a1a1a] bg-black/20 rounded font-mono text-foreground/90">
+												<code key={`${result.ioc}-host-${idx}`} className="px-2 py-1 text-xs border border-border bg-card/50 rounded font-mono text-foreground/90">
 													{hostname}
 												</code>
 											))}
@@ -285,13 +285,13 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 								)}
 
 								{result.raw_data && (
-									<details className="group rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+									<details className="group rounded-lg border border-border bg-card/50 p-3">
 										<summary className="cursor-pointer text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-2">
 											<Eye className="w-4 h-4" />
 											View Raw Data
 											<span className="ml-auto group-open:rotate-90 transition-transform">→</span>
 										</summary>
-										<div className="mt-3 p-3 bg-black/30 rounded-lg overflow-x-auto border border-[#1a1a1a]">
+										<div className="mt-3 p-3 bg-black/30 rounded-lg overflow-x-auto border border-border">
 											<pre className="text-xs font-mono text-foreground/80">{JSON.stringify(result.raw_data, null, 2)}</pre>
 										</div>
 									</details>
@@ -309,7 +309,7 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 									</a>
 									<button
 										onClick={() => handleCopy(result.ioc, `copy-footer-${index}`)}
-										className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-black/20 transition-colors text-sm inline-flex items-center gap-2"
+										className="px-4 py-2 border border-border rounded-lg hover:bg-card/50 transition-colors text-sm inline-flex items-center gap-2"
 									>
 										<Copy className="w-4 h-4" />
 										Copy IP
@@ -326,12 +326,12 @@ export function AbuseIPDBResults({ results }: AbuseIPDBResultsProps) {
 
 function InfoItem({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
 	return (
-		<div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+		<div className="rounded-lg border border-border bg-card/50 p-3">
 			<div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
 				{icon}
 				<span>{label}</span>
 			</div>
-			<p className="text-sm text-white font-medium break-words">{value || 'N/A'}</p>
+			<p className="text-sm text-foreground font-medium break-words">{value || 'N/A'}</p>
 		</div>
 	);
 }
@@ -346,7 +346,7 @@ function StatPill({ label, value, tone }: { label: string; value: string; tone: 
 			? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
 			: tone === 'info'
 			? 'border-blue-500/30 bg-blue-500/10 text-blue-300'
-			: 'border-[#1a1a1a] bg-black/20 text-muted-foreground';
+			: 'border-border bg-card/50 text-muted-foreground';
 
 	return (
 		<div className={`rounded-lg border p-3 ${toneClass}`}>

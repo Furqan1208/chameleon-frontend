@@ -51,8 +51,8 @@ export function DomainSelector() {
             onClick={() => setActiveDomain(id)}
             className={`relative flex-1 p-4 rounded-lg border transition-all ${
               isActive
-                ? `border-primary bg-[#0d0d0d] ring-2 ring-primary`
-                : `border-[#1a1a1a] bg-[#0d0d0d] hover:bg-[#141a21] hover:border-[#2a2a2a]`
+                ? `border-primary bg-card ring-2 ring-primary`
+                : `border-border bg-card hover:bg-muted/20 hover:border-border`
             }`}
           >
             <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ export function DomainSelector() {
               </div>
               <div className="text-left">
                 <p className={`text-sm font-medium ${
-                  isActive ? 'text-white' : 'text-foreground'
+                  isActive ? 'text-foreground' : 'text-foreground'
                 }`}>
                   {name}
                 </p>

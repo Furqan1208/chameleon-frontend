@@ -108,7 +108,7 @@ function ProcessTreeNode({ node, isRoot = false }: { node: any; isRoot?: boolean
         </>
       )}
 
-      <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+      <div className="rounded-lg border border-border bg-card/50 p-3">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-semibold text-foreground break-all">{node?.name || "Unknown process"}</p>
           <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground">PID {node?.pid ?? "-"}</span>
@@ -167,7 +167,7 @@ function ProgressiveList<T>({
           {hasMore && (
             <button
               onClick={() => setVisibleCount((v) => Math.min(v + step, items.length))}
-              className="px-3 py-1.5 text-xs border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors"
+              className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-muted/20 transition-colors"
             >
               See more ({items.length - visibleCount} left)
             </button>
@@ -175,7 +175,7 @@ function ProgressiveList<T>({
           {visibleCount > initialCount && (
             <button
               onClick={() => setVisibleCount(initialCount)}
-              className="px-3 py-1.5 text-xs border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors"
+              className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-muted/20 transition-colors"
             >
               Show less
             </button>
@@ -193,22 +193,22 @@ function ScoreRing({ score, label, subtitle }: { score: number; label: string; s
   const fill = (normalized / 10) * 100
 
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">{label}</p>
       <div className="flex items-center gap-4">
         <div
           className="relative h-24 w-24 rounded-full"
           style={{ background: `conic-gradient(${color} ${fill}%, rgba(255,255,255,0.08) ${fill}% 100%)` }}
         >
-          <div className="absolute inset-[8px] rounded-full bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center">
+          <div className="absolute inset-[8px] rounded-full bg-background border border-border flex items-center justify-center">
             <div className="text-center">
-              <p className="text-xl font-bold text-white">{normalized.toFixed(1)}</p>
+              <p className="text-xl font-bold text-foreground">{normalized.toFixed(1)}</p>
               <p className="text-[10px] text-muted-foreground">/ 10</p>
             </div>
           </div>
         </div>
         <div>
-          <p className="text-base font-semibold text-white">
+          <p className="text-base font-semibold text-foreground">
             {normalized >= 8 ? "Critical" : normalized >= 6 ? "High" : normalized >= 4 ? "Medium" : normalized >= 2 ? "Low" : "Clean"} Risk
           </p>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
@@ -223,14 +223,14 @@ function ScoreRing({ score, label, subtitle }: { score: number; label: string; s
 
 function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+    <div className="rounded-lg border border-border bg-card/50 p-3">
       <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider">
         <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
           {icon}
         </span>
         <span className="text-slate-300">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-white">{value}</p>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
   )
 }
@@ -238,7 +238,7 @@ function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string
 function HashRow({ label, value }: { label: string; value?: string }) {
   if (!value) return null
   return (
-    <div className="flex items-center gap-2 border border-[#1a1a1a] bg-black/20 rounded-md px-2 py-1.5">
+    <div className="flex items-center gap-2 border border-border bg-card/50 rounded-md px-2 py-1.5">
       <span className="text-[10px] text-muted-foreground w-14 shrink-0">{label}</span>
       <code className="text-xs text-primary truncate flex-1">{value}</code>
       <button
@@ -458,21 +458,21 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">CAPE Command Surface</p>
-          <h2 className="text-2xl font-semibold text-white">Sandbox Intelligence Report</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Sandbox Intelligence Report</h2>
           <p className="text-sm text-muted-foreground mt-1">Structured behavioral, network, and detection analysis from CAPE output.</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setViewMode((m) => (m === "structured" ? "raw" : "structured"))}
-            className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
+            className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
           >
             {viewMode === "structured" ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             {viewMode === "structured" ? "Raw View" : "Structured View"}
           </button>
           <button
             onClick={onCopyJson}
-            className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
+            className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
           >
             <Copy className="w-3.5 h-3.5" />
             {copied ? "Copied" : "Copy JSON"}
@@ -489,12 +489,12 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
       </div>
 
       {viewMode === "raw" ? (
-        <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <CustomJSONViewer data={capeData} mode="raw" />
         </div>
       ) : (
         <>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ScoreRing
                 score={sandboxScore}
@@ -502,31 +502,31 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                 subtitle={`Verdict: ${verdict}${capeData?.info?.timeout ? " • Timeout observed" : ""}`}
               />
 
-              <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+              <div className="rounded-xl border border-border bg-card/50 p-4">
                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">Run Metadata</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Started</p>
-                    <p className="text-white mt-1">{parseDate(capeData?.info?.started)}</p>
+                    <p className="text-foreground mt-1">{parseDate(capeData?.info?.started)}</p>
                   </div>
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Ended</p>
-                    <p className="text-white mt-1">{parseDate(capeData?.info?.ended)}</p>
+                    <p className="text-foreground mt-1">{parseDate(capeData?.info?.ended)}</p>
                   </div>
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Duration</p>
-                    <p className="text-white mt-1">{capeData?.info?.duration ? `${capeData.info.duration}s` : "N/A"}</p>
+                    <p className="text-foreground mt-1">{capeData?.info?.duration ? `${capeData.info.duration}s` : "N/A"}</p>
                   </div>
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Package</p>
-                    <p className="text-white mt-1">{capeData?.info?.package || "N/A"}</p>
+                    <p className="text-foreground mt-1">{capeData?.info?.package || "N/A"}</p>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] px-2 md:px-3">
+          <div className="rounded-xl border border-border bg-card px-2 md:px-3">
             <nav className="flex overflow-x-auto">
               {[
                 { id: "overview", label: "Overview", icon: <Layers className="w-4 h-4" /> },
@@ -556,15 +556,15 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
             {activeTab === "overview" && (
               <div className="space-y-6">
                 {fileInfo && (
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <div className="flex items-center gap-2 mb-4">
                       <File className="w-4 h-4 text-primary" />
                       <h3 className="text-sm font-semibold text-foreground">Target File</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                      <div className="rounded-md border border-[#1a1a1a] p-3"><p className="text-xs text-muted-foreground uppercase">Name</p><p className="text-white mt-1 break-all">{fileInfo.name || "N/A"}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-3"><p className="text-xs text-muted-foreground uppercase">Type</p><p className="text-white mt-1">{fileInfo.type || "N/A"}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-3"><p className="text-xs text-muted-foreground uppercase">Size</p><p className="text-white mt-1">{fileInfo.size}</p></div>
+                      <div className="rounded-md border border-border p-3"><p className="text-xs text-muted-foreground uppercase">Name</p><p className="text-foreground mt-1 break-all">{fileInfo.name || "N/A"}</p></div>
+                      <div className="rounded-md border border-border p-3"><p className="text-xs text-muted-foreground uppercase">Type</p><p className="text-foreground mt-1">{fileInfo.type || "N/A"}</p></div>
+                      <div className="rounded-md border border-border p-3"><p className="text-xs text-muted-foreground uppercase">Size</p><p className="text-foreground mt-1">{fileInfo.size}</p></div>
                     </div>
                     <div className="space-y-1 mt-3">
                       <HashRow label="SHA256" value={fileInfo.sha256} />
@@ -574,7 +574,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                   </div>
                 )}
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                     <StatTile icon={<Cpu className="w-3.5 h-3.5" />} label="Processes" value={stats.processes} />
                     <StatTile icon={<AlertTriangle className="w-3.5 h-3.5" />} label="Signatures" value={stats.signatures} />
@@ -588,7 +588,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
 
             {activeTab === "behavior" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <StatTile icon={<FileText className="w-3.5 h-3.5" />} label="Write Files" value={stats.writeFiles} />
                     <StatTile icon={<FileText className="w-3.5 h-3.5" />} label="Delete Files" value={stats.deleteFiles} />
@@ -598,7 +598,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                 </div>
 
                 {safeArray(summary?.executed_commands).length > 0 && (
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Executed Commands</h3>
                     <ProgressiveList
                       items={safeArray(summary.executed_commands)}
@@ -606,7 +606,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={8}
                       className="space-y-2"
                       renderItem={(cmd: string, idx: number) => (
-                        <div key={idx} className="border border-[#1a1a1a] bg-black/20 rounded-md p-2 text-xs font-mono text-foreground break-all">
+                        <div key={idx} className="border border-border bg-card/50 rounded-md p-2 text-xs font-mono text-foreground break-all">
                           {cmd}
                         </div>
                       )}
@@ -615,7 +615,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                 )}
 
                 {safeArray(summary?.keys).length > 0 && (
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Registry Keys</h3>
                     <ProgressiveList
                       items={safeArray(summary.keys)}
@@ -623,7 +623,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={12}
                       className="space-y-2"
                       renderItem={(key: string, idx: number) => (
-                        <div key={idx} className="border border-[#1a1a1a] bg-black/20 rounded-md p-2 text-xs font-mono text-foreground break-all">
+                        <div key={idx} className="border border-border bg-card/50 rounded-md p-2 text-xs font-mono text-foreground break-all">
                           {key}
                         </div>
                       )}
@@ -634,7 +634,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
             )}
 
             {activeTab === "signatures" && (
-              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+              <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex flex-wrap gap-2 mb-4">
                   {(["all", "high", "medium", "low"] as const).map((level) => (
                     <button
@@ -643,7 +643,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                         severityFilter === level
                           ? "bg-primary/15 border-primary/40 text-primary"
-                          : "border-[#1a1a1a] hover:bg-muted/20 text-muted-foreground"
+                          : "border-border hover:bg-muted/20 text-muted-foreground"
                       }`}
                     >
                       {level === "all" ? "All" : level[0].toUpperCase() + level.slice(1)}
@@ -665,7 +665,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                     renderItem={(sig: any, idx: number) => {
                       const cls = sig.severityClass === "high" ? "text-red-400 bg-red-500/10 border-red-500/25" : sig.severityClass === "medium" ? "text-amber-400 bg-amber-500/10 border-amber-500/25" : "text-green-400 bg-green-500/10 border-green-500/25"
                       return (
-                        <div key={idx} className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                        <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-foreground truncate">{sig?.name || "Unnamed signature"}</p>
@@ -683,7 +683,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
 
             {activeTab === "processes" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <GitBranch className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">Process Tree Graph</h3>
@@ -702,14 +702,14 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                   )}
                 </div>
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search process name, path, command, API"
-                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-card/50 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
                     />
                   </div>
 
@@ -727,7 +727,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       renderItem={(p: any, idx: number) => {
                         const cryptoHits = encryptedBuffersByPid[String(p?.pid)] || []
                         return (
-                          <div key={`${p?.pid || idx}-${idx}`} className="rounded-lg border border-[#1a1a1a] bg-black/20 p-4">
+                          <div key={`${p?.pid || idx}-${idx}`} className="rounded-lg border border-border bg-card/50 p-4">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground break-all">{p?.name || "Unknown process"}</p>
@@ -739,26 +739,26 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                                 </div>
                               </div>
                               <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="rounded-md border border-[#1a1a1a] px-2 py-1.5 text-center">
+                                <div className="rounded-md border border-border px-2 py-1.5 text-center">
                                   <p className="text-muted-foreground">Threads</p>
-                                  <p className="text-white font-semibold">{p?.threadCount}</p>
+                                  <p className="text-foreground font-semibold">{p?.threadCount}</p>
                                 </div>
-                                <div className="rounded-md border border-[#1a1a1a] px-2 py-1.5 text-center">
+                                <div className="rounded-md border border-border px-2 py-1.5 text-center">
                                   <p className="text-muted-foreground">API Calls</p>
-                                  <p className="text-white font-semibold">{p?.callCount}</p>
+                                  <p className="text-foreground font-semibold">{p?.callCount}</p>
                                 </div>
                               </div>
                             </div>
 
                             {p?.commandLine && (
-                              <div className="mt-3 rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                              <div className="mt-3 rounded-md border border-border bg-card/50 p-2">
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Command line</p>
                                 <p className="text-xs font-mono text-foreground break-all">{p.commandLine}</p>
                               </div>
                             )}
 
                             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div className="rounded-md border border-[#1a1a1a] p-2">
+                              <div className="rounded-md border border-border p-2">
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Top APIs</p>
                                 {safeArray(p?.topApis).length === 0 ? (
                                   <p className="text-xs text-muted-foreground">No API calls captured</p>
@@ -774,7 +774,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                                 )}
                               </div>
 
-                              <div className="rounded-md border border-[#1a1a1a] p-2">
+                              <div className="rounded-md border border-border p-2">
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Environment</p>
                                 <div className="space-y-1 text-xs">
                                   <p className="text-foreground">User: <span className="text-muted-foreground">{p?.username || "N/A"}</span></p>
@@ -786,22 +786,22 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                             </div>
 
                             <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                              <div className="rounded-md border border-[#1a1a1a] p-2">
+                              <div className="rounded-md border border-border p-2">
                                 <p className="text-muted-foreground mb-1">Read files</p>
                                 <p className="text-foreground font-semibold">{safeArray(p?.readFiles).length}</p>
                               </div>
-                              <div className="rounded-md border border-[#1a1a1a] p-2">
+                              <div className="rounded-md border border-border p-2">
                                 <p className="text-muted-foreground mb-1">Write files</p>
                                 <p className="text-foreground font-semibold">{safeArray(p?.writeFiles).length}</p>
                               </div>
-                              <div className="rounded-md border border-[#1a1a1a] p-2">
+                              <div className="rounded-md border border-border p-2">
                                 <p className="text-muted-foreground mb-1">Delete files</p>
                                 <p className="text-foreground font-semibold">{safeArray(p?.deleteFiles).length}</p>
                               </div>
                             </div>
 
                             {safeArray(p?.threads).length > 0 && (
-                              <div className="mt-3 rounded-md border border-[#1a1a1a] p-2">
+                              <div className="mt-3 rounded-md border border-border p-2">
                                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Threads</p>
                                 <div className="flex flex-wrap gap-1.5">
                                   {safeArray(p?.threads).slice(0, 12).map((threadId: string, tIdx: number) => (
@@ -817,14 +817,14 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                             {(p?.firstCall || p?.lastCall) && (
                               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
                                 {p?.firstCall && (
-                                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                                  <div className="rounded-md border border-border p-2">
                                     <p className="text-muted-foreground mb-1">First API</p>
                                     <p className="text-foreground font-medium">{p.firstCall?.api || "N/A"}</p>
                                     <p className="text-muted-foreground">{p.firstCall?.category || "unknown"} • {p.firstCall?.timestamp || ""}</p>
                                   </div>
                                 )}
                                 {p?.lastCall && (
-                                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                                  <div className="rounded-md border border-border p-2">
                                     <p className="text-muted-foreground mb-1">Last API</p>
                                     <p className="text-foreground font-medium">{p.lastCall?.api || "N/A"}</p>
                                     <p className="text-muted-foreground">{p.lastCall?.category || "unknown"} • {p.lastCall?.timestamp || ""}</p>
@@ -851,7 +851,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
 
             {activeTab === "network" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <Network className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">Network Overview</h3>
@@ -876,12 +876,12 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                 </div>
 
                 {network.topPorts.length > 0 && (
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Top Destination Ports</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {network.topPorts.map((p: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-center">
-                          <p className="text-white font-semibold">:{p.port}</p>
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-center">
+                          <p className="text-foreground font-semibold">:{p.port}</p>
                           <p className="text-xs text-muted-foreground">{p.count} flows</p>
                         </div>
                       ))}
@@ -890,7 +890,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Hosts</h3>
                     <ProgressiveList
                       items={network.hosts}
@@ -898,7 +898,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={10}
                       className="space-y-2"
                       renderItem={(h: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground font-medium">{h?.ip || "unknown"}</p>
                           <p className="text-muted-foreground">{h?.country_name || "unknown"} {h?.asn ? `• ASN ${h.asn}` : ""}</p>
                         </div>
@@ -906,7 +906,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Domains</h3>
                     <ProgressiveList
                       items={network.domains}
@@ -914,7 +914,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={12}
                       className="space-y-2"
                       renderItem={(d: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground break-all">{d?.domain || "N/A"}</p>
                           {d?.ip && <p className="text-muted-foreground">{d.ip}</p>}
                         </div>
@@ -922,7 +922,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">HTTP Requests</h3>
                     <ProgressiveList
                       items={network.http}
@@ -930,7 +930,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={8}
                       className="space-y-2"
                       renderItem={(h: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground font-medium break-all">{h?.method || "GET"} {h?.path || h?.uri || "/"}</p>
                           <p className="text-muted-foreground break-all">{h?.host || "unknown-host"}</p>
                         </div>
@@ -938,7 +938,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">DNS Requests</h3>
                     <ProgressiveList
                       items={network.dns}
@@ -946,7 +946,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={10}
                       className="space-y-2"
                       renderItem={(d: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground break-all">{d?.request || "N/A"}</p>
                           <p className="text-muted-foreground">{d?.type || "A"} • {safeArray(d?.answers).length} answer(s)</p>
                         </div>
@@ -960,7 +960,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
             {activeTab === "files" && (
               <div className="space-y-6">
                 {safeArray(capeData?.dropped).length > 0 && (
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Dropped Files</h3>
                     <ProgressiveList
                       items={safeArray(capeData.dropped)}
@@ -968,7 +968,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                       step={8}
                       className="space-y-2"
                       renderItem={(file: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-3 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-3 text-xs">
                           <p className="text-foreground font-medium break-all">{file?.name?.[0] || "Unknown"}</p>
                           <p className="text-muted-foreground">{formatBytes(file?.size)} • {file?.type || "N/A"}</p>
                           <div className="mt-2 space-y-1">
@@ -982,7 +982,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {safeArray(summary?.write_files).length > 0 && (
-                    <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <div className="rounded-xl border border-border bg-card p-5">
                       <h3 className="text-sm font-semibold text-foreground mb-3">Files Written</h3>
                       <ProgressiveList
                         items={safeArray(summary.write_files)}
@@ -990,7 +990,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                         step={20}
                         className="space-y-2"
                         renderItem={(file: string, idx: number) => (
-                          <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs font-mono text-foreground break-all">
+                          <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs font-mono text-foreground break-all">
                             {file}
                           </div>
                         )}
@@ -999,7 +999,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                   )}
 
                   {safeArray(summary?.delete_files).length > 0 && (
-                    <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                    <div className="rounded-xl border border-border bg-card p-5">
                       <h3 className="text-sm font-semibold text-foreground mb-3">Files Deleted</h3>
                       <ProgressiveList
                         items={safeArray(summary.delete_files)}
@@ -1007,7 +1007,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                         step={20}
                         className="space-y-2"
                         renderItem={(file: string, idx: number) => (
-                          <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs font-mono text-foreground break-all">
+                          <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs font-mono text-foreground break-all">
                             {file}
                           </div>
                         )}
@@ -1019,7 +1019,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
             )}
 
             {activeTab === "mitre" && (
-              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+              <div className="rounded-xl border border-border bg-card p-5">
                 {safeArray(capeData?.ttps).length === 0 ? (
                   <div className="text-center py-10 text-muted-foreground">
                     <FileCode className="w-10 h-10 mx-auto mb-2 opacity-40" />
@@ -1032,7 +1032,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
                     step={10}
                     className="space-y-3"
                     renderItem={(ttp: any, idx: number) => (
-                      <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-3">
+                      <div key={idx} className="rounded-md border border-border bg-card/50 p-3">
                         <p className="text-sm font-semibold text-foreground">{ttp?.signature || "Technique mapping"}</p>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {safeArray(ttp?.ttps).map((id: string, i: number) => (
@@ -1049,7 +1049,7 @@ export default function CapeAnalysisDashboard({ capeData, loading, onCopyJson, c
             )}
 
             {activeTab === "raw" && (
-              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+              <div className="rounded-xl border border-border bg-card p-4">
                 <CustomJSONViewer data={capeData} mode="pretty" />
               </div>
             )}

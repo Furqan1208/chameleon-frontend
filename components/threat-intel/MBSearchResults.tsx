@@ -69,7 +69,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
   const getStatusColor = (found: boolean) => {
     return found 
       ? 'text-primary border-primary/30 bg-primary/5'
-      : 'text-muted-foreground border-[#1a1a1a] bg-[#0d0d0d]';
+      : 'text-muted-foreground border-border bg-card';
   };
 
   const getStatusIcon = (found: boolean) => {
@@ -219,7 +219,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
+        <h3 className="text-lg font-semibold text-foreground">
           Search Results ({results.length})
         </h3>
         <div className="text-sm text-muted-foreground">
@@ -356,7 +356,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
 
             {/* Expanded Details */}
             {isExpanded && sample && (
-              <div className="border-t border-[#1a1a1a] bg-black/20">
+              <div className="border-t border-border bg-card/50">
                 <div className="p-4 space-y-6">
                   {/* Basic Sample Information */}
                   <div>
@@ -442,7 +442,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                       </h4>
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         {intelligenceData.clamav.length > 0 && (
-                          <div className="space-y-2 lg:col-span-2 rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                          <div className="space-y-2 lg:col-span-2 rounded-lg border border-border bg-card/50 p-3">
                             <div className="flex items-center justify-between gap-2">
                               <h5 className="text-sm font-medium text-foreground flex items-center gap-2">
                                 <Shield className="w-3 h-3" />
@@ -465,7 +465,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                         )}
                         
                         <div className="space-y-3">
-                          <div className="p-3 rounded-lg border border-[#1a1a1a] bg-primary/10">
+                          <div className="p-3 rounded-lg border border-border bg-primary/10">
                             <h5 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                               <Download className="w-3 h-3" />
                               Downloads
@@ -474,7 +474,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                             <p className="text-[11px] text-muted-foreground mt-1">Sample retrieval count</p>
                           </div>
                           
-                          <div className="p-3 rounded-lg border border-[#1a1a1a] bg-accent/10">
+                          <div className="p-3 rounded-lg border border-border bg-accent/10">
                             <h5 className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                               <Upload className="w-3 h-3" />
                               Uploads
@@ -563,7 +563,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
                   )}
 
                   {/* Actions */}
-                  <div className="flex flex-wrap gap-3 pt-4 border-t border-[#1a1a1a]">
+                  <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
                     {sample.sha256 && (
                       <a
                         href={`https://bazaar.abuse.ch/sample/${getStringValue(sample.sha256)}/`}
@@ -600,7 +600,7 @@ export function MBSearchResults({ results }: MBSearchResultsProps) {
 
             {/* Expanded Details - Not Found */}
             {isExpanded && !sample && (
-              <div className="border-t border-[#1a1a1a] bg-black/20 p-4">
+              <div className="border-t border-border bg-card/50 p-4">
                 <div className="text-center py-8">
                   <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                   <h4 className="font-semibold text-foreground mb-2">Sample Not Found</h4>

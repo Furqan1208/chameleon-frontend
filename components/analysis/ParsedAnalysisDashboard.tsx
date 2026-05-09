@@ -91,7 +91,7 @@ function ProgressiveList<T>({
           {hasMore && (
             <button
               onClick={() => setVisibleCount((v) => Math.min(v + step, items.length))}
-              className="px-3 py-1.5 text-xs border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors"
+              className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-muted/20 transition-colors"
             >
               See more ({items.length - visibleCount} left)
             </button>
@@ -99,7 +99,7 @@ function ProgressiveList<T>({
           {visibleCount > initialCount && (
             <button
               onClick={() => setVisibleCount(initialCount)}
-              className="px-3 py-1.5 text-xs border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors"
+              className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-muted/20 transition-colors"
             >
               Show less
             </button>
@@ -112,14 +112,14 @@ function ProgressiveList<T>({
 
 function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+    <div className="rounded-lg border border-border bg-card/50 p-3">
       <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider">
         <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
           {icon}
         </span>
         <span className="text-slate-300">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-white">{value}</p>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
     </div>
   )
 }
@@ -127,7 +127,7 @@ function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string
 function HashRow({ label, value }: { label: string; value?: string }) {
   if (!value) return null
   return (
-    <div className="flex items-center gap-2 border border-[#1a1a1a] bg-black/20 rounded-md px-2 py-1.5">
+    <div className="flex items-center gap-2 border border-border bg-card/50 rounded-md px-2 py-1.5">
       <span className="text-[10px] text-muted-foreground w-14 shrink-0">{label}</span>
       <code className="text-xs text-primary truncate flex-1">{value}</code>
       <button onClick={() => navigator.clipboard.writeText(value)} className="p-1 rounded hover:bg-muted/20 transition-colors">
@@ -149,7 +149,7 @@ function ProcessTreeNode({ node, isRoot = false }: { node: any; isRoot?: boolean
         </>
       )}
 
-      <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+      <div className="rounded-lg border border-border bg-card/50 p-3">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-semibold text-foreground break-all">{node?.name || "Unknown process"}</p>
           <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground">PID {node?.pid ?? "-"}</span>
@@ -479,14 +479,14 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">Parsed Intelligence Surface</p>
-          <h2 className="text-2xl font-semibold text-white">Structured Parsed Report</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Structured Parsed Report</h2>
           <p className="text-sm text-muted-foreground mt-1">High-signal extraction of behavior, signatures, strings, memory, and static metadata.</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setViewMode((m) => (m === "structured" ? "raw" : "structured"))}
-            className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
+            className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
           >
             {viewMode === "structured" ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             {viewMode === "structured" ? "Raw View" : "Structured View"}
@@ -494,7 +494,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
           {onCopyJson && (
             <button
               onClick={onCopyJson}
-              className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
+              className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
             >
               <Copy className="w-3.5 h-3.5" />
               {copied ? "Copied" : "Copy JSON"}
@@ -512,14 +512,14 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
       </div>
 
       {viewMode === "raw" ? (
-        <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <CustomJSONViewer data={data} mode="raw" />
         </div>
       ) : (
         <>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+              <div className="rounded-xl border border-border bg-card/50 p-4">
                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">Parsed Signal Density</p>
                 <div className="flex items-center gap-4">
                   <div
@@ -528,9 +528,9 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       background: `conic-gradient(${scoreSignals.avg >= 6 ? "#ef4444" : scoreSignals.avg >= 3 ? "#f59e0b" : "#22c55e"} ${(scoreSignals.avg / 10) * 100}%, rgba(255,255,255,0.08) ${(scoreSignals.avg / 10) * 100}% 100%)`,
                     }}
                   >
-                    <div className="absolute inset-[8px] rounded-full bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center">
+                    <div className="absolute inset-[8px] rounded-full bg-background border border-border flex items-center justify-center">
                       <div className="text-center">
-                        <p className="text-xl font-bold text-white">{scoreSignals.avg.toFixed(1)}</p>
+                        <p className="text-xl font-bold text-foreground">{scoreSignals.avg.toFixed(1)}</p>
                         <p className="text-[10px] text-muted-foreground">/ 10</p>
                       </div>
                     </div>
@@ -545,31 +545,31 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
               </div>
 
-              <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+              <div className="rounded-xl border border-border bg-card/50 p-4">
                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">Target Metadata</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">File</p>
-                    <p className="text-white mt-1 break-all">{target.name}</p>
+                    <p className="text-foreground mt-1 break-all">{target.name}</p>
                   </div>
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Type</p>
-                    <p className="text-white mt-1">{target.type}</p>
+                    <p className="text-foreground mt-1">{target.type}</p>
                   </div>
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Size</p>
-                    <p className="text-white mt-1">{target.size}</p>
+                    <p className="text-foreground mt-1">{target.size}</p>
                   </div>
-                  <div className="rounded-md border border-[#1a1a1a] p-2">
+                  <div className="rounded-md border border-border p-2">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Signed</p>
-                    <p className="text-white mt-1">{target.signed ? "Yes" : "No"}</p>
+                    <p className="text-foreground mt-1">{target.signed ? "Yes" : "No"}</p>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] px-2 md:px-3">
+          <div className="rounded-xl border border-border bg-card px-2 md:px-3">
             <nav className="flex overflow-x-auto">
               {[
                 { id: "overview", label: "Overview", icon: <Layers className="w-4 h-4" /> },
@@ -598,7 +598,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
           <div className="space-y-6 min-h-[420px]">
             {activeTab === "overview" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     <StatTile icon={<Cpu className="w-3.5 h-3.5" />} label="Processes" value={processDetails.length} />
                     <StatTile icon={<AlertTriangle className="w-3.5 h-3.5" />} label="Signatures" value={signatures.length} />
@@ -610,24 +610,24 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Execution & Behavior Signals</h3>
                     <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Commands</p><p className="text-white font-semibold">{safeArray(behaviorSummary?.executed_commands).length}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Registry Keys</p><p className="text-white font-semibold">{safeArray(behaviorSummary?.keys).length}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Mutexes</p><p className="text-white font-semibold">{safeArray(behaviorSummary?.mutexes).length}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Write Files</p><p className="text-white font-semibold">{safeArray(behaviorSummary?.write_files).length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Commands</p><p className="text-foreground font-semibold">{safeArray(behaviorSummary?.executed_commands).length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Registry Keys</p><p className="text-foreground font-semibold">{safeArray(behaviorSummary?.keys).length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Mutexes</p><p className="text-foreground font-semibold">{safeArray(behaviorSummary?.mutexes).length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Write Files</p><p className="text-foreground font-semibold">{safeArray(behaviorSummary?.write_files).length}</p></div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Top String Categories</h3>
                     {stringCategories.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No categorized strings available.</p>
                     ) : (
                       <div className="space-y-2">
                         {stringCategories.slice(0, 6).map((cat) => (
-                          <div key={cat.category} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                          <div key={cat.category} className="rounded-md border border-border bg-card/50 p-2">
                             <div className="flex items-center justify-between">
                               <p className="text-xs text-foreground break-all mr-2">{cat.category}</p>
                               <p className="text-xs text-muted-foreground">{cat.count}</p>
@@ -643,7 +643,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
 
             {activeTab === "behavior" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <GitBranch className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">Process Tree Graph</h3>
@@ -663,14 +663,14 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                   )}
                 </div>
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search process name, path, command, API"
-                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-card/50 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
                     />
                   </div>
 
@@ -686,7 +686,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={10}
                       className="space-y-4"
                       renderItem={(proc: any, idx: number) => (
-                        <div key={`${proc?.pid || idx}-${idx}`} className="rounded-lg border border-[#1a1a1a] bg-black/20 p-4">
+                        <div key={`${proc?.pid || idx}-${idx}`} className="rounded-lg border border-border bg-card/50 p-4">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-foreground break-all">{proc?.name}</p>
@@ -698,20 +698,20 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-xs">
-                              <div className="rounded-md border border-[#1a1a1a] px-2 py-1.5 text-center"><p className="text-muted-foreground">Threads</p><p className="text-white font-semibold">{proc.threadCount}</p></div>
-                              <div className="rounded-md border border-[#1a1a1a] px-2 py-1.5 text-center"><p className="text-muted-foreground">API Calls</p><p className="text-white font-semibold">{proc.callCount}</p></div>
+                              <div className="rounded-md border border-border px-2 py-1.5 text-center"><p className="text-muted-foreground">Threads</p><p className="text-foreground font-semibold">{proc.threadCount}</p></div>
+                              <div className="rounded-md border border-border px-2 py-1.5 text-center"><p className="text-muted-foreground">API Calls</p><p className="text-foreground font-semibold">{proc.callCount}</p></div>
                             </div>
                           </div>
 
                           {proc?.commandLine && (
-                            <div className="mt-3 rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                            <div className="mt-3 rounded-md border border-border bg-card/50 p-2">
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Command line</p>
                               <p className="text-xs font-mono text-foreground break-all">{proc.commandLine}</p>
                             </div>
                           )}
 
                           <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="rounded-md border border-[#1a1a1a] p-2">
+                            <div className="rounded-md border border-border p-2">
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Top APIs</p>
                               {safeArray(proc?.topApis).length === 0 ? (
                                 <p className="text-xs text-muted-foreground">No API calls captured</p>
@@ -727,7 +727,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                               )}
                             </div>
 
-                            <div className="rounded-md border border-[#1a1a1a] p-2">
+                            <div className="rounded-md border border-border p-2">
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Environment</p>
                               <div className="space-y-1 text-xs">
                                 <p className="text-foreground">User: <span className="text-muted-foreground">{proc?.username || "N/A"}</span></p>
@@ -738,9 +738,9 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                           </div>
 
                           <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                            <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground mb-1">Read files</p><p className="text-foreground font-semibold">{safeArray(proc?.readFiles).length}</p></div>
-                            <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground mb-1">Write files</p><p className="text-foreground font-semibold">{safeArray(proc?.writeFiles).length}</p></div>
-                            <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground mb-1">Delete files</p><p className="text-foreground font-semibold">{safeArray(proc?.deleteFiles).length}</p></div>
+                            <div className="rounded-md border border-border p-2"><p className="text-muted-foreground mb-1">Read files</p><p className="text-foreground font-semibold">{safeArray(proc?.readFiles).length}</p></div>
+                            <div className="rounded-md border border-border p-2"><p className="text-muted-foreground mb-1">Write files</p><p className="text-foreground font-semibold">{safeArray(proc?.writeFiles).length}</p></div>
+                            <div className="rounded-md border border-border p-2"><p className="text-muted-foreground mb-1">Delete files</p><p className="text-foreground font-semibold">{safeArray(proc?.deleteFiles).length}</p></div>
                           </div>
                         </div>
                       )}
@@ -749,7 +749,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Executed Commands</h3>
                     <ProgressiveList
                       items={safeArray(behaviorSummary?.executed_commands)}
@@ -757,14 +757,14 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={10}
                       className="space-y-2"
                       renderItem={(cmd: string, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs font-mono text-foreground break-all">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs font-mono text-foreground break-all">
                           {cmd}
                         </div>
                       )}
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Registry Keys</h3>
                     <ProgressiveList
                       items={safeArray(behaviorSummary?.keys)}
@@ -772,7 +772,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={12}
                       className="space-y-2"
                       renderItem={(key: string, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs font-mono text-foreground break-all">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs font-mono text-foreground break-all">
                           {key}
                         </div>
                       )}
@@ -783,7 +783,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
             )}
 
             {activeTab === "signatures" && (
-              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+              <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex flex-wrap gap-2 mb-4">
                   {(["all", "high", "medium", "low"] as const).map((level) => (
                     <button
@@ -792,7 +792,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
                         severityFilter === level
                           ? "bg-primary/15 border-primary/40 text-primary"
-                          : "border-[#1a1a1a] hover:bg-muted/20 text-muted-foreground"
+                          : "border-border hover:bg-muted/20 text-muted-foreground"
                       }`}
                     >
                       {level === "all" ? "All" : level[0].toUpperCase() + level.slice(1)}
@@ -818,7 +818,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                         ? "text-amber-400 bg-amber-500/10 border-amber-500/25"
                         : "text-green-400 bg-green-500/10 border-green-500/25"
                       return (
-                        <div key={idx} className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                        <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-foreground">{sig?.name || "Unnamed signature"}</p>
@@ -845,14 +845,14 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
 
             {activeTab === "strings" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search string value or category"
-                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-card/50 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
                     />
                   </div>
 
@@ -865,7 +865,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Categories</h3>
                     <ProgressiveList
                       items={stringCategories}
@@ -873,7 +873,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={12}
                       className="space-y-2"
                       renderItem={(cat, idx) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2">
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-foreground break-all mr-2">{cat.category}</p>
                             <p className="text-xs text-muted-foreground">{cat.count}</p>
@@ -886,7 +886,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Extracted Values</h3>
                     {filteredStrings.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No strings match current query.</p>
@@ -897,7 +897,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                         step={18}
                         className="space-y-2"
                         renderItem={(row, idx) => (
-                          <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                          <div key={idx} className="rounded-md border border-border bg-card/50 p-2">
                             <p className="text-[11px] text-primary mb-1">{row.category}</p>
                             <p className="text-xs text-foreground break-all">{row.value}</p>
                           </div>
@@ -911,7 +911,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
 
             {activeTab === "memory" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <StatTile icon={<MemoryStick className="w-3.5 h-3.5" />} label="Proc Memory" value={memoryEntries.length} />
                     <StatTile icon={<FileCode className="w-3.5 h-3.5" />} label="Extracted PE" value={memoryEntries.reduce((acc, m) => acc + numberOrZero(m.extractedPE), 0)} />
@@ -920,7 +920,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <h3 className="text-sm font-semibold text-foreground mb-3">Process Memory Entries</h3>
                   {memoryEntries.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No process memory information available.</p>
@@ -931,15 +931,15 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={10}
                       className="space-y-3"
                       renderItem={(entry, idx) => (
-                        <div key={idx} className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                        <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
                           <div className="flex flex-wrap items-center gap-2 mb-2">
                             <p className="text-sm font-semibold text-foreground break-all">{entry.name}</p>
                             <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground">PID {entry.pid ?? "-"}</span>
                             <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground">{entry.size}</span>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs mb-2">
-                            <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Extracted PE</p><p className="text-foreground font-semibold">{entry.extractedPE}</p></div>
-                            <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Suspicious Regions</p><p className="text-foreground font-semibold">{entry.suspiciousRegions}</p></div>
+                            <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Extracted PE</p><p className="text-foreground font-semibold">{entry.extractedPE}</p></div>
+                            <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Suspicious Regions</p><p className="text-foreground font-semibold">{entry.suspiciousRegions}</p></div>
                           </div>
                           <HashRow label="SHA256" value={entry.sha256} />
                         </div>
@@ -952,7 +952,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
 
             {activeTab === "network" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <Network className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">Parsed Network Intelligence</h3>
@@ -971,19 +971,19 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       value={networkQuery}
                       onChange={(e) => setNetworkQuery(e.target.value)}
                       placeholder="Search domain, HTTP host/path, DNS query"
-                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-card/50 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                    <div className="rounded-lg border border-border bg-card/50 p-3">
                       <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Suspicious Domains</h4>
                       {networkSection.suspiciousDomains.length === 0 ? (
                         <p className="text-xs text-muted-foreground">No suspicious domains listed.</p>
@@ -994,7 +994,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                           step={12}
                           className="space-y-2"
                           renderItem={(domain: string, idx: number) => (
-                            <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs text-foreground break-all">
+                            <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs text-foreground break-all">
                               {domain}
                             </div>
                           )}
@@ -1002,7 +1002,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       )}
                     </div>
 
-                    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+                    <div className="rounded-lg border border-border bg-card/50 p-3">
                       <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Failed Connections</h4>
                       {networkSection.failedConnections.length === 0 ? (
                         <p className="text-xs text-muted-foreground">No failed connection entries.</p>
@@ -1013,7 +1013,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                           step={8}
                           className="space-y-2"
                           renderItem={(conn: any, idx: number) => (
-                            <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                            <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                               <p className="text-foreground">{conn?.ip || "N/A"}:{conn?.port ?? "-"}</p>
                               <p className="text-muted-foreground">failed: {conn?.failed ? "true" : "false"}</p>
                             </div>
@@ -1025,7 +1025,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Top TLD Distribution</h3>
                     {networkSection.topTlds.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No domain TLD data available.</p>
@@ -1035,7 +1035,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                           const max = networkSection.topTlds[0]?.count || 1
                           const width = Math.max((row.count / max) * 100, 4)
                           return (
-                            <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2">
+                            <div key={idx} className="rounded-md border border-border bg-card/50 p-2">
                               <div className="flex items-center justify-between mb-1 text-xs">
                                 <p className="text-foreground">.{row.tld}</p>
                                 <p className="text-muted-foreground">{row.count}</p>
@@ -1050,15 +1050,15 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">HTTP Method Distribution</h3>
                     {networkSection.topMethods.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No HTTP method data available.</p>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
                         {networkSection.topMethods.map((row: any, idx: number) => (
-                          <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-center">
-                            <p className="text-white font-semibold text-sm">{row.method}</p>
+                          <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-center">
+                            <p className="text-foreground font-semibold text-sm">{row.method}</p>
                             <p className="text-xs text-muted-foreground">{row.count}</p>
                           </div>
                         ))}
@@ -1068,7 +1068,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Domains</h3>
                     <ProgressiveList
                       items={filteredNetwork.domains}
@@ -1076,7 +1076,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={16}
                       className="space-y-2"
                       renderItem={(domain: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground break-all">{domain?.domain || "N/A"}</p>
                           <p className="text-muted-foreground">TLD: {domain?.tld || "unknown"}</p>
                         </div>
@@ -1084,7 +1084,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">HTTP Requests</h3>
                     <ProgressiveList
                       items={filteredNetwork.httpRequests}
@@ -1092,7 +1092,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={12}
                       className="space-y-2"
                       renderItem={(req: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground font-medium break-all">{req?.method || "GET"} {req?.path || "/"}</p>
                           <p className="text-muted-foreground break-all">{req?.host || "unknown-host"}</p>
                           <p className="text-muted-foreground">count: {req?.count ?? 1}</p>
@@ -1101,7 +1101,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                     />
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">DNS Queries</h3>
                     <ProgressiveList
                       items={filteredNetwork.dnsQueries}
@@ -1109,7 +1109,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                       step={12}
                       className="space-y-2"
                       renderItem={(dns: any, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs">
                           <p className="text-foreground break-all">{dns?.query || "N/A"}</p>
                           <p className="text-muted-foreground">type: {dns?.type || "A"} • answers: {safeArray(dns?.answers).length}</p>
                           {dns?.no_answer && <p className="text-amber-300">no answer</p>}
@@ -1123,15 +1123,15 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
 
             {activeTab === "static" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <File className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">Target File</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                    <div className="rounded-md border border-[#1a1a1a] p-3"><p className="text-xs text-muted-foreground uppercase">Name</p><p className="text-white mt-1 break-all">{target.name}</p></div>
-                    <div className="rounded-md border border-[#1a1a1a] p-3"><p className="text-xs text-muted-foreground uppercase">Type</p><p className="text-white mt-1">{target.type}</p></div>
-                    <div className="rounded-md border border-[#1a1a1a] p-3"><p className="text-xs text-muted-foreground uppercase">Size</p><p className="text-white mt-1">{target.size}</p></div>
+                    <div className="rounded-md border border-border p-3"><p className="text-xs text-muted-foreground uppercase">Name</p><p className="text-foreground mt-1 break-all">{target.name}</p></div>
+                    <div className="rounded-md border border-border p-3"><p className="text-xs text-muted-foreground uppercase">Type</p><p className="text-foreground mt-1">{target.type}</p></div>
+                    <div className="rounded-md border border-border p-3"><p className="text-xs text-muted-foreground uppercase">Size</p><p className="text-foreground mt-1">{target.size}</p></div>
                   </div>
                   <div className="space-y-1 mt-3">
                     <HashRow label="SHA256" value={target.sha256} />
@@ -1143,13 +1143,13 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">PE Structure</h3>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Imported DLLs</p><p className="text-foreground font-semibold">{peStructure.importedDlls.length}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Sections</p><p className="text-foreground font-semibold">{peStructure.sections.length}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Resources</p><p className="text-foreground font-semibold">{peStructure.resources.length}</p></div>
-                      <div className="rounded-md border border-[#1a1a1a] p-2"><p className="text-muted-foreground">Directories</p><p className="text-foreground font-semibold">{peStructure.directories.length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Imported DLLs</p><p className="text-foreground font-semibold">{peStructure.importedDlls.length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Sections</p><p className="text-foreground font-semibold">{peStructure.sections.length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Resources</p><p className="text-foreground font-semibold">{peStructure.resources.length}</p></div>
+                      <div className="rounded-md border border-border p-2"><p className="text-muted-foreground">Directories</p><p className="text-foreground font-semibold">{peStructure.directories.length}</p></div>
                     </div>
                     {(peStructure.entryPoint || peStructure.compileTime) && (
                       <div className="mt-3 space-y-1 text-xs">
@@ -1159,7 +1159,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                     )}
                   </div>
 
-                  <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+                  <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold text-foreground mb-3">Imports Sample</h3>
                     {peStructure.importedDlls.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No imported DLL list available.</p>
@@ -1170,7 +1170,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
                         step={14}
                         className="space-y-2"
                         renderItem={(dll: any, idx: number) => (
-                          <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-xs text-foreground break-all">
+                          <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-xs text-foreground break-all">
                             {String(dll?.dll || dll?.name || dll)}
                           </div>
                         )}
@@ -1182,7 +1182,7 @@ export default function ParsedAnalysisDashboard({ data, loading = false, onCopyJ
             )}
 
             {activeTab === "raw" && (
-              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+              <div className="rounded-xl border border-border bg-card p-4">
                 <CustomJSONViewer data={data} mode="pretty" />
               </div>
             )}

@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useAnalysis } from "@/hooks/useAnalysis"
 import { useAnalysisData } from "@/hooks/useAnalysisData"
+import { useUiPreferences } from "@/hooks/useUiPreferences"
 import { NetworkBackground } from "@/components/3d/NetworkBackground"
 import {
   Loader,
@@ -46,7 +47,6 @@ import {
   extractFileHashes,
   getMalscore
 } from "@/components/analysis"
-import MLPredictionTab from "@/components/MLPredictionTab"
 
 // Import helper components
 import ViewCard from "@/components/shared/ViewCard"
@@ -59,6 +59,7 @@ export default function AnalysisPage() {
 
   const { analysis: originalAnalysis, loading: originalLoading, error: originalError } = useAnalysis(analysisId)
   const { overviewData, loading: overviewLoading, error: overviewError } = useAnalysisData(analysisId)
+  const { preferences: uiPreferences } = useUiPreferences()
 
   // ADDED_ML: ML is integrated into AI view to keep investigation flow unified.
   const [activeView, setActiveView] = useState<"overview" | "cape" | "parsed" | "ai" | "threat-intel">("overview")
@@ -288,6 +289,24 @@ export default function AnalysisPage() {
 
   const componentReady = componentHealthData.filter((item) => item.value === 1).length
 
+  // Validate current active view against preferences - fall back to overview if hidden
+  useEffect(() => {
+    const tabPrefs = uiPreferences.tabs || {};
+    let shouldReset = false;
+
+    if (activeView === "cape" && !hasCape) shouldReset = true;
+    if (activeView === "cape" && !(tabPrefs.cape ?? true)) shouldReset = true;
+    if (activeView === "parsed" && !hasParsed) shouldReset = true;
+    if (activeView === "parsed" && !(tabPrefs.parsed ?? false)) shouldReset = true;
+    if (activeView === "threat-intel" && !hasThreatIntel) shouldReset = true;
+    if (activeView === "threat-intel" && !(tabPrefs.threat_intel ?? true)) shouldReset = true;
+    if (activeView === "ai" && !(tabPrefs.ai ?? true)) shouldReset = true;
+
+    if (shouldReset) {
+      setActiveView("overview");
+    }
+  }, [activeView, hasCape, hasParsed, hasThreatIntel, uiPreferences])
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload?.length) return null
     return (
@@ -488,7 +507,7 @@ export default function AnalysisPage() {
                   description="Summary & visualizations"
                 />
 
-                {hasThreatIntel && (
+                {hasThreatIntel && (uiPreferences.tabs?.threat_intel ?? true) && (
                   <ViewCard
                     icon={<Globe className="w-4 h-4" />}
                     label="Threat Intel"
@@ -499,7 +518,7 @@ export default function AnalysisPage() {
                   />
                 )}
 
-                {hasCape && (
+                {hasCape && (uiPreferences.tabs?.cape ?? true) && (
                   <ViewCard
                     icon={<FileJson className="w-4 h-4" />}
                     label="Sandbox Report"
@@ -510,7 +529,7 @@ export default function AnalysisPage() {
                   />
                 )}
 
-                {hasParsed && (
+                {hasParsed && (uiPreferences.tabs?.parsed ?? false) && (
                   <ViewCard
                     icon={<FileText className="w-4 h-4" />}
                     label="Parsed"
@@ -521,14 +540,16 @@ export default function AnalysisPage() {
                   />
                 )}
 
-                <ViewCard
-                  icon={<Brain className="w-4 h-4" />}
-                  label="AI and ML"
-                  active={activeView === "ai"}
-                  onClick={() => setActiveView("ai")}
-                  color="accent"
-                  description="AI narrative + ML classification"
-                />
+                {(uiPreferences.tabs?.ai ?? true) && (
+                  <ViewCard
+                    icon={<Brain className="w-4 h-4" />}
+                    label="AI and ML"
+                    active={activeView === "ai"}
+                    onClick={() => setActiveView("ai")}
+                    color="accent"
+                    description="AI narrative + ML classification"
+                  />
+                )}
               </div>
 
               {/* Component Status */}
@@ -682,11 +703,6 @@ export default function AnalysisPage() {
                           <p className="text-muted-foreground">No AI analysis available</p>
                         </div>
                       )}
-
-                      <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-3">
-                        <p className="text-sm font-semibold text-foreground mb-3">ML Classification</p>
-                        <MLPredictionTab analysisId={analysisId} />
-                      </div>
                     </div>
                   </div>
                 )}

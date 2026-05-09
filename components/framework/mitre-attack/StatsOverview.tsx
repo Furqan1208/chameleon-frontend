@@ -22,7 +22,7 @@ function StatCard({ label, value, icon, color, tooltip }: StatCardProps) {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className={`border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg p-4 relative group hover:border-primary/30 transition-colors`}
+      className={`border border-border bg-card rounded-lg p-4 relative group hover:border-primary/30 transition-colors`}
     >
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg bg-gradient-to-br ${color}`}>
@@ -30,13 +30,13 @@ function StatCard({ label, value, icon, color, tooltip }: StatCardProps) {
         </div>
         <div>
           <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold text-white">{value.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
         </div>
       </div>
       {tooltip && (
-        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full px-3 py-1.5 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full px-3 py-1.5 bg-card border border-border rounded-lg text-xs text-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
           {tooltip}
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-[#0d0d0d] border-r border-b border-[#1a1a1a]" />
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-card border-r border-b border-border" />
         </div>
       )}
     </motion.div>
@@ -92,7 +92,7 @@ export function StatsOverview() {
         </div>
       ))}
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground border-t border-[#1a1a1a] pt-4">
+      <div className="flex items-center justify-between text-sm text-muted-foreground border-t border-border pt-4">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1">
             <Hash className="w-4 h-4 text-cyan-300" />

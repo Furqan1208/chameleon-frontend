@@ -18,11 +18,11 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
   return (
     <motion.div
       layout
-      className="border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg overflow-hidden hover:border-primary/30 transition-all"
+      className="border border-border bg-card rounded-lg overflow-hidden hover:border-primary/30 transition-all"
     >
       <div
         onClick={onToggle}
-        className="p-4 cursor-pointer hover:bg-[#141a21] transition-colors"
+        className="p-4 cursor-pointer hover:bg-muted/20 transition-colors"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
@@ -43,9 +43,9 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
                 </span>
               )}
             </div>
-            <h4 className="font-semibold text-white">{technique.name}</h4>
+            <h4 className="font-semibold text-foreground">{technique.name}</h4>
           </div>
-          <button className="p-1 hover:bg-[#141a21] rounded transition-colors">
+          <button className="p-1 hover:bg-muted/20 rounded transition-colors">
             {expanded ? (
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             ) : (
@@ -79,12 +79,12 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-[#1a1a1a] p-4 bg-[#080808]"
+            className="border-t border-border p-4 bg-[#080808]"
           >
             <div className="space-y-3">
               {technique.subtechniques.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-white mb-2 flex items-center gap-1">
+                  <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1">
                     <ChevronRight className="w-3 h-3" />
                     Sub-techniques ({technique.subtechniques.length}):
                   </p>
@@ -96,7 +96,7 @@ export function TechniqueCard({ technique, expanded, onToggle, onSelect }: Techn
                           e.stopPropagation()
                           onSelect()
                         }}
-                        className="p-2 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg cursor-pointer hover:bg-primary/5 transition-colors"
+                        className="p-2 bg-card border border-border rounded-lg cursor-pointer hover:bg-primary/5 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-primary">{sub.external_id}</span>

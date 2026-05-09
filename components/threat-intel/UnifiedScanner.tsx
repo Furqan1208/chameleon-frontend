@@ -339,13 +339,13 @@ export function UnifiedScanner() {
       </div>
 
       {/* Main Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-[#1a1a1a] mb-6">
+      <div className="flex flex-wrap gap-2 border-b border-border mb-6">
         <button
           onClick={() => setActiveTab('search')}
           className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'search'
-              ? 'bg-[#0d0d0d] text-primary border-b-2 border-primary'
-              : 'text-muted-foreground hover:text-white hover:bg-black/20'
+              ? 'bg-card text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
           }`}
         >
           <Search className="w-4 h-4" />
@@ -355,8 +355,8 @@ export function UnifiedScanner() {
           onClick={() => setActiveTab('upload')}
           className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'upload'
-              ? 'bg-[#0d0d0d] text-primary border-b-2 border-primary'
-              : 'text-muted-foreground hover:text-white hover:bg-black/20'
+              ? 'bg-card text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
           }`}
         >
           <Upload className="w-4 h-4" />
@@ -367,8 +367,8 @@ export function UnifiedScanner() {
             onClick={() => setActiveTab('results')}
             className={`px-4 py-3 font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
               activeTab === 'results'
-                ? 'bg-[#0d0d0d] text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-white hover:bg-black/20'
+                ? 'bg-card text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -378,7 +378,7 @@ export function UnifiedScanner() {
       </div>
 
       {/* Main Content */}
-      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         {/* Search Tab */}
         {activeTab === 'search' && (
           <div className="space-y-6">
@@ -397,7 +397,7 @@ export function UnifiedScanner() {
                       onChange={(e) => handleInputChange(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       placeholder="e.g., 8.8.8.8, google.com, https://..., 275a021bbfb6..."
-                      className="w-full pl-10 pr-4 py-3 bg-black/30 border border-[#1a1a1a] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40"
+                      className="w-full pl-10 pr-4 py-3 bg-black/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40"
                     />
                   </div>
                 </div>
@@ -448,7 +448,7 @@ export function UnifiedScanner() {
                     <button
                       key={idx}
                       onClick={() => handleSearch(item)}
-                      className="px-3 py-1.5 bg-black/30 border border-[#1a1a1a] text-white rounded-lg text-sm hover:bg-black/50 transition-colors"
+                      className="px-3 py-1.5 bg-black/30 border border-border text-foreground rounded-lg text-sm hover:bg-black/50 transition-colors"
                     >
                       {item.length > 30 ? item.substring(0, 30) + '...' : item}
                     </button>
@@ -501,7 +501,7 @@ export function UnifiedScanner() {
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                 isDragActive
                   ? 'border-primary/50 bg-primary/10 scale-[1.02]'
-                  : 'border-[#1a1a1a] hover:border-primary/40 hover:bg-primary/5'
+                  : 'border-border hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
               <input {...getInputProps()} />
@@ -524,7 +524,7 @@ export function UnifiedScanner() {
               <div className="bg-muted/5 rounded-lg p-4 border border-border">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-black/30 border border-[#1a1a1a] rounded-lg">
+                    <div className="p-2 bg-black/30 border border-border rounded-lg">
                       <File className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -575,7 +575,7 @@ export function UnifiedScanner() {
         {activeTab === 'results' && results && (
           <div className="space-y-6">
             {/* Summary Header */}
-            <div className="bg-black/30 rounded-lg p-6 border border-[#1a1a1a]">
+            <div className="bg-black/30 rounded-lg p-6 border border-border">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -722,10 +722,10 @@ function InputTypeBadge({ type }: { type: InputType | undefined }) {
 
 function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   const colorClasses = {
-    blue: 'bg-black/30 border-[#1a1a1a]',
-    purple: 'bg-black/30 border-[#1a1a1a]',
-    orange: 'bg-black/30 border-[#1a1a1a]',
-    green: 'bg-black/30 border-[#1a1a1a]'
+    blue: 'bg-black/30 border-border',
+    purple: 'bg-black/30 border-border',
+    orange: 'bg-black/30 border-border',
+    green: 'bg-black/30 border-border'
   };
 
   return (
@@ -745,7 +745,7 @@ function ExampleCard({ icon, label, value, onClick }: { icon: React.ReactNode; l
   return (
     <button
       onClick={onClick}
-      className="p-3 border border-[#1a1a1a] rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
+      className="p-3 border border-border rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
     >
       <div className="flex items-center gap-2 mb-1">
         <div className="text-primary">{icon}</div>
@@ -791,7 +791,7 @@ function ServiceResultCard({ result, expanded, onToggle }: {
     if (threatState === 'malicious') return 'border-red-300 dark:border-red-700 bg-red-500/10 dark:bg-red-900/20';
     if (threatState === 'suspicious') return 'border-yellow-300 dark:border-yellow-700 bg-yellow-500/10 dark:bg-yellow-900/20';
     if (threatState === 'clean') return 'border-green-300 dark:border-green-700 bg-green-500/10 dark:bg-green-900/20';
-    return 'border-[#2a2a2a] bg-black/20';
+    return 'border-border bg-card/50';
   };
 
   const getStatusIcon = () => {

@@ -3,6 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Default to Dark Theme */
 :root {
   --background: #0a0a0a;
   --foreground: #ffffff;
@@ -29,41 +30,6 @@
   --chart-4: #00d4aa;
   --chart-5: #0066cc;
   --radius: 0.625rem;
-  --sidebar: #0f0f0f;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #00ff88;
-  --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #0088ff;
-  --sidebar-accent-foreground: #0a0a0a;
-  --sidebar-border: #1a1a1a;
-  --sidebar-ring: #00ff88;
-}
-
-.dark {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --card: #0f0f0f;
-  --card-foreground: #ffffff;
-  --popover: #0f0f0f;
-  --popover-foreground: #ffffff;
-  --primary: #00ff88;
-  --primary-foreground: #0a0a0a;
-  --secondary: #0088ff;
-  --secondary-foreground: #ffffff;
-  --muted: #1a1a1a;
-  --muted-foreground: #888888;
-  --accent: #ff0088;
-  --accent-foreground: #0a0a0a;
-  --destructive: #ff0088;
-  --destructive-foreground: #0a0a0a;
-  --border: #1a1a1a;
-  --input: #1a1a1a;
-  --ring: #00ff88;
-  --chart-1: #00ff88;
-  --chart-2: #0088ff;
-  --chart-3: #ff0088;
-  --chart-4: #00d4aa;
-  --chart-5: #0066cc;
   --sidebar: #0f0f0f;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #00ff88;

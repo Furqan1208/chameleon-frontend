@@ -159,10 +159,10 @@ export function VTResults({ results }: VTResultsProps) {
                 <div className="flex items-start gap-4 flex-1 min-w-0">
                   {/* Threat Grade Badge */}
                   <div className={`flex-shrink-0 w-16 h-16 rounded-xl flex items-center justify-center font-bold text-2xl flex items-center justify-center ${
-                    result.threat_level === 'high' ? 'bg-gradient-to-br from-destructive to-destructive/60 text-white' :
-                    result.threat_level === 'medium' ? 'bg-gradient-to-br from-accent to-accent/60 text-white' :
-                    result.threat_level === 'low' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white' :
-                    'bg-gradient-to-br from-primary to-primary/60 text-white'
+                    result.threat_level === 'high' ? 'bg-gradient-to-br from-destructive to-destructive/60 text-foreground' :
+                    result.threat_level === 'medium' ? 'bg-gradient-to-br from-accent to-accent/60 text-foreground' :
+                    result.threat_level === 'low' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-foreground' :
+                    'bg-gradient-to-br from-primary to-primary/60 text-foreground'
                   }`}>
                     {result.threat_level === 'high' ? '🔴' : result.threat_level === 'medium' ? '🟠' : result.threat_level === 'low' ? '🟡' : '✓'}
                   </div>
@@ -289,7 +289,7 @@ export function VTResults({ results }: VTResultsProps) {
                               : 0}%
                           </span>
                         </div>
-                        <div className="w-full bg-black/20 rounded-full h-2.5 overflow-hidden">
+                        <div className="w-full bg-card/50 rounded-full h-2.5 overflow-hidden">
                           <div 
                             className="bg-gradient-to-r from-primary to-accent h-full rounded-full transition-all duration-500"
                             style={{
@@ -614,7 +614,7 @@ function DetectionStatBar({
         </div>
         <span className="text-sm font-bold text-foreground">{value}</span>
       </div>
-      <div className="w-full bg-black/20 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-card/50 rounded-full h-2 overflow-hidden">
         <div 
           className={`bg-gradient-to-r ${barColorMap[color as keyof typeof barColorMap]} h-full rounded-full transition-all duration-500`}
           style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -765,7 +765,7 @@ function RawDataViewer({
                   <div className="space-y-2">
                     {Object.entries(items).map(([key, value]) => (
                       value !== null && value !== undefined && (
-                        <div key={key} className="flex items-start justify-between gap-4 p-2 rounded bg-black/20">
+                        <div key={key} className="flex items-start justify-between gap-4 p-2 rounded bg-card/50">
                           <span className="text-xs font-medium text-muted-foreground">{key}</span>
                           <div className="flex items-center gap-2">
                             <code className="text-xs font-mono text-foreground/80 text-right line-clamp-3">
@@ -818,7 +818,7 @@ function DataArrayViewer({ data, resultId, sectionName, onCopy, copied }: DataAr
         const displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
         
         return (
-          <div key={key} className="p-3 rounded bg-black/20 border border-border/20">
+          <div key={key} className="p-3 rounded bg-card/50 border border-border/20">
             <div className="flex items-start justify-between gap-2 mb-2">
               <span className="text-xs font-semibold text-primary truncate">{key}</span>
               <button

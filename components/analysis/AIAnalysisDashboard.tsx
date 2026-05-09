@@ -156,7 +156,7 @@ function ProgressiveList<T>({
           {hasMore && (
             <button
               onClick={() => setVisibleCount((v) => Math.min(v + step, items.length))}
-              className="px-3 py-1.5 text-xs border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors"
+              className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-muted/20 transition-colors"
             >
               See more ({items.length - visibleCount} left)
             </button>
@@ -164,7 +164,7 @@ function ProgressiveList<T>({
           {visibleCount > initialCount && (
             <button
               onClick={() => setVisibleCount(initialCount)}
-              className="px-3 py-1.5 text-xs border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors"
+              className="px-3 py-1.5 text-xs border border-border rounded-lg hover:bg-muted/20 transition-colors"
             >
               Show less
             </button>
@@ -177,14 +177,14 @@ function ProgressiveList<T>({
 
 function StatTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-black/20 p-3">
+    <div className="rounded-lg border border-border bg-card/50 p-3">
       <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider">
         <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
           {icon}
         </span>
         <span className="text-slate-300">{label}</span>
       </div>
-      <p className="text-2xl font-semibold text-white break-words">{value}</p>
+      <p className="text-2xl font-semibold text-foreground break-words">{value}</p>
     </div>
   )
 }
@@ -455,14 +455,14 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">Unified AI Threat Cycle</p>
-          <h2 className="text-2xl font-semibold text-white">End-to-End Intelligence Narrative</h2>
+          <h2 className="text-2xl font-semibold text-foreground">End-to-End Intelligence Narrative</h2>
           <p className="text-sm text-muted-foreground mt-1">One continuous AI investigation flow from context intake to final threat decision.</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setDisplayMode((m) => (m === "structured" ? "raw" : "structured"))}
-            className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
+            className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
           >
             {displayMode === "structured" ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             {displayMode === "structured" ? "Raw View" : "Structured View"}
@@ -471,7 +471,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
           {onCopyJson && (
             <button
               onClick={onCopyJson}
-              className="px-3 py-1.5 border border-[#1a1a1a] rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
+              className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors text-sm flex items-center gap-2"
             >
               <Copy className="w-3.5 h-3.5" />
               {copied ? "Copied" : "Copy JSON"}
@@ -490,14 +490,14 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
       </div>
 
       {displayMode === "raw" ? (
-        <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <CustomJSONViewer data={data} mode="raw" />
         </div>
       ) : (
         <>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+              <div className="rounded-xl border border-border bg-card/50 p-4">
                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">Threat Decision Signal</p>
                 <div className="flex items-center gap-5">
                   <div
@@ -506,15 +506,15 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                       background: `conic-gradient(${unifiedThreat.tone === "high" ? "#ef4444" : unifiedThreat.tone === "medium" ? "#f59e0b" : "#22c55e"} ${Math.min(unifiedThreat.confidence, 100)}%, rgba(255,255,255,0.08) ${Math.min(unifiedThreat.confidence, 100)}% 100%)`,
                     }}
                   >
-                    <div className="absolute inset-[10px] rounded-full bg-[#0a0a0a] border border-[#1f1f1f] flex items-center justify-center sm:inset-[12px]">
+                    <div className="absolute inset-[10px] rounded-full bg-background border border-border flex items-center justify-center sm:inset-[12px]">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-white sm:text-3xl">{Math.round(unifiedThreat.confidence)}</p>
+                        <p className="text-2xl font-bold text-foreground sm:text-3xl">{Math.round(unifiedThreat.confidence)}</p>
                         <p className="text-[10px] text-muted-foreground sm:text-xs">/ 100</p>
                       </div>
                     </div>
                   </div>
                   <div className="flex-1 min-w-0 space-y-2">
-                    <p className="text-xl font-semibold leading-none text-white sm:text-2xl">{unifiedThreat.threatLevel}</p>
+                    <p className="text-xl font-semibold leading-none text-foreground sm:text-2xl">{unifiedThreat.threatLevel}</p>
                     <p className="text-base text-muted-foreground">Confidence-driven synthesis signal</p>
                     <span className={`inline-flex text-xs px-3 py-1 rounded border font-medium ${toneClasses(unifiedThreat.tone)}`}>
                       {unifiedThreat.tone === "high" ? "High Risk Confidence" : unifiedThreat.tone === "medium" ? "Medium Risk Confidence" : "Low Risk Confidence"}
@@ -523,7 +523,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                 </div>
               </div>
 
-              <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+              <div className="rounded-xl border border-border bg-card/50 p-4">
                 <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">Cycle Coverage</p>
                 <div className="grid grid-cols-2 gap-3">
                   <StatTile icon={<Sparkles className="w-3.5 h-3.5" />} label="Cycle Segments" value={cycleSteps.length} />
@@ -535,7 +535,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
             </div>
           </motion.div>
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] px-2 md:px-3">
+          <div className="rounded-xl border border-border bg-card px-2 md:px-3">
             <nav className="flex overflow-x-auto">
               {[
                 { id: "cycle", label: "Cycle Flow", icon: <Brain className="w-4 h-4" /> },
@@ -557,14 +557,14 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
             </nav>
           </div>
 
-          <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 value={textFilter}
                 onChange={(e) => setTextFilter(e.target.value)}
                 placeholder="Filter insights and response actions"
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
               />
             </div>
 
@@ -574,7 +574,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                   {cycleSteps.map((step, idx) => (
                     <div
                       key={step.key}
-                      className={`rounded-lg border p-3 ${step.available ? "border-primary/30 bg-primary/10" : "border-[#1a1a1a] bg-black/20"}`}
+                      className={`rounded-lg border p-3 ${step.available ? "border-primary/30 bg-primary/10" : "border-border bg-card/50"}`}
                     >
                       <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
                         <span>Step {idx + 1}</span>
@@ -590,13 +590,13 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                 </div>
 
                 {synthesisNarrative && (
-                  <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+                  <div className="rounded-xl border border-border bg-card/50 p-4">
                     <h3 className="text-sm font-semibold text-foreground mb-2">Unified Narrative</h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{synthesisNarrative}</p>
                   </div>
                 )}
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+                <div className="rounded-xl border border-border bg-card/50 p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-3">Key Findings Stream</h3>
                   {keyFindings.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No findings match current filter.</p>
@@ -607,7 +607,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                       step={8}
                       className="space-y-2"
                       renderItem={(item: string, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-sm text-foreground">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-sm text-foreground">
                           {item}
                         </div>
                       )}
@@ -621,7 +621,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {evidenceCards.map((card) => (
-                    <div key={card.title} className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+                    <div key={card.title} className="rounded-xl border border-border bg-card/50 p-4">
                       <div className="flex items-center gap-2 mb-3">
                         {card.icon}
                         <h3 className="text-sm font-semibold text-foreground">{card.title}</h3>
@@ -635,7 +635,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                   ))}
                 </div>
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+                <div className="rounded-xl border border-border bg-card/50 p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-3">High-Signal Findings</h3>
                   {keyFindings.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No findings available.</p>
@@ -646,7 +646,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                       step={10}
                       className="space-y-2"
                       renderItem={(item: string, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-sm text-foreground">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-sm text-foreground">
                           {item}
                         </div>
                       )}
@@ -658,7 +658,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
 
             {activeView === "response" && (
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+                <div className="rounded-xl border border-border bg-card/50 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Target className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-semibold text-foreground">Operational Response Queue</h3>
@@ -673,7 +673,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                       step={10}
                       className="space-y-2"
                       renderItem={(action: string, idx: number) => (
-                        <div key={idx} className="rounded-md border border-[#1a1a1a] bg-black/20 p-2 text-sm text-foreground flex items-start gap-2">
+                        <div key={idx} className="rounded-md border border-border bg-card/50 p-2 text-sm text-foreground flex items-start gap-2">
                           <span className="mt-0.5 text-primary">{idx + 1}.</span>
                           <span>{action.replace(/^\d+\.\s+/, "")}</span>
                         </div>
@@ -682,18 +682,18 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
                   )}
                 </div>
 
-                <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-4">
+                <div className="rounded-xl border border-border bg-card/50 p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-2">Confidence and Limits</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-md border border-[#1a1a1a] p-3">
+                    <div className="rounded-md border border-border p-3">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Evidence Convergence</p>
                       <p className="text-foreground mt-1">{cleanText(sections.final?.confidence_assessment?.evidence_convergence_level) || "N/A"}</p>
                     </div>
-                    <div className="rounded-md border border-[#1a1a1a] p-3">
+                    <div className="rounded-md border border-border p-3">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Forensic Completeness</p>
                       <p className="text-foreground mt-1">{cleanText(sections.final?.confidence_assessment?.forensic_completeness) || "N/A"}</p>
                     </div>
-                    <div className="rounded-md border border-[#1a1a1a] p-3 md:col-span-2">
+                    <div className="rounded-md border border-border p-3 md:col-span-2">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">Analysis Limitations</p>
                       <p className="text-foreground mt-1">{cleanText(sections.final?.confidence_assessment?.analysis_limitations) || "N/A"}</p>
                     </div>
@@ -703,7 +703,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
             )}
 
             {activeView === "raw" && (
-              <div className="rounded-xl border border-[#1a1a1a] bg-black/20 p-3">
+              <div className="rounded-xl border border-border bg-card/50 p-3">
                 <CustomJSONViewer data={data} mode="pretty" />
               </div>
             )}

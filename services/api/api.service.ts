@@ -35,9 +35,13 @@ export const apiService = {
   deleteAnalysis: (id: string) => analysisApi.deleteAnalysis(id),
 
   // ── User ──────────────────────────────────────────────────────────────────
+  getCurrentUser: () => userApi.getCurrentUser(),
   updateProfile: (data: Parameters<typeof userApi.updateProfile>[0]) =>
     userApi.updateProfile(data),
   deleteAccount: () => userApi.deleteAccount(),
+  getPreferences: () => userApi.getPreferences(),
+  updatePreferences: (prefs: Parameters<typeof userApi.updatePreferences>[0]) =>
+    userApi.updatePreferences(prefs),
 
   // ── Threat Intel — VirusTotal ─────────────────────────────────────────────
   scanVirusTotal: (req: Parameters<typeof virusTotalApi.scan>[0]) =>

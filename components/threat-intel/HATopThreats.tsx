@@ -89,7 +89,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
 
   if (loading && threats.length === 0) {
     return (
-      <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 text-center">
+      <div className="rounded-xl border border-border bg-card p-12 text-center">
         <RefreshCw className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-spin" />
         <p className="text-muted-foreground">Loading threat feed...</p>
       </div>
@@ -117,7 +117,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
             Refresh
           </button>
           
-          <div className="flex items-center gap-1 border border-[#1a1a1a] bg-[#0d0d0d] rounded-lg overflow-hidden p-1">
+          <div className="flex items-center gap-1 border border-border bg-card rounded-lg overflow-hidden p-1">
             {(['all', 'malicious', 'suspicious'] as const).map((filterType) => (
               <button
                 key={filterType}
@@ -125,7 +125,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                 className={`px-3 py-1.5 text-xs font-medium transition-colors capitalize ${
                   filter === filterType
                     ? filterType === 'malicious' 
-                      ? 'bg-destructive text-white' 
+                      ? 'bg-destructive text-foreground' 
                       : filterType === 'suspicious'
                       ? 'bg-amber-500 text-black'
                       : 'bg-primary text-black'
@@ -177,7 +177,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search threats by hash, filename, or type..."
-          className="w-full pl-10 pr-10 py-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg focus:outline-none focus:border-primary/40 transition-colors"
+          className="w-full pl-10 pr-10 py-3 bg-card border border-border rounded-lg focus:outline-none focus:border-primary/40 transition-colors"
         />
         {searchQuery && (
           <button
@@ -200,10 +200,10 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
             return (
               <div
                 key={index}
-                className={`border rounded-xl overflow-hidden transition-all duration-300 bg-[#0d0d0d] ${
+                className={`border rounded-xl overflow-hidden transition-all duration-300 bg-card ${
                   threat.verdict === 60 ? 'border-destructive/30' :
                   threat.verdict === 50 ? 'border-accent/30' :
-                  'border-[#1a1a1a]'
+                  'border-border'
                 }`}
               >
                 {/* Threat Header */}
@@ -315,7 +315,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
 
                 {/* Expanded Details */}
                 {isExpanded && threat.sha256 && (
-                  <div className="border-t border-[#1a1a1a] bg-black/20">
+                  <div className="border-t border-border bg-card/50">
                     <div className="p-6 space-y-6">
                       {/* Hash Information */}
                       <div>
@@ -356,7 +356,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                         </a>
                         <button
                           onClick={() => navigator.clipboard.writeText(threat.sha256!)}
-                          className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-black/20 transition-colors flex items-center gap-2"
+                          className="px-4 py-2 border border-border rounded-lg hover:bg-card/50 transition-colors flex items-center gap-2"
                         >
                           <Copy className="w-4 h-4" />
                           Copy Hash
@@ -364,7 +364,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                         {threat.report_id && (
                           <button
                             onClick={() => window.open(`https://www.hybrid-analysis.com/report/${threat.report_id}`, '_blank')}
-                            className="px-4 py-2 border border-[#1a1a1a] rounded-lg hover:bg-black/20 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 border border-border rounded-lg hover:bg-card/50 transition-colors flex items-center gap-2"
                           >
                             <Eye className="w-4 h-4" />
                             View Report
@@ -379,7 +379,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
           })}
         </div>
       ) : (
-        <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">No threats found</p>
           <p className="text-sm text-muted-foreground mt-1">

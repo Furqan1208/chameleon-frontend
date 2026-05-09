@@ -75,7 +75,7 @@ export function AbuseChScanner() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Abuse.ch Workspace</p>
-          <h3 className="text-xl font-semibold text-white">Indicator Scanner</h3>
+          <h3 className="text-xl font-semibold text-foreground">Indicator Scanner</h3>
           <p className="text-sm text-muted-foreground mt-1">Search URLhaus and ThreatFox with one query flow across URLs, hashes, domains, and IOC tags.</p>
         </div>
 
@@ -83,7 +83,7 @@ export function AbuseChScanner() {
           <button
             onClick={clearResults}
             disabled={results.length === 0}
-            className="px-3 py-2 rounded-lg border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+            className="px-3 py-2 rounded-lg border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
             title="Clear results"
           >
             <Trash2 className="w-4 h-4" />
@@ -92,7 +92,7 @@ export function AbuseChScanner() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-5 space-y-4">
+      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
         <form onSubmit={handleCheckIndicator} className="space-y-4">
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="relative flex-1">
@@ -106,16 +106,16 @@ export function AbuseChScanner() {
                 onChange={(e) => setIndicatorInput(e.target.value)}
                 placeholder="Enter URL, hash, IP, domain, IOC, or malware tag"
                 disabled={checking}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#1a1a1a] bg-black/20 text-white placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm disabled:opacity-60"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:border-primary/40 font-mono text-sm disabled:opacity-60"
               />
             </div>
 
             <div className="w-full lg:w-40">
               <Select value={service} onValueChange={(value) => setService(value as 'both' | 'urlhaus' | 'threatfox')} disabled={checking}>
-                <SelectTrigger className="h-12 min-w-[168px] px-4 rounded-xl border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                <SelectTrigger className="h-12 min-w-[168px] px-4 rounded-xl border-[#22262d] bg-card text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
                   <SelectValue placeholder="Select feed" />
                 </SelectTrigger>
-                <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                <SelectContent className="border-[#22262d] bg-card text-slate-100">
                   <SelectItem value="both" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Both Feeds</SelectItem>
                   <SelectItem value="urlhaus" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">URLhaus</SelectItem>
                   <SelectItem value="threatfox" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">ThreatFox</SelectItem>
@@ -145,7 +145,7 @@ export function AbuseChScanner() {
                 key={item}
                 type="button"
                 onClick={() => handleQuickSearch(item)}
-                className="px-2 py-1 rounded border border-[#1a1a1a] bg-black/20 text-muted-foreground hover:text-white hover:border-[#2a2a2a] transition-colors"
+                className="px-2 py-1 rounded border border-border bg-card/50 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
               >
                 {item.length > 28 ? `${item.slice(0, 28)}...` : item}
               </button>
@@ -165,9 +165,9 @@ export function AbuseChScanner() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+        <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1"><Radar className="w-3 h-3" /> Queries</p>
-          <p className="text-xl font-semibold text-white">{results.length}</p>
+          <p className="text-xl font-semibold text-foreground">{results.length}</p>
         </div>
         <div className="rounded-lg border border-primary/25 bg-primary/10 p-3">
           <p className="text-[11px] uppercase tracking-wider text-primary mb-1 flex items-center gap-1"><Database className="w-3 h-3" /> URLhaus Hits</p>
@@ -177,20 +177,20 @@ export function AbuseChScanner() {
           <p className="text-[11px] uppercase tracking-wider text-sky-400 mb-1 flex items-center gap-1"><Shield className="w-3 h-3" /> ThreatFox Hits</p>
           <p className="text-xl font-semibold text-sky-300">{results.filter((r) => hasThreatFoxData(r)).length}</p>
         </div>
-        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-3">
+        <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Mode</p>
-          <p className="text-xl font-semibold text-white capitalize">{service}</p>
+          <p className="text-xl font-semibold text-foreground capitalize">{service}</p>
         </div>
       </div>
 
       {results.length > 0 ? (
         <AbuseChResults results={results} />
       ) : !checking ? (
-        <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 border border-primary/25 mb-4">
             <Database className="w-7 h-7 text-primary" />
           </div>
-          <h4 className="text-white font-semibold">No Checks Yet</h4>
+          <h4 className="text-foreground font-semibold">No Checks Yet</h4>
           <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">Run an indicator lookup to view URLhaus and ThreatFox intelligence in one result set.</p>
           <p className="text-xs text-muted-foreground mt-3">Set <span className="font-mono">NEXT_PUBLIC_THREATFOX_URLHAUS_API_KEY</span> for higher limits.</p>
         </div>

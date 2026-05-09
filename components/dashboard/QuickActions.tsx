@@ -9,7 +9,7 @@ export function QuickActions() {
   const router = useRouter()
 
   return (
-    <div className="h-full rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
+    <div className="h-full rounded-xl border border-border bg-card p-5">
       <h2 className="text-sm font-semibold text-foreground mb-4">Quick Actions</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <ActionButton
@@ -67,7 +67,7 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between gap-3 p-4 rounded-lg border transition-colors text-left border-[#1a1a1a] bg-transparent hover:bg-white/[0.03] hover:border-[#2a2a2a]"
+      className="flex items-center justify-between gap-3 p-4 rounded-lg border transition-colors text-left border-border bg-transparent hover:bg-white/[0.03] hover:border-border"
     >
       <div className="flex items-center gap-3">
         <div className="text-muted-foreground">{icon}</div>

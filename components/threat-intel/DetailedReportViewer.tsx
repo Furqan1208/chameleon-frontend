@@ -182,16 +182,16 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
         {/* File Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">File Information</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-foreground mb-4">File Information</h3>
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Filename</p>
-                <p className="font-medium text-gray-900 dark:text-white">{detailedReport.file?.name || 'Unknown'}</p>
+                <p className="font-medium text-gray-900 dark:text-foreground">{detailedReport.file?.name || 'Unknown'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Hash (SHA256)</p>
                 <div className="flex items-center gap-2">
-                  <p className="font-mono text-gray-900 dark:text-white">{truncateHash(detailedReport.fileHash, 24)}</p>
+                  <p className="font-mono text-gray-900 dark:text-foreground">{truncateHash(detailedReport.fileHash, 24)}</p>
                   <button
                     onClick={() => navigator.clipboard.writeText(detailedReport.fileHash)}
                     className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -207,7 +207,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
                   <span className={getFileTypeColor(detailedReport.file?.type || '')}>
                     {getFileTypeIcon(detailedReport.file?.type || '')}
                   </span>
-                  <span className="font-medium text-gray-900 dark:text-white capitalize">
+                  <span className="font-medium text-gray-900 dark:text-foreground capitalize">
                     {detailedReport.file?.type || 'unknown'}
                   </span>
                 </div>
@@ -215,14 +215,14 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
               {detailedReport.file?.size && (
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Size</p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-foreground">
                     {formatFileSize(detailedReport.file.size)}
                   </p>
                 </div>
               )}
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Scan Date</p>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium text-gray-900 dark:text-foreground">
                   {formatDate(detailedReport.created_date)}
                 </p>
               </div>
@@ -230,7 +230,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Threat Assessment</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-foreground mb-4">Threat Assessment</h3>
             <div className="space-y-4">
               <div className={`p-4 rounded-lg ${verdictInfo.bgColor} border ${verdictInfo.color.replace('text', 'border')}`}>
                 <div className="flex items-center gap-3">
@@ -275,9 +275,9 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center gap-2 mb-2">
               <Search className="w-4 h-4 text-blue-500" />
-              <p className="text-sm font-medium text-gray-900 dark:text-white">YARA Matches</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground">YARA Matches</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="text-2xl font-bold text-gray-900 dark:text-foreground">
               {detailedReport.yaraMatches?.length || 0}
             </p>
           </div>
@@ -285,9 +285,9 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center gap-2 mb-2">
               <Network className="w-4 h-4 text-green-500" />
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Network Connections</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground">Network Connections</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="text-2xl font-bold text-gray-900 dark:text-foreground">
               {detailedReport.networkConnections?.length || 0}
             </p>
           </div>
@@ -295,9 +295,9 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-4 h-4 text-red-500" />
-              <p className="text-sm font-medium text-gray-900 dark:text-white">MITRE Techniques</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground">MITRE Techniques</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="text-2xl font-bold text-gray-900 dark:text-foreground">
               {detailedReport.mitreTechniques?.length || 0}
             </p>
           </div>
@@ -305,9 +305,9 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center gap-2 mb-2">
               <File className="w-4 h-4 text-purple-500" />
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Extracted Files</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground">Extracted Files</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            <p className="text-2xl font-bold text-gray-900 dark:text-foreground">
               {detailedReport.extractedFiles?.length || 0}
             </p>
           </div>
@@ -324,7 +324,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
     return (
       <div className="space-y-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Final Verdict Details</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-foreground mb-4">Final Verdict Details</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-gray-600 dark:text-gray-400">Verdict</span>
@@ -332,7 +332,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-600 dark:text-gray-400">Threat Level</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
+              <span className="font-semibold text-gray-900 dark:text-foreground">
                 {detailedReport.verdict.threatLevel || 0}/5
               </span>
             </div>
@@ -345,7 +345,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
             {detailedReport.verdict.verdictLabel && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Verdict Label</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-gray-900 dark:text-foreground">
                   {detailedReport.verdict.verdictLabel}
                 </span>
               </div>
@@ -369,7 +369,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 dark:text-white">
+          <h3 className="font-semibold text-gray-900 dark:text-foreground">
             YARA Rule Matches ({detailedReport.yaraMatches.length})
           </h3>
         </div>
@@ -379,7 +379,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
             <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white mb-1">
+                  <p className="font-medium text-gray-900 dark:text-foreground mb-1">
                     {match.rule_name || `Rule ${index + 1}`}
                   </p>
                   {match.description && (
@@ -445,7 +445,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
         {/* Network Connections */}
         {detailedReport?.networkConnections && detailedReport.networkConnections.length > 0 && (
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-foreground mb-4">
               Network Connections ({detailedReport.networkConnections.length})
             </h3>
             <div className="space-y-2">
@@ -453,7 +453,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
                 <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-gray-900 dark:text-foreground">
                         {conn.destination || conn.ip || 'Unknown'}
                       </p>
                       {conn.port && (
@@ -482,7 +482,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
         {/* Extracted URLs */}
         {detailedReport?.extractedUrls && detailedReport.extractedUrls.length > 0 && (
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-foreground mb-4">
               Extracted URLs ({detailedReport.extractedUrls.length})
             </h3>
             <div className="space-y-2">
@@ -500,13 +500,13 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
         {/* Extracted Domains */}
         {detailedReport?.extractedDomains && detailedReport.extractedDomains.length > 0 && (
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-foreground mb-4">
               Extracted Domains ({detailedReport.extractedDomains.length})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {detailedReport.extractedDomains.slice(0, 10).map((domain: any, index: number) => (
                 <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-foreground">
                     {typeof domain === 'string' ? domain : domain.domain || JSON.stringify(domain)}
                   </p>
                 </div>
@@ -578,7 +578,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Raw Report Data</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-foreground">Raw Report Data</h3>
           <button
             onClick={() => navigator.clipboard.writeText(JSON.stringify(detailedReport.raw_detailed_data, null, 2))}
             className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
@@ -604,10 +604,10 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-              <FileText className="w-6 h-6 text-white" />
+              <FileText className="w-6 h-6 text-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Detailed Analysis Report</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-foreground">Detailed Analysis Report</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {reportId?.substring(0, 8) || 'N/A'}... • {fileHash ? truncateHash(fileHash, 12) : 'N/A'}
               </p>
@@ -619,7 +619,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
               href={`https://www.filescan.io/reports/${reportId}/${fileHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+              className="px-3 py-2 bg-blue-600 text-foreground rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
             >
               <ExternalLink className="w-4 h-4" />
               View on Filescan
@@ -660,7 +660,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
 
               {/* Status */}
               <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Report Status</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-3">Report Status</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500 dark:text-gray-400">Data Available</span>
@@ -691,7 +691,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
             ) : error ? (
               <div className="text-center py-12">
                 <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-foreground mb-2">
                   Unable to Load Detailed Report
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
@@ -699,7 +699,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
                 </p>
                 <button
                   onClick={loadDetailedReport}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center gap-2 mx-auto"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-foreground rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center gap-2 mx-auto"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Try Again
@@ -708,7 +708,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
             ) : !detailedReport ? (
               <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-foreground mb-2">
                   Load Detailed Report
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
@@ -716,7 +716,7 @@ export default function DetailedReportViewer({ reportId, fileHash, onClose }: De
                 </p>
                 <button
                   onClick={loadDetailedReport}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-foreground rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
                 >
                   Load Now
                 </button>
