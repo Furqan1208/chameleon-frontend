@@ -46,6 +46,19 @@ const focusOptions = [
   "Digital Forensics",
 ]
 
+function validatePassword(password: string): { valid: boolean; error?: string } {
+  if (password.length < 8) {
+    return { valid: false, error: "Password must be at least 8 characters" }
+  }
+  if (!/\d/.test(password)) {
+    return { valid: false, error: "Password must contain at least one number" }
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { valid: false, error: "Password must contain at least one symbol (!@#$%^&* etc)" }
+  }
+  return { valid: true }
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -57,6 +70,16 @@ export default function ProfilePage() {
   const [company, setCompany] = useState("")
   const [experienceLevel, setExperienceLevel] = useState("")
   const [primaryFocus, setPrimaryFocus] = useState("")
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null)
+  const [passwordSaving, setPasswordSaving] = useState(false)
+
+  // Determine if user has a password (for Google OAuth users)
+  // Use boolean coercion to avoid `undefined !== null` evaluating true.
+  const userHasPassword = Boolean(user?.has_password) || Boolean(user?.hashed_password)
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -110,6 +133,47 @@ export default function ProfilePage() {
       }
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError(null)
+    setPasswordSuccess(null)
+
+    const validation = validatePassword(newPassword)
+    if (!validation.valid) {
+      setPasswordError(validation.error || "Invalid password")
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match")
+      return
+    }
+
+    setPasswordSaving(true)
+    try {
+      if (userHasPassword) {
+        // User has password, so change it
+        if (!currentPassword) {
+          setPasswordError("Please fill in all password fields")
+          setPasswordSaving(false)
+          return
+        }
+        await apiService.changePassword(currentPassword, newPassword)
+      } else {
+        // User has no password (Google OAuth), so set it
+        await apiService.setPassword(newPassword)
+      }
+      setPasswordSuccess("Password updated successfully")
+      setCurrentPassword("")
+      setNewPassword("")
+      setConfirmPassword("")
+    } catch (err: any) {
+      setPasswordError(err?.message || "Failed to update password")
+    } finally {
+      setPasswordSaving(false)
     }
   }
 
@@ -167,6 +231,8 @@ export default function ProfilePage() {
               <span className="inline-flex w-fit items-center rounded-full border border-primary/40 bg-primary/15 px-3 py-1 font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.18em] text-primary">
                 {role || "Unassigned Role"}
               </span>
+
+
             </div>
           </div>
         </motion.div>
@@ -277,6 +343,76 @@ export default function ProfilePage() {
                   <p className="mt-1 text-xs text-muted-foreground">Today: {user?.threat_intel_queries_today ?? 0}</p>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/80 bg-black/60 p-6 backdrop-blur-xl">
+              <h3 className="font-[var(--font-sora)] text-xl font-semibold">
+                {userHasPassword ? "Change Password" : "Set Password"}
+              </h3>
+              <p className="mt-1 font-[var(--font-inter)] text-sm text-muted-foreground">
+                {userHasPassword 
+                  ? "Update your password with a new one. Minimum 8 characters, at least 1 number, and 1 symbol."
+                  : "Your account was created via Google Sign-In. Set a password to enable traditional login."}
+              </p>
+
+              <form onSubmit={handlePasswordChange} className="mt-4 space-y-4">
+                {userHasPassword && (
+                  <div className="space-y-2">
+                    <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">Current Password</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="h-11 w-full rounded-lg border border-border bg-background px-3 font-[var(--font-inter)] text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">
+                    {userHasPassword ? "New Password" : "Password"}
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="h-11 w-full rounded-lg border border-border bg-background px-3 font-[var(--font-inter)] text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+                    placeholder="e.g., MyPass123!"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="h-11 w-full rounded-lg border border-border bg-background px-3 font-[var(--font-inter)] text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                {passwordError && (
+                  <div className="rounded-lg border border-red-500/35 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                    {passwordError}
+                  </div>
+                )}
+
+                {passwordSuccess && (
+                  <div className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+                    {passwordSuccess}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#1f3d2f] bg-[#173226] px-4 font-[var(--font-inter)] text-sm font-medium text-emerald-100 transition-colors hover:bg-[#1e4333] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {passwordSaving ? "Updating..." : userHasPassword ? "Update Password" : "Set Password"}
+                </button>
+              </form>
             </div>
 
             <div className="rounded-2xl border border-border/80 bg-black/60 p-6 backdrop-blur-xl">

@@ -27,6 +27,13 @@ import {
   RefreshCw,
   Radar,
 } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { apiService } from "@/services/api/api.service"
 import { isCompletedStatus } from "@/lib/analysis-status"
 import { DashboardSwitcher } from "@/components/dashboard/DashboardSwitcher"
@@ -81,7 +88,23 @@ const DOMAIN_FILES: Record<DomainKey, string> = {
   mobile: "/data/mitre/mobile-attack.json",
 }
 
-const STATUS_COLORS = ["#00ff88", "#f59e0b", "#ef4444"]
+const DOMAIN_OPTIONS: Array<{ label: string; value: DomainKey }> = [
+  { label: "Enterprise", value: "enterprise" },
+  { label: "ICS", value: "ics" },
+  { label: "Mobile", value: "mobile" },
+]
+
+const CHART_COLORS = {
+  emerald: "#10b981",
+  red: "#ef4444",
+  amber: "#f59e0b",
+  yellow: "#facc15",
+  sky: "#0ea5e9",
+  violet: "#8b5cf6",
+  slate: "#64748b",
+}
+
+const STATUS_COLORS = [CHART_COLORS.emerald, CHART_COLORS.amber, CHART_COLORS.red]
 
 function toTechniqueIdSet(value: unknown): Set<string> {
   const text = typeof value === "string" ? value : JSON.stringify(value)
@@ -247,10 +270,14 @@ function StatCard({
   icon: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
-      <div className="mb-2 text-slate-300">{icon}</div>
-      <p className="text-2xl font-semibold text-white">{value.toLocaleString()}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="rounded-2xl border border-border bg-card/50 p-5 backdrop-blur-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="rounded-lg border border-white/5 bg-white/[0.03] p-2 text-white/80">
+          {icon}
+        </div>
+      </div>
+      <p className="text-3xl font-bold text-white">{value.toLocaleString()}</p>
+      <p className="mt-2 text-xs uppercase tracking-wider text-white/65">{label}</p>
     </div>
   )
 }
@@ -259,12 +286,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
 
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-xs shadow-xl">
-      {label && <p className="mb-1 text-muted-foreground">{label}</p>}
+    <div className="rounded-2xl border border-emerald-500/20 bg-[#062e22]/95 px-4 py-3 text-xs shadow-2xl backdrop-blur-md">
+      {label && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/80">{label}</p>}
       {payload.map((entry: any, index: number) => (
-        <p key={index} style={{ color: entry.color || entry.fill }}>
-          {entry.name}: {entry.value}
-        </p>
+        <div key={index} className="flex items-center justify-between gap-4 text-xs text-white/90">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
+            <span className="text-white/85">{entry.name}</span>
+          </div>
+          <span className="font-semibold text-white">{entry.value}</span>
+        </div>
       ))}
     </div>
   )
@@ -329,53 +360,72 @@ export default function MitreDashboardPage() {
   }, [reportTechniqueStats, mitreStats])
 
   return (
-    <div className="relative min-h-full bg-[#080808]">
+    <div className="relative min-h-full bg-[#131313]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage:
               "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
             backgroundSize: "40px 40px",
           }}
         />
-        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/6 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/4 blur-3xl" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl p-6">
         <div className="space-y-6">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.2em] text-primary">Command Surface</p>
-              <h1 className="text-2xl font-semibold text-white">MITRE ATT&CK Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Operational ATT&CK coverage and report detections</p>
-            </div>
+          <div className="rounded-3xl border border-border bg-card/50 p-6 shadow-2xl shadow-black/10 backdrop-blur-sm">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-2xl space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Command Surface
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white sm:text-4xl">MITRE ATT&CK Dashboard</h1>
+                  <p className="mt-2 max-w-xl text-sm text-white/65">
+                    Operational ATT&CK coverage, domain comparison, and report detections in one aligned view.
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <DashboardSwitcher currentPath="/dashboard/mitre" />
-              <select
-                value={activeDomain}
-                onChange={(event) => setActiveDomain(event.target.value as DomainKey)}
-                className="rounded-lg border border-[#1a1a1a] bg-[#101214] px-3 py-2 text-sm text-slate-200 outline-none transition-colors hover:border-[#2a2a2a] focus:border-primary/40"
-              >
-                <option value="enterprise">Enterprise</option>
-                <option value="ics">ICS</option>
-                <option value="mobile">Mobile</option>
-              </select>
-              <button
-                onClick={() => void loadDashboard()}
-                className="rounded-lg border border-[#1a1a1a] p-2 text-slate-300 transition-colors hover:border-[#2a2a2a] hover:text-white"
-                title="Refresh"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </button>
+              <div className="flex flex-col gap-3 xl:items-end">
+                <div className="flex flex-wrap items-center gap-2">
+                  <DashboardSwitcher currentPath="/dashboard/mitre" />
+                  <Select value={activeDomain} onValueChange={(value) => setActiveDomain(value as DomainKey)}>
+                    <SelectTrigger className="h-10 min-w-[210px] rounded-xl border-border bg-card px-3 text-foreground hover:border-emerald-500/40 focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/20">
+                      <SelectValue placeholder="Select domain" />
+                    </SelectTrigger>
+                    <SelectContent className="border-border bg-card text-foreground">
+                      {DOMAIN_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="focus:bg-emerald-500/20 focus:text-foreground data-[state=checked]:bg-emerald-500/20 data-[state=checked]:text-foreground"
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <button
+                  onClick={() => void loadDashboard()}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-white/[0.03] px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:border-white/15 hover:bg-white/[0.05] hover:text-white"
+                  title="Refresh"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </button>
+              </div>
             </div>
           </div>
 
           {loading && (
-            <div className="flex h-48 items-center justify-center rounded-xl border border-[#1a1a1a] bg-[#0d0d0d]">
-              <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+            <div className="flex h-48 items-center justify-center rounded-2xl border border-border bg-card/50 backdrop-blur-sm">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-500/30 border-t-emerald-400" />
             </div>
           )}
 
@@ -387,157 +437,189 @@ export default function MitreDashboardPage() {
 
           {!loading && !error && mitreStats && reportTechniqueStats && (
             <>
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard label="Tactics" value={mitreStats.tactics} icon={<Layers className="h-4 w-4 text-cyan-300" />} />
-                <StatCard label="Techniques" value={mitreStats.techniques} icon={<Target className="h-4 w-4 text-emerald-300" />} />
-                <StatCard label="APT Groups" value={mitreStats.groups} icon={<Users className="h-4 w-4 text-violet-300" />} />
-                <StatCard label="Tools + Malware" value={mitreStats.tools + mitreStats.malware} icon={<Shield className="h-4 w-4 text-amber-300" />} />
-                <StatCard label="Active Techniques" value={mitreStats.activeTechniques} icon={<CheckCircle className="h-4 w-4 text-emerald-300" />} />
-                <StatCard label="Deprecated" value={mitreStats.deprecatedTechniques} icon={<AlertTriangle className="h-4 w-4 text-yellow-300" />} />
-                <StatCard label="Revoked" value={mitreStats.revokedTechniques} icon={<XCircle className="h-4 w-4 text-rose-300" />} />
-                <StatCard label="Detected in Reports" value={reportTechniqueStats.uniqueTechniques} icon={<Radar className="h-4 w-4 text-sky-300" />} />
+              <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+                <StatCard label="Tactics" value={mitreStats.tactics} icon={<Layers className="h-4 w-4 text-white/80" />} />
+                <StatCard label="Techniques" value={mitreStats.techniques} icon={<Target className="h-4 w-4 text-white/80" />} />
+                <StatCard label="APT Groups" value={mitreStats.groups} icon={<Users className="h-4 w-4 text-white/80" />} />
+                <StatCard label="Tools + Malware" value={mitreStats.tools + mitreStats.malware} icon={<Shield className="h-4 w-4 text-white/80" />} />
+                <StatCard label="Active Techniques" value={mitreStats.activeTechniques} icon={<CheckCircle className="h-4 w-4 text-white/80" />} />
+                <StatCard label="Deprecated" value={mitreStats.deprecatedTechniques} icon={<AlertTriangle className="h-4 w-4 text-white/80" />} />
+                <StatCard label="Revoked" value={mitreStats.revokedTechniques} icon={<XCircle className="h-4 w-4 text-white/80" />} />
+                <StatCard label="Detected in Reports" value={reportTechniqueStats.uniqueTechniques} icon={<Radar className="h-4 w-4 text-white/80" />} />
               </div>
 
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-foreground">Technique Status</h3>
-                    <span className="text-xs text-muted-foreground">{activeDomain}</span>
-                  </div>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={statusChartData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={56}
-                          outerRadius={82}
-                          stroke="none"
-                        >
-                          {statusChartData.map((entry, index) => (
-                            <Cell key={entry.name} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5 lg:col-span-2">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-foreground">Top APT Groups by Technique Usage</h3>
-                    <button
-                      onClick={() => router.push("/dashboard/frameworks/mitre-attack/apt")}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      View APT catalog
-                    </button>
-                  </div>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={mitreStats.topGroups}>
-                        <XAxis dataKey="name" hide />
-                        <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="value" name="Techniques" fill="#00ff88" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-foreground">Top Tactics by Technique Count</h3>
-                    <button
-                      onClick={() => router.push("/dashboard/frameworks/mitre-attack")}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      Open matrix
-                    </button>
-                  </div>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={mitreStats.topTactics} layout="vertical" margin={{ left: 4, right: 4 }}>
-                        <XAxis type="number" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                        <YAxis type="category" dataKey="name" width={120} stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="value" name="Techniques" fill="#3b82f6" radius={[0, 6, 6, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-5">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-foreground">Techniques Detected in Reports</h3>
-                    <span className="text-xs text-muted-foreground">from CAPE parsed signatures</span>
-                  </div>
-
-                  <div className="mb-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-[#1a1a1a] bg-[#101214] p-3">
-                      <p className="text-xs text-muted-foreground">Reports Analyzed</p>
-                      <p className="text-lg font-semibold text-white">{reportTechniqueStats.reportsAnalyzed}</p>
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-stretch">
+                <div className="space-y-6 xl:col-span-8">
+                  <div className="rounded-2xl border border-border bg-card/50 p-6 backdrop-blur-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Status</p>
+                        <h3 className="text-lg font-bold text-white">Technique Status</h3>
+                      </div>
+                      <span className="text-xs text-white/65 uppercase tracking-wider">{activeDomain}</span>
                     </div>
-                    <div className="rounded-lg border border-[#1a1a1a] bg-[#101214] p-3">
-                      <p className="text-xs text-muted-foreground">Reports with MITRE IDs</p>
-                      <p className="text-lg font-semibold text-white">{reportTechniqueStats.reportsWithTechniques}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#1a1a1a] bg-[#101214] p-3">
-                      <p className="text-xs text-muted-foreground">Unique Techniques</p>
-                      <p className="text-lg font-semibold text-white">{reportTechniqueStats.uniqueTechniques}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#1a1a1a] bg-[#101214] p-3">
-                      <p className="text-xs text-muted-foreground">Total Detections</p>
-                      <p className="text-lg font-semibold text-white">{reportTechniqueStats.totalDetections}</p>
+                    <div className="grid gap-6 md:grid-cols-[220px_minmax(0,1fr)] md:items-center">
+                      <div className="h-56">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={statusChartData}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={56}
+                              outerRadius={82}
+                              stroke="none"
+                            >
+                              {statusChartData.map((entry, index) => (
+                                <Cell key={entry.name} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip />} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-3">
+                        {[
+                          { label: "Active", value: mitreStats.activeTechniques, color: CHART_COLORS.emerald },
+                          { label: "Deprecated", value: mitreStats.deprecatedTechniques, color: CHART_COLORS.amber },
+                          { label: "Revoked", value: mitreStats.revokedTechniques, color: CHART_COLORS.red },
+                        ].map((item) => (
+                          <div key={item.label} className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <span className="text-xs uppercase tracking-wider text-white/65">{item.label}</span>
+                              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                            </div>
+                            <p className="text-2xl font-bold text-white">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="h-52">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={detectedTechniquesChartData}>
-                        <XAxis dataKey="name" hide />
-                        <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="value" name="Report Hits" fill="#a855f7" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="rounded-2xl border border-border bg-card/50 p-6 backdrop-blur-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Coverage</p>
+                        <h3 className="text-lg font-bold text-white">Top APT Groups by Technique Usage</h3>
+                      </div>
+                      <button
+                        onClick={() => router.push("/dashboard/frameworks/mitre-attack/apt")}
+                        className="text-xs font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+                      >
+                        View APT catalog
+                      </button>
+                    </div>
+                    <div className="h-[34rem]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={mitreStats.topGroups} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
+                          <XAxis dataKey="name" hide />
+                          <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} width={36} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="value" name="Techniques" fill={CHART_COLORS.emerald} radius={[0, 10, 10, 0]} barSize={18} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                        <div className="mb-2 flex items-center gap-2 text-sm text-white/80">
+                          <Users className="h-4 w-4 text-white/80" />
+                          Groups
+                        </div>
+                        <p className="text-2xl font-semibold text-white">{mitreStats.groups}</p>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                        <div className="mb-2 flex items-center gap-2 text-sm text-white/80">
+                          <Bug className="h-4 w-4 text-white/80" />
+                          Malware
+                        </div>
+                        <p className="text-2xl font-semibold text-white">{mitreStats.malware}</p>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                        <div className="mb-2 flex items-center gap-2 text-sm text-white/80">
+                          <Wrench className="h-4 w-4 text-white/80" />
+                          Tools
+                        </div>
+                        <p className="text-2xl font-semibold text-white">{mitreStats.tools}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6 xl:col-span-4">
+                  <div className="rounded-2xl border border-border bg-card/50 p-6 backdrop-blur-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Behavior</p>
+                        <h3 className="text-lg font-bold text-white">Top Tactics by Technique Count</h3>
+                      </div>
+                      <button
+                        onClick={() => router.push("/dashboard/frameworks/mitre-attack")}
+                        className="text-xs font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+                      >
+                        Open matrix
+                      </button>
+                    </div>
+                    <div className="h-[32rem]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={mitreStats.topTactics} layout="vertical" margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
+                          <XAxis type="number" stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} />
+                          <YAxis type="category" dataKey="name" width={120} stroke="#9ca3af" fontSize={10} tickLine={false} axisLine={false} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="value" name="Techniques" fill={CHART_COLORS.sky} radius={[0, 10, 10, 0]} barSize={16} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-card/50 p-6 backdrop-blur-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Report Intelligence</p>
+                        <h3 className="text-lg font-bold text-white">Techniques Detected in Reports</h3>
+                      </div>
+                      <span className="text-xs text-white/65 uppercase tracking-wider">from CAPE parsed signatures</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                        <p className="text-xs text-white/65">Reports Analyzed</p>
+                        <p className="text-lg font-semibold text-white">{reportTechniqueStats.reportsAnalyzed}</p>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                        <p className="text-xs text-white/65">Reports with MITRE IDs</p>
+                        <p className="text-lg font-semibold text-white">{reportTechniqueStats.reportsWithTechniques}</p>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                        <p className="text-xs text-white/65">Unique Techniques</p>
+                        <p className="text-lg font-semibold text-white">{reportTechniqueStats.uniqueTechniques}</p>
+                      </div>
+                      <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
+                        <p className="text-xs text-white/65">Total Detections</p>
+                        <p className="text-lg font-semibold text-white">{reportTechniqueStats.totalDetections}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 h-56">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={detectedTechniquesChartData} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
+                          <XAxis dataKey="name" hide />
+                          <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} axisLine={false} width={32} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="value" name="Report Hits" fill={CHART_COLORS.violet} radius={[8, 8, 0, 0]} barSize={16} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm text-slate-200">
-                    <Users className="h-4 w-4 text-violet-300" />
-                    Groups
-                  </div>
-                  <p className="text-2xl font-semibold text-white">{mitreStats.groups}</p>
-                </div>
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm text-slate-200">
-                    <Bug className="h-4 w-4 text-rose-300" />
-                    Malware
-                  </div>
-                  <p className="text-2xl font-semibold text-white">{mitreStats.malware}</p>
-                </div>
-                <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm text-slate-200">
-                    <Wrench className="h-4 w-4 text-amber-300" />
-                    Tools
-                  </div>
-                  <p className="text-2xl font-semibold text-white">{mitreStats.tools}</p>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 text-xs text-muted-foreground">
+              <div className="rounded-2xl border border-border bg-card/50 p-4 text-xs text-white/65 backdrop-blur-sm">
                 <div className="flex items-start gap-2">
-                  <Activity className="mt-0.5 h-4 w-4 text-primary" />
+                  <Activity className="mt-0.5 h-4 w-4 text-emerald-400" />
                   <p>
                     Report-level MITRE detection is derived from parsed signatures TTPs in completed analyses. This dashboard is currently processing up to 40 recent completed reports for responsive loading.
                   </p>

@@ -302,14 +302,14 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="relative min-h-full bg-[#080808]">
+    <div className="relative min-h-full bg-[#131313]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-emerald-500/6 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/4 blur-3xl" />
       </div>
 
-      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+      <div className="relative z-10 mx-auto max-w-7xl p-6">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -317,16 +317,16 @@ export default function ReportsPage() {
           className="space-y-6"
         >
           {/* Header */}
-          <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <motion.div variants={itemVariants} className="flex flex-col justify-between gap-4 rounded-3xl border border-border bg-card/50 p-6 shadow-2xl shadow-black/10 backdrop-blur-sm lg:flex-row lg:items-center">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl border border-[#1a1a1a] bg-[#0d0d0d]">
-                <FileText className="w-6 h-6 text-emerald-300" />
+              <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3 text-emerald-400">
+                <FileText className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-primary mb-1">Archive</p>
-                <h1 className="text-2xl font-semibold text-white">Analysis Reports</h1>
-                <p className="text-muted-foreground mt-1 flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-sky-300" />
+                <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-400">Archive</p>
+                <h1 className="text-3xl font-bold text-white">Analysis Reports</h1>
+                <p className="mt-2 flex items-center gap-2 text-sm text-white/65">
+                  <Zap className="h-4 w-4 text-sky-400" />
                   Browse and manage your malware analysis reports
                 </p>
               </div>
@@ -337,7 +337,7 @@ export default function ReportsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
-                className="p-2 rounded-lg border border-[#1a1a1a] bg-[#101214] text-slate-300 hover:text-foreground hover:border-[#2a2a2a] hover:bg-[#13161b] transition-colors"
+                className="rounded-xl border border-border bg-white/[0.03] p-2 text-white/70 transition-colors hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -351,7 +351,7 @@ export default function ReportsPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBulkDelete}
-                  className="px-4 py-2 bg-red-500/20 text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-colors flex items-center gap-2"
+                  className="flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2 text-red-300 transition-colors hover:bg-red-500/15"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete {selectedReports.length} Selected
@@ -361,7 +361,7 @@ export default function ReportsPage() {
           </motion.div>
 
           {/* Stats Cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
             <StatsCard
               icon={<Database className="w-4 h-4" />}
               label="Total"
@@ -407,17 +407,17 @@ export default function ReportsPage() {
           </motion.div>
 
           {/* Search and Filters */}
-          <motion.div variants={itemVariants} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+          <motion.div variants={itemVariants} className="rounded-3xl border border-border bg-card/50 p-4 shadow-2xl shadow-black/10 backdrop-blur-sm">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-300/90" />
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/45" />
                   <input
                     type="text"
                     placeholder="Search by filename or analysis ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-[#101214] border border-[#22262d] rounded-xl focus:outline-none focus:border-primary/40 transition-all"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-3 pl-10 pr-4 text-white/85 outline-none transition-all placeholder:text-white/35 focus:border-emerald-500/40"
                   />
                 </div>
               </div>
@@ -429,8 +429,8 @@ export default function ReportsPage() {
                   onClick={() => setShowFilters(!showFilters)}
                   className={`h-12 min-w-[132px] px-4 rounded-xl border transition-all inline-flex items-center justify-center gap-2 ${
                     showFilters 
-                      ? 'bg-primary/12 border-primary/40 text-primary' 
-                      : 'border-[#1a1a1a] bg-[#101214] text-slate-300 hover:text-foreground hover:border-[#2a2a2a]'
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' 
+                      : 'border-white/10 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.06] hover:text-white'
                   }`}
                 >
                   <Filter className="w-4 h-4" />
@@ -443,19 +443,19 @@ export default function ReportsPage() {
                 </motion.button>
 
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as "date" | "threat" | "name")}>
-                  <SelectTrigger className="h-12 min-w-[168px] px-4 rounded-xl border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                  <SelectTrigger className="h-12 min-w-[168px] rounded-xl border-border bg-card px-4 text-foreground hover:border-primary/40 focus-visible:border-primary/40 focus-visible:ring-primary/20">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
-                  <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
-                    <SelectItem value="date" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Date</SelectItem>
-                    <SelectItem value="threat" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Threat</SelectItem>
-                    <SelectItem value="name" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Sort by Name</SelectItem>
+                  <SelectContent className="border-border bg-card text-foreground">
+                    <SelectItem value="date" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Sort by Date</SelectItem>
+                    <SelectItem value="threat" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Sort by Threat</SelectItem>
+                    <SelectItem value="name" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Sort by Name</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <button
                   onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc")}
-                  className="h-12 w-12 border border-[#1a1a1a] bg-[#101214] text-slate-200 rounded-xl hover:border-[#2a2a2a] hover:bg-[#13161b] transition-colors inline-flex items-center justify-center"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-white/80 transition-colors hover:border-white/15 hover:bg-white/[0.06] hover:text-white"
                   title={sortOrder === "desc" ? "Descending" : "Ascending"}
                 >
                   {sortOrder === "desc" ? "↓" : "↑"}
@@ -470,40 +470,40 @@ export default function ReportsPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 pt-4 border-t border-[#1a1a1a]"
+                  className="mt-4 border-t border-white/5 pt-4"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="mb-2 block text-sm font-medium text-white">
                         Status
                       </label>
                       <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full h-10 px-3 rounded-lg border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                        <SelectTrigger className="h-10 w-full rounded-lg border-border bg-card px-3 text-foreground hover:border-primary/40 focus-visible:border-primary/40 focus-visible:ring-primary/20">
                           <SelectValue placeholder="All Status" />
                         </SelectTrigger>
-                        <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
-                          <SelectItem value="all" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">All Status</SelectItem>
-                          <SelectItem value="completed" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Completed</SelectItem>
-                          <SelectItem value="processing" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Processing</SelectItem>
-                          <SelectItem value="failed" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Failed</SelectItem>
+                        <SelectContent className="border-border bg-card text-foreground">
+                          <SelectItem value="all" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">All Status</SelectItem>
+                          <SelectItem value="completed" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Completed</SelectItem>
+                          <SelectItem value="processing" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Processing</SelectItem>
+                          <SelectItem value="failed" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Failed</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="mb-2 block text-sm font-medium text-white">
                         Threat Level
                       </label>
                       <Select value={threatFilter} onValueChange={setThreatFilter}>
-                        <SelectTrigger className="w-full h-10 px-3 rounded-lg border-[#22262d] bg-[#101214] text-slate-100 hover:border-[#2a2f38] focus-visible:ring-primary/20 focus-visible:border-primary/40">
+                        <SelectTrigger className="h-10 w-full rounded-lg border-border bg-card px-3 text-foreground hover:border-primary/40 focus-visible:border-primary/40 focus-visible:ring-primary/20">
                           <SelectValue placeholder="All Threats" />
                         </SelectTrigger>
-                        <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
-                          <SelectItem value="all" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">All Threats</SelectItem>
-                          <SelectItem value="high" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">High Risk</SelectItem>
-                          <SelectItem value="medium" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Medium Risk</SelectItem>
-                          <SelectItem value="low" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Low Risk</SelectItem>
-                          <SelectItem value="unknown" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">Unknown</SelectItem>
+                        <SelectContent className="border-border bg-card text-foreground">
+                          <SelectItem value="all" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">All Threats</SelectItem>
+                          <SelectItem value="high" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">High Risk</SelectItem>
+                          <SelectItem value="medium" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Medium Risk</SelectItem>
+                          <SelectItem value="low" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Low Risk</SelectItem>
+                          <SelectItem value="unknown" className="focus:bg-primary/20 focus:text-foreground data-[state=checked]:bg-primary/20 data-[state=checked]:text-foreground">Unknown</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -517,7 +517,7 @@ export default function ReportsPage() {
                           setSortBy("date")
                           setSortOrder("desc")
                         }}
-                        className="px-4 py-2 border border-[#1a1a1a] bg-[#101214] rounded-lg hover:bg-[#13161b] transition-colors text-sm"
+                        className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/75 transition-colors hover:border-white/15 hover:bg-white/[0.06] hover:text-white"
                       >
                         Clear Filters
                       </button>
@@ -530,13 +530,13 @@ export default function ReportsPage() {
 
           {/* Results Count */}
           <motion.div variants={itemVariants} className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white/65">
               Showing {filteredReports.length} of {reports.length} reports
             </p>
             {filteredReports.length > 0 && (
               <button
                 onClick={handleSelectAll}
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-emerald-400 transition-colors hover:text-emerald-300"
               >
                 {selectedReports.length === filteredReports.length ? "Deselect All" : "Select All"}
               </button>
@@ -545,35 +545,35 @@ export default function ReportsPage() {
 
           {/* Loading State */}
           {loading && (
-            <motion.div variants={itemVariants} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+            <motion.div variants={itemVariants} className="rounded-3xl border border-border bg-card/50 p-12 shadow-2xl shadow-black/10 backdrop-blur-sm">
               <div className="flex flex-col items-center justify-center gap-4">
                 <div className="relative">
-                  <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <div className="h-16 w-16 animate-spin rounded-full border-4 border-emerald-500/30 border-t-emerald-400" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 bg-primary rounded-full animate-pulse" />
+                    <div className="h-8 w-8 animate-pulse rounded-full bg-emerald-400" />
                   </div>
                 </div>
-                <p className="text-muted-foreground">Loading reports...</p>
+                <p className="text-white/65">Loading reports...</p>
               </div>
             </motion.div>
           )}
 
           {/* Error State */}
           {error && !loading && (
-            <motion.div variants={itemVariants} className="rounded-xl border border-red-500/30 bg-[#0d0d0d] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+            <motion.div variants={itemVariants} className="rounded-3xl border border-red-500/20 bg-card/50 p-8 shadow-2xl shadow-black/10 backdrop-blur-sm">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-red-500/20 rounded-xl">
-                  <AlertCircle className="w-6 h-6 text-red-500" />
+                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+                  <AlertCircle className="h-6 w-6 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">Failed to Load Reports</h3>
-                  <p className="text-muted-foreground">{error}</p>
+                  <h3 className="mb-1 text-lg font-semibold text-white">Failed to Load Reports</h3>
+                  <p className="text-white/65">{error}</p>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleRefresh}
-                  className="ml-auto px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+                  className="ml-auto flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-black transition-colors hover:brightness-105"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Try Again
@@ -584,13 +584,13 @@ export default function ReportsPage() {
 
           {/* Empty State */}
           {!loading && !error && filteredReports.length === 0 && (
-            <motion.div variants={itemVariants} className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-12 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+            <motion.div variants={itemVariants} className="rounded-3xl border border-border bg-card/50 p-12 shadow-2xl shadow-black/10 backdrop-blur-sm">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
-                  <FileText className="w-10 h-10 text-primary" />
+                <div className="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10">
+                  <FileText className="h-10 w-10 text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">No Reports Found</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                <h3 className="mb-2 text-xl font-semibold text-white">No Reports Found</h3>
+                <p className="mx-auto mb-6 max-w-md text-white/65">
                   {searchQuery || statusFilter !== "all" || threatFilter !== "all"
                     ? "No reports match your search criteria. Try adjusting your filters."
                     : "Start by uploading a file for analysis to see reports here."}
@@ -603,14 +603,14 @@ export default function ReportsPage() {
                         setStatusFilter("all")
                         setThreatFilter("all")
                       }}
-                      className="px-6 py-3 border border-[#1a1a1a] rounded-xl hover:bg-white/[0.03] transition-colors"
+                      className="rounded-xl border border-white/10 px-6 py-3 text-white/75 transition-colors hover:border-white/15 hover:bg-white/[0.05] hover:text-white"
                     >
                       Clear Filters
                     </button>
                   )}
                   <button
                     onClick={() => router.push("/dashboard/upload")}
-                      className="px-6 py-3 bg-primary text-black rounded-xl hover:bg-primary/90 transition-all flex items-center gap-2 font-semibold"
+                      className="flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 font-semibold text-black transition-all hover:brightness-105"
                   >
                     <Rocket className="w-4 h-4" />
                     Upload File
@@ -635,7 +635,7 @@ export default function ReportsPage() {
                       key={report.analysis_id}
                       variants={cardVariants}
                       layout
-                      className={`rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] overflow-hidden relative transition-colors hover:border-primary/30 ${
+                      className={`relative overflow-hidden rounded-3xl border border-border bg-card/50 transition-colors hover:border-emerald-500/25 ${
                         selectedReports.includes(report.analysis_id) 
                           ? 'ring-2 ring-primary' 
                           : ''
@@ -653,13 +653,13 @@ export default function ReportsPage() {
                               checked={selectedReports.includes(report.analysis_id)}
                               onChange={(e) => handleSelectReport(report.analysis_id, e)}
                               onClick={(e) => e.stopPropagation()}
-                              className="w-5 h-5 rounded border-border bg-background/50 checked:bg-primary focus:ring-primary cursor-pointer"
+                              className="h-5 w-5 cursor-pointer rounded border-border bg-white/[0.03] checked:bg-emerald-500 focus:ring-emerald-500"
                             />
                           </div>
 
                           {/* File Icon - Made clickable */}
                           <motion.div 
-                            className={`p-3 rounded-xl ${threatInfo.bg} ${threatInfo.border} cursor-pointer hover:scale-110 transition-transform`}
+                            className={`cursor-pointer rounded-xl p-3 transition-transform hover:scale-110 ${threatInfo.bg} ${threatInfo.border}`}
                             onClick={(e) => handleOpenReport(report.analysis_id, e)}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
@@ -675,7 +675,7 @@ export default function ReportsPage() {
                                 <div className="flex items-center gap-3 mb-2 flex-wrap">
                                   {/* Filename - Made clickable */}
                                   <motion.h3 
-                                    className="text-lg font-semibold text-foreground truncate max-w-md cursor-pointer hover:text-primary transition-colors"
+                                    className="max-w-md cursor-pointer truncate text-lg font-semibold text-white transition-colors hover:text-emerald-300"
                                     onClick={(e) => handleOpenReport(report.analysis_id, e)}
                                     whileHover={{ x: 2 }}
                                     title="Open report"
@@ -694,24 +694,24 @@ export default function ReportsPage() {
 
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                   <div>
-                                    <p className="text-muted-foreground mb-1">Analysis ID</p>
+                                    <p className="mb-1 text-white/55">Analysis ID</p>
                                     <div className="flex items-center gap-2">
-                                      <code className="text-foreground font-mono text-xs bg-[#101214] border border-[#1a1a1a] px-2 py-1 rounded">
+                                      <code className="rounded border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-xs text-white/85">
                                         {report.analysis_id?.slice(0, 12)}...
                                       </code>
                                       <button
                                         onClick={(e) => handleCopyId(report.analysis_id, e)}
-                                        className="p-1 hover:bg-[#151a21] rounded transition-colors"
+                                        className="rounded p-1 transition-colors hover:bg-white/[0.06]"
                                       >
-                                        <Copy className="w-3 h-3 text-slate-300/90" />
+                                        <Copy className="h-3 w-3 text-white/65" />
                                       </button>
                                     </div>
                                   </div>
                                   
                                   <div>
-                                    <p className="text-muted-foreground mb-1">Threat Score</p>
+                                    <p className="mb-1 text-white/55">Threat Score</p>
                                     <div className="flex items-center gap-2">
-                                      <div className="w-16 h-2 bg-muted/30 rounded-full overflow-hidden">
+                                      <div className="h-2 w-16 overflow-hidden rounded-full bg-white/[0.06]">
                                         <div 
                                           className={`h-full ${
                                             (report.malscore || 0) >= 7 ? 'bg-red-500' :
@@ -722,16 +722,16 @@ export default function ReportsPage() {
                                           style={{ width: `${Math.min((report.malscore || 0) * 10, 100)}%` }}
                                         />
                                       </div>
-                                      <span className="text-foreground font-mono text-sm">
+                                      <span className="font-mono text-sm text-white">
                                         {report.malscore ? `${report.malscore}/10` : 'N/A'}
                                       </span>
                                     </div>
                                   </div>
                                   
                                   <div>
-                                    <p className="text-muted-foreground mb-1">Created</p>
-                                    <div className="inline-flex items-center gap-1.5 text-foreground px-2 py-1 rounded-md border border-[#1a1a1a] bg-[#101214]">
-                                      <Calendar className="w-3 h-3 text-sky-300" />
+                                    <p className="mb-1 text-white/55">Created</p>
+                                    <div className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-white/80">
+                                      <Calendar className="h-3 w-3 text-sky-400" />
                                       <span>
                                         {report.created_at
                                           ? format(new Date(report.created_at), "MMM d, yyyy")
@@ -741,9 +741,9 @@ export default function ReportsPage() {
                                   </div>
                                   
                                   <div>
-                                    <p className="text-muted-foreground mb-1">Time Ago</p>
-                                    <div className="inline-flex items-center gap-1.5 text-foreground px-2 py-1 rounded-md border border-[#1a1a1a] bg-[#101214]">
-                                      <Clock className="w-3 h-3 text-violet-300" />
+                                    <p className="mb-1 text-white/55">Time Ago</p>
+                                    <div className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-white/80">
+                                      <Clock className="h-3 w-3 text-violet-400" />
                                       <span>
                                         {report.created_at
                                           ? formatDistanceToNow(new Date(report.created_at), { addSuffix: true })
@@ -756,12 +756,12 @@ export default function ReportsPage() {
                                 {/* Analysis Type Badge */}
                                 {report.analysis_type && (
                                   <div className="mt-3 flex items-center gap-2">
-                                    <span className="text-xs text-muted-foreground">Type:</span>
-                                    <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs">
+                                    <span className="text-xs text-white/55">Type:</span>
+                                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">
                                       {report.analysis_type}
                                     </span>
                                     {report.model_used && (
-                                      <span className="px-2 py-0.5 bg-violet-400/10 text-violet-300 border border-violet-400/20 rounded-full text-xs">
+                                      <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-2 py-0.5 text-xs text-violet-300">
                                         {report.model_used}
                                       </span>
                                     )}
@@ -778,7 +778,7 @@ export default function ReportsPage() {
                                     e.stopPropagation()
                                     handleViewReport(report.analysis_id, e)
                                   }}
-                                  className="p-2 rounded-lg bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
+                                  className="rounded-lg bg-emerald-500/10 p-2 text-emerald-300 transition-colors hover:bg-emerald-500/15"
                                   title="View Report"
                                 >
                                   <Eye className="w-4 h-4" />
@@ -792,7 +792,7 @@ export default function ReportsPage() {
                                 {report.threat_intel.malicious_sources?.map((source: string, idx: number) => (
                                   <span
                                     key={idx}
-                                    className="px-2 py-1 text-xs bg-red-500/10 text-red-500 border border-red-500/20 rounded-full"
+                                    className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-1 text-xs text-red-300"
                                   >
                                     {source}
                                   </span>
@@ -835,15 +835,15 @@ function StatsCard({ icon, label, value, gradient }: {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className="rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] p-3 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+      className="rounded-2xl border border-border bg-card/50 p-3 shadow-[0_8px_24px_rgba(0,0,0,0.2)] backdrop-blur-sm"
     >
       <div className="flex items-center gap-2">
         <div className={`p-2 rounded-lg ${accent}`}>
           {icon}
         </div>
         <div>
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-lg font-bold text-foreground">{value}</p>
+          <p className="text-xs text-white/55">{label}</p>
+          <p className="text-lg font-bold text-white">{value}</p>
         </div>
       </div>
     </motion.div>

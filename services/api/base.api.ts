@@ -72,8 +72,11 @@ export class BaseApi {
     path: string,
     options: RequestInit = {},
   ): Promise<T> {
+    const hasBody = typeof options.body !== "undefined" && options.body !== null
+    const isFormDataBody = typeof FormData !== "undefined" && options.body instanceof FormData
     const headers = {
       ...this.getAuthHeaders(),
+      ...(hasBody && !isFormDataBody ? { "Content-Type": "application/json" } : {}),
       ...(options.headers || {}),
     };
 
@@ -89,10 +92,16 @@ export class BaseApi {
     }
 
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ detail: "Request failed" }));
-      throw new Error(error.detail || `Request failed: ${response.status}`);
+      const error = await response.json().catch(() => null);
+      const detail = error?.detail
+      const message = Array.isArray(detail)
+        ? detail
+            .map((item) => item?.msg || item?.message || JSON.stringify(item))
+            .join("; ")
+        : typeof detail === "string"
+          ? detail
+          : error?.message || `Request failed: ${response.status}`
+      throw new Error(message)
     }
 
     return response.json();

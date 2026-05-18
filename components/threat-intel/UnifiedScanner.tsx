@@ -163,8 +163,9 @@ export function UnifiedScanner() {
   };
 
   // Handle search
-  const handleSearch = async (inputOverride?: string) => {
-    const query = (inputOverride ?? searchInput).trim();
+  const handleSearch = async (inputOverride?: unknown) => {
+    const rawQuery = inputOverride ?? searchInput;
+    const query = typeof rawQuery === 'string' ? rawQuery.trim() : String(rawQuery ?? '').trim();
 
     if (!query) {
       setError('Please enter something to search');
@@ -402,7 +403,7 @@ export function UnifiedScanner() {
                   </div>
                 </div>
                 <button
-                  onClick={handleSearch}
+                  onClick={() => handleSearch()}
                   disabled={isLoading || !searchInput.trim()}
                   className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                 >
@@ -802,69 +803,160 @@ function ServiceResultCard({ result, expanded, onToggle }: {
     return <HelpCircle className="w-5 h-5 text-muted-foreground" />;
   };
 
+  const getSummaryMetrics = () => {
+    const src = normalizeSource(result.source);
+    const d = result.data || {};
+    
+    if (isFailed) return { label: 'Error', value: 'System Failure', color: 'text-red-500' };
+
+    switch (src) {
+      case 'virustotal':
+        return { 
+          label: 'Detections', 
+          value: d.detection_stats?.detection_ratio || d.detection_ratio || '0/0',
+          subValue: d.threat_level || 'unknown'
+        };
+      case 'malwarebazaar':
+        return { 
+          label: 'Samples', 
+          value: d.samples?.length || d.total || (d.found ? '1' : '0'),
+          subValue: d.found ? 'Malicious' : 'Clean'
+        };
+      case 'alienvault':
+      case 'alienvault_otx':
+        return { 
+          label: 'Pulses', 
+          value: d.pulse_count ?? d.pulseCount ?? 0,
+          subValue: d.threat_level || 'unknown'
+        };
+      case 'hybridanalysis':
+      case 'hybrid_analysis':
+        return { 
+          label: 'Score', 
+          value: d.threat_score ?? d.threatScore ?? 'N/A',
+          subValue: d.verdict || 'unknown'
+        };
+      case 'filescan':
+        return { 
+          label: 'State', 
+          value: d.state || d.status || 'unknown',
+          subValue: d.threat_level || 'unknown'
+        };
+      case 'threatfox':
+        return { 
+          label: 'Threats', 
+          value: d.total ?? 0,
+          subValue: (d.total > 0) ? 'Malicious' : 'Clean'
+        };
+      default:
+        return { 
+          label: 'Result', 
+          value: d.threat_level || d.verdict || (d.found ? 'Found' : 'Unknown'),
+          subValue: ''
+        };
+    }
+  };
+
+  const metrics = getSummaryMetrics();
+
   return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${getStatusColor()}`}>
+    <div className={`border rounded-xl overflow-hidden transition-all shadow-sm hover:shadow-md ${getStatusColor()}`}>
       {/* Header */}
       <div 
-        className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+        className="p-4 cursor-pointer hover:bg-muted/10 transition-colors"
         onClick={onToggle}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 p-2 bg-background/50 rounded-lg border border-inherit">
               {getStatusIcon()}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-foreground">
-                  {result.source}
-                </h3>
-                {!isFailed ? (
-                  <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-                    Success
-                  </span>
-                ) : (
-                  <span className="text-xs px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">
-                    Failed
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {result.timestamp ? new Date(result.timestamp).toLocaleString() : 'Unknown time'}
+            <div>
+              <h3 className="font-bold text-lg text-foreground capitalize">
+                {result.source.replace(/_/g, ' ')}
+              </h3>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <Clock className="w-3 h-3" />
+                {result.timestamp ? new Date(result.timestamp).toLocaleString() : 'Recent'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {expanded ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            )}
+
+          <div className="flex items-center gap-6 sm:gap-8">
+            {/* Split Metric Display */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-8">
+              <div className="text-right sm:text-left">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{metrics.label}</p>
+                <p className={`font-mono font-bold ${isFailed ? 'text-red-500' : 'text-foreground'}`}>
+                  {metrics.value}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</p>
+                <div className="flex justify-end">
+                  {isFailed ? (
+                    <span className="text-xs font-bold text-red-500 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" />
+                      FAILED
+                    </span>
+                  ) : (
+                    <span className={`text-xs font-bold uppercase ${
+                      threatState === 'malicious' ? 'text-red-500' : 
+                      threatState === 'suspicious' ? 'text-yellow-500' : 
+                      threatState === 'clean' ? 'text-green-500' : 'text-muted-foreground'
+                    }`}>
+                      {metrics.subValue || 'Success'}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted/20">
+              {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="p-4 border-t border-inherit bg-background space-y-4">
+        <div className="p-5 border-t border-inherit bg-background/50 backdrop-blur-sm space-y-5">
           {result.error ? (
-            <div className="text-red-600 dark:text-red-400 text-sm p-3 bg-red-500/10 rounded-lg">
-              ⚠️ Error: {result.error}
+            <div className="flex items-start gap-3 text-red-600 dark:text-red-400 text-sm p-4 bg-red-500/5 rounded-xl border border-red-500/20">
+              <AlertOctagon className="w-5 h-5 mt-0.5" />
+              <div>
+                <p className="font-bold">Intelligence Feed Error</p>
+                <p className="mt-1 opacity-90">{result.error}</p>
+              </div>
             </div>
           ) : (
             <>
-              {/* Service-specific formatted results */}
-              <ServiceResultDetails service={result.source} data={result.data} />
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <ServiceResultDetails service={result.source} data={result.data} />
+              </div>
               
-              {/* Raw Data Toggle */}
-              <details className="text-xs">
-                <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors py-2">
-                  📋 View Raw Data
-                </summary>
-                <pre className="mt-2 overflow-auto max-h-96 p-3 bg-muted/20 rounded-lg text-xs">
-                  {JSON.stringify(result.data, null, 2)}
-                </pre>
-              </details>
+              <div className="pt-4 border-t border-border/50">
+                <details className="group">
+                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 w-fit">
+                    <Database className="w-3 h-3" />
+                    <span>Developer Context (JSON)</span>
+                    <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <div className="mt-3 relative">
+                    <pre className="overflow-auto max-h-[400px] p-4 bg-black/40 rounded-xl text-[11px] font-mono leading-relaxed border border-border/40 scrollbar-thin">
+                      {JSON.stringify(result.data, null, 2)}
+                    </pre>
+                    <button 
+                      onClick={() => navigator.clipboard.writeText(JSON.stringify(result.data, null, 2))}
+                      className="absolute top-2 right-2 p-2 bg-muted/40 hover:bg-muted text-muted-foreground rounded-lg transition-colors"
+                      title="Copy JSON"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                </details>
+              </div>
             </>
           )}
         </div>

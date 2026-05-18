@@ -47,7 +47,7 @@ import {
 import type { OTXResult } from '@/lib/types/alienvault.types';
 
 interface OTXResultsProps {
-  results: OTXResult[];
+  results?: OTXResult[];
   onToggleFavorite?: (id: string) => Promise<void>;
 }
 
@@ -56,6 +56,27 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
   const [copied, setCopied] = useState<string | null>(null);
   const [showAllMalware, setShowAllMalware] = useState<Record<string, boolean>>({});
   const [showAllURLs, setShowAllURLs] = useState<Record<string, boolean>>({});
+
+  const toArray = <T,>(value: T[] | undefined | null): T[] => Array.isArray(value) ? value : [];
+
+  const getDisplayCounts = (result: OTXResult) => {
+    const rawData = result.raw_data || {};
+    const rawPulseCount = Number(rawData.pulse_count);
+    const rawMalwareCount = toArray(rawData.malware_families).length;
+    const rawUrlCount = toArray(rawData.url_list).length;
+
+    return {
+      pulseCount: Number.isFinite(rawPulseCount) && rawPulseCount >= 0
+        ? rawPulseCount
+        : Number(result.sections?.general?.pulse_info?.count ?? result.pulse_count ?? 0),
+      malwareCount: rawMalwareCount > 0
+        ? rawMalwareCount
+        : Number(result.sections?.malware?.data?.length ?? result.malware_count ?? 0),
+      urlCount: rawUrlCount > 0
+        ? rawUrlCount
+        : Number(result.sections?.url_list?.url_list?.length ?? result.url_count ?? 0),
+    };
+  };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -132,7 +153,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
   };
 
   const formatDate = (dateString?: string): string => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'Not available';
     
     try {
       const date = new Date(dateString);
@@ -165,7 +186,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
   };
 
   const formatDetailedDate = (dateString?: string): string => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'Not available';
     
     try {
       const date = new Date(dateString);
@@ -254,7 +275,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
       .slice(0, 3);
   };
 
-  if (results.length === 0) {
+  if (!results || results.length === 0) {
     return null;
   }
 
@@ -278,6 +299,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
         const threatColor = getThreatColor(result.threat_level);
         const showAllMalwareForResult = showAllMalware[resultId] || false;
         const showAllURLsForResult = showAllURLs[resultId] || false;
+        const displayCounts = getDisplayCounts(result);
         
         // Defensive check for malware data
         const malwareDetectionStats = result.sections?.malware?.data?.reduce((stats, malware) => {
@@ -326,22 +348,22 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                         }`}>
                           {result.threat_level === 'clean' ? 'Clean' : `${result.threat_level} Risk`}
                         </span>
-                        {result.pulse_count > 0 && (
+                        {displayCounts.pulseCount > 0 && (
                           <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 rounded text-xs font-medium flex items-center gap-1">
                             <Activity className="w-3 h-3" />
-                            {result.pulse_count} pulse{result.pulse_count !== 1 ? 's' : ''}
+                            {displayCounts.pulseCount} pulse{displayCounts.pulseCount !== 1 ? 's' : ''}
                           </span>
                         )}
-                        {result.malware_count > 0 && (
+                        {displayCounts.malwareCount > 0 && (
                           <span className="px-2 py-0.5 bg-destructive/20 text-destructive rounded text-xs font-medium flex items-center gap-1">
                             <Bug className="w-3 h-3" />
-                            {result.malware_count} malware
+                            {displayCounts.malwareCount} malware
                           </span>
                         )}
-                        {result.url_count > 0 && (
+                        {displayCounts.urlCount > 0 && (
                           <span className="px-2 py-0.5 bg-blue-500/20 text-blue-500 rounded text-xs font-medium flex items-center gap-1">
                             <LinkIcon className="w-3 h-3" />
-                            {result.url_count} URLs
+                            {displayCounts.urlCount} URLs
                           </span>
                         )}
                       </div>
@@ -523,20 +545,20 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                         <div className="text-xs text-muted-foreground">Threat Score</div>
                       </div>
                       <div className="p-3 border border-border rounded-lg bg-background/50 text-center">
-                        <div className={`text-2xl font-bold ${result.pulse_count > 0 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                          {result.pulse_count}
+                        <div className={`text-2xl font-bold ${displayCounts.pulseCount > 0 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                          {displayCounts.pulseCount}
                         </div>
                         <div className="text-xs text-muted-foreground">Pulses</div>
                       </div>
                       <div className="p-3 border border-border rounded-lg bg-background/50 text-center">
-                        <div className={`text-2xl font-bold ${result.malware_count > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                          {result.malware_count}
+                        <div className={`text-2xl font-bold ${displayCounts.malwareCount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          {displayCounts.malwareCount}
                         </div>
                         <div className="text-xs text-muted-foreground">Malware Samples</div>
                       </div>
                       <div className="p-3 border border-border rounded-lg bg-background/50 text-center">
                         <div className="text-2xl font-bold text-blue-500">
-                          {result.url_count}
+                          {displayCounts.urlCount}
                         </div>
                         <div className="text-xs text-muted-foreground">URLs</div>
                       </div>
@@ -574,14 +596,17 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   </div>
 
                   {/* Pulse Information */}
-                  {result.sections?.general?.pulse_info && result.pulse_count > 0 && (
+                  {result.sections?.general?.pulse_info && displayCounts.pulseCount > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Activity className="w-4 h-4" />
-                        Threat Intelligence Pulses ({result.pulse_count})
+                        Threat Intelligence Pulses ({displayCounts.pulseCount})
                       </h4>
                       <div className="space-y-3">
-                        {result.sections.general.pulse_info.pulses.slice(0, 3).map((pulse, idx) => (
+                        {toArray(result.sections.general.pulse_info.pulses).slice(0, 3).map((pulse, idx) => {
+                          const tags = toArray(pulse.tags);
+
+                          return (
                           <div key={idx} className="p-3 border border-border rounded-lg bg-background/50 hover:bg-background/70 transition-colors">
                             <div className="flex items-start justify-between mb-2">
                               <h5 className="font-medium text-foreground">{pulse.name}</h5>
@@ -600,9 +625,9 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                                   TLP: {pulse.TLP}
                                 </span>
                               )}
-                              {pulse.tags && pulse.tags.length > 0 && (
+                              {tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
-                                  {pulse.tags.slice(0, 5).map((tag, tagIdx) => (
+                                  {tags.slice(0, 5).map((tag, tagIdx) => (
                                     <span
                                       key={tagIdx}
                                       className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground rounded"
@@ -610,9 +635,9 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                                       {tag}
                                     </span>
                                   ))}
-                                  {pulse.tags.length > 5 && (
+                                  {tags.length > 5 && (
                                     <span className="text-xs px-2 py-0.5 bg-muted/30 text-muted-foreground rounded">
-                                      +{pulse.tags.length - 5}
+                                      +{tags.length - 5}
                                     </span>
                                   )}
                                 </div>
@@ -629,10 +654,11 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                               </div>
                             </div>
                           </div>
-                        ))}
-                        {result.pulse_count > 3 && (
+                          );
+                        })}
+                        {displayCounts.pulseCount > 3 && (
                           <p className="text-sm text-muted-foreground italic text-center">
-                            + {result.pulse_count - 3} more pulses
+                            + {displayCounts.pulseCount - 3} more pulses
                           </p>
                         )}
                       </div>
@@ -640,18 +666,18 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* Malware Data */}
-                  {result.sections?.malware?.data && result.malware_count > 0 && (
+                  {result.sections?.malware?.data && displayCounts.malwareCount > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <Bug className="w-4 h-4 text-destructive" />
-                        Associated Malware Samples ({result.malware_count})
+                        Associated Malware Samples ({displayCounts.malwareCount})
                         <span className="ml-2 text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">
                           {malwareDetectionStats.high} high, {malwareDetectionStats.medium} medium, {malwareDetectionStats.low} low
                         </span>
                       </h4>
                       
                       {/* Malware Statistics */}
-                      {result.malware_count > 5 && (
+                      {displayCounts.malwareCount > 5 && (
                         <div className="mb-4 p-3 border border-border rounded-lg bg-background/50">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div className="text-center">
@@ -675,12 +701,15 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                       )}
                       
                       <div className="space-y-2">
-                        {result.sections.malware.data
+                        {toArray(result.sections.malware.data)
                           .slice(0, showAllMalwareForResult ? undefined : 5)
                           .map((malware, idx) => {
                             const detectionCount = getMalwareDetectionCount(malware.detections);
                             const severity = getMalwareSeverity(malware.detections);
                             const popularDetections = getPopularAVDetections(malware.detections);
+                            const malwareHash = malware.hash ?? '';
+                            const malwareLabel = malware.family || malwareHash || 'Unknown family';
+                            const detectionLabel = detectionCount > 0 ? `${detectionCount} detections` : 'Family match';
                             
                             return (
                               <div
@@ -691,21 +720,30 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                       <code className="text-xs font-mono text-foreground truncate">
-                                        {malware.hash}
+                                        {malwareLabel}
                                       </code>
                                       <span className={`text-xs px-1.5 py-0.5 rounded ${
                                         severity === 'High' ? 'bg-destructive/20 text-destructive' :
                                         severity === 'Medium' ? 'bg-accent/20 text-accent' :
-                                        'bg-yellow-500/20 text-yellow-500'
+                                        detectionCount > 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-primary/10 text-primary'
                                       }`}>
-                                        {detectionCount} detections
+                                        {detectionLabel}
                                       </span>
                                     </div>
                                     
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                                      <Clock className="w-3 h-3" />
-                                      <span>{formatDetailedDate(malware.date)}</span>
-                                    </div>
+                                    {malware.date && (
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                        <Clock className="w-3 h-3" />
+                                        <span>{formatDetailedDate(malware.date)}</span>
+                                      </div>
+                                    )}
+
+                                    {malware.family && (
+                                      <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-2 py-1 text-[11px] text-muted-foreground">
+                                        <span className="font-medium text-foreground">Family</span>
+                                        <span>{malware.family}</span>
+                                      </div>
+                                    )}
                                     
                                     {/* Popular AV Detections */}
                                     {popularDetections.length > 0 && (
@@ -731,15 +769,15 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                                   </div>
                                   <div className="flex flex-col items-end gap-2 ml-2">
                                     <button
-                                      onClick={() => handleCopy(malware.hash, `copy-malware-${index}-${idx}`)}
+                                      onClick={() => handleCopy(malwareHash, `copy-malware-${index}-${idx}`)}
                                       className="p-1 hover:bg-black/10 rounded transition-colors"
                                       title="Copy hash"
                                     >
                                       <Copy className="w-3 h-3" />
                                     </button>
-                                    {malware.hash.length === 64 && (
+                                    {malwareHash.length === 64 && (
                                       <a
-                                        href={`https://www.virustotal.com/gui/file/${malware.hash}`}
+                                        href={`https://www.virustotal.com/gui/file/${malwareHash}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="p-1 hover:bg-black/10 rounded transition-colors"
@@ -755,7 +793,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                           })}
                       </div>
                       
-                      {result.malware_count > 5 && (
+                      {displayCounts.malwareCount > 5 && (
                         <button
                           onClick={() => toggleShowAllMalware(resultId)}
                           className="mt-3 w-full py-2 text-sm border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center justify-center gap-2"
@@ -768,7 +806,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                           ) : (
                             <>
                               <Eye className="w-4 h-4" />
-                              Show all {result.malware_count} samples
+                              Show all {displayCounts.malwareCount} samples
                             </>
                           )}
                         </button>
@@ -777,11 +815,11 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                   )}
 
                   {/* URL List */}
-                  {result.sections?.url_list?.url_list && result.url_count > 0 && (
+                  {result.sections?.url_list?.url_list && displayCounts.urlCount > 0 && (
                     <div>
                       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                         <LinkIcon className="w-4 h-4" />
-                        Associated URLs ({result.url_count})
+                        Associated URLs ({displayCounts.urlCount})
                       </h4>
                       <div className="space-y-2">
                         {result.sections.url_list.url_list
@@ -844,7 +882,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                           ))}
                       </div>
                       
-                      {result.url_count > 5 && (
+                      {displayCounts.urlCount > 5 && (
                         <button
                           onClick={() => toggleShowAllURLs(resultId)}
                           className="mt-3 w-full py-2 text-sm border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center justify-center gap-2"
@@ -857,7 +895,7 @@ export function OTXResults({ results, onToggleFavorite }: OTXResultsProps) {
                           ) : (
                             <>
                               <Eye className="w-4 h-4" />
-                              Show all {result.url_count} URLs
+                              Show all {displayCounts.urlCount} URLs
                             </>
                           )}
                         </button>

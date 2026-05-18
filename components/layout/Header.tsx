@@ -24,6 +24,7 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   "/dashboard/mitre": { title: "MITRE Dashboard", subtitle: "ATT&CK operational intelligence" },
   "/dashboard/upload": { title: "Upload & Analyze", subtitle: "Submit binaries and inspect behavior" },
   "/dashboard/reports": { title: "Analysis Reports", subtitle: "Review completed investigations" },
+  "/dashboard/settings": { title: "Workspace Settings", subtitle: "Configure modules and navigation" },
   "/dashboard/threat-intel": { title: "Threat Intelligence", subtitle: "Cross-source IOC intelligence" },
   "/dashboard/threat-intel/virustotal": { title: "VirusTotal Scanner", subtitle: "Multi-engine detection telemetry" },
   "/dashboard/threat-intel/unified": { title: "Unified Scanner", subtitle: "Single query across intel providers" },
@@ -215,86 +216,94 @@ export function Header() {
   const userInitial = (userName || "A").trim().charAt(0).toUpperCase()
 
   return (
-    <header className="h-16 border-b border-border/80 bg-background/95 backdrop-blur-sm flex items-center justify-between px-4 md:px-6">
-      <div className="min-w-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <h1 className="text-sm md:text-base font-semibold text-foreground truncate">{currentTitle}</h1>
-          <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></div>
-          <p className="hidden xl:block text-xs text-muted-foreground truncate">{currentSubtitle}</p>
-        </div>
-
-        {shouldShowBreadcrumbs && (
-          <div className="mt-1 hidden md:flex items-center gap-1 text-xs text-muted-foreground/90">
-            {breadcrumbItems.map((item) => (
-              <div key={item.path} className="inline-flex items-center gap-1">
-                {item.isLast ? (
-                  <span className="text-foreground/90">{item.label}</span>
-                ) : (
-                  <button
-                    className="hover:text-foreground transition-colors"
-                    onClick={() => router.push(item.path)}
-                  >
-                    {item.label}
-                  </button>
-                )}
-                {!item.isLast && <ChevronRight className="w-3 h-3" />}
+    <header className="border-b border-border/70 bg-[#131313]/90 px-4 py-3 backdrop-blur-xl md:px-6">
+      <div className="flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card/50 px-4 py-3 shadow-lg shadow-black/10">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-500/15 bg-emerald-500/10 text-emerald-300">
+              <Command className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <h1 className="truncate text-sm font-semibold text-white md:text-base">{currentTitle}</h1>
+                <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                <p className="hidden truncate text-xs text-white/60 xl:block">{currentSubtitle}</p>
               </div>
-            ))}
+
+              {shouldShowBreadcrumbs && (
+                <div className="mt-1 hidden items-center gap-1 text-xs text-white/55 md:flex">
+                  {breadcrumbItems.map((item) => (
+                    <div key={item.path} className="inline-flex items-center gap-1">
+                      {item.isLast ? (
+                        <span className="text-white/85">{item.label}</span>
+                      ) : (
+                        <button
+                          className="transition-colors hover:text-white"
+                          onClick={() => router.push(item.path)}
+                        >
+                          {item.label}
+                        </button>
+                      )}
+                      {!item.isLast && <ChevronRight className="h-3 w-3" />}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          className="hidden lg:inline-flex items-center gap-2 rounded-lg border border-border/80 bg-card/50 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:border-border"
-          title="Command palette coming soon"
-        >
-          <Command className="w-3.5 h-3.5" />
-          Quick Actions
-          <span className="rounded border border-border/70 px-1.5 py-0.5 text-[10px]">Ctrl+K</span>
-        </button>
-
-        <div className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground">
-          <Clock3 className="w-3.5 h-3.5" />
-          {currentTime}
         </div>
 
-        <button
-          onClick={() => router.push("/profile")}
-          className="inline-flex items-center gap-2 rounded-lg border border-border/80 bg-card/50 px-2.5 md:px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground hover:border-border"
-          title="Profile"
-        >
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-primary text-[10px] font-semibold">
-            {userInitial}
-          </span>
-          <span className="hidden md:inline">{userName}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="hidden items-center gap-2 rounded-xl border border-border bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/75 transition-colors hover:border-white/10 hover:bg-white/[0.06] hover:text-white lg:inline-flex"
+            title="Command palette coming soon"
+          >
+            <Command className="h-3.5 w-3.5" />
+            Quick Actions
+            <span className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-white/65">Ctrl+K</span>
+          </button>
 
-        <DropdownMenu>
+          <div className="hidden items-center gap-1.5 rounded-xl border border-border bg-white/[0.03] px-3 py-2 text-xs text-white/70 md:inline-flex">
+            <Clock3 className="h-3.5 w-3.5" />
+            {currentTime}
+          </div>
+
+          <button
+            onClick={() => router.push("/profile")}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-white/[0.03] px-2.5 py-2 text-xs text-white/75 transition-colors hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
+            title="Profile"
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15 text-[10px] font-semibold text-emerald-300">
+              {userInitial}
+            </span>
+            <span className="hidden md:inline">{userName}</span>
+          </button>
+
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+              className="relative rounded-xl border border-border bg-white/[0.03] p-2 text-white/70 transition-colors hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
               title="Notifications"
             >
               {unreadCount > 0 && <span className="absolute right-1.5 top-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />}
               <Bell className="w-4 h-4" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="bottom" align="end" className="z-[100] w-[360px] border border-border bg-card p-0">
+          <DropdownMenuContent side="bottom" align="end" className="z-[100] w-[360px] border border-border bg-card p-0 shadow-2xl shadow-black/20">
               <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Threat News Feed</p>
-                  <p className="text-[11px] text-muted-foreground">The Hacker News live feed</p>
+                  <p className="text-sm font-semibold text-white">Threat News Feed</p>
+                  <p className="text-[11px] text-white/60">The Hacker News live feed</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
-                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary">
+                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">
                       {unreadCount} new
                     </span>
                   )}
                   <button
                     onClick={markAllAsRead}
-                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-md border border-border bg-white/[0.03] px-2 py-1 text-[11px] text-white/65 transition-colors hover:bg-white/[0.06] hover:text-white"
                   >
                     <CheckCheck className="h-3 w-3" />
                     Mark all read
@@ -304,7 +313,7 @@ export function Header() {
 
               <div className="max-h-80 overflow-y-auto p-2">
                 {newsLoading && newsItems.length === 0 && (
-                  <div className="px-2 py-6 text-center text-xs text-muted-foreground">Loading live feed...</div>
+                  <div className="px-2 py-6 text-center text-xs text-white/55">Loading live feed...</div>
                 )}
 
                 {newsError && newsItems.length === 0 && (
@@ -315,7 +324,7 @@ export function Header() {
                 )}
 
                 {!newsLoading && newsItems.length === 0 && !newsError && (
-                  <div className="px-2 py-6 text-center text-xs text-muted-foreground">No feed items available.</div>
+                  <div className="px-2 py-6 text-center text-xs text-white/55">No feed items available.</div>
                 )}
 
                 {newsItems.map((item) => {
@@ -325,30 +334,30 @@ export function Header() {
                       key={item.id}
                       className={`mb-1 rounded-lg border px-2.5 py-2 ${
                         isRead
-                          ? "border-border bg-card"
-                          : "border-primary/30 bg-primary/5"
+                          ? "border-border bg-white/[0.02]"
+                          : "border-emerald-500/20 bg-emerald-500/[0.04]"
                       }`}
                     >
                       <div className="mb-1 flex items-start justify-between gap-2">
                         <button
                           onClick={() => openNewsLink(item)}
-                          className="line-clamp-2 text-left text-xs text-foreground hover:text-primary transition-colors"
+                          className="line-clamp-2 text-left text-xs text-white/85 transition-colors hover:text-emerald-300"
                         >
                           {item.title}
                         </button>
                         <button
                           onClick={() => markOneAsRead(item.id)}
-                          className="shrink-0 rounded-md border border-border p-1 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                          className="shrink-0 rounded-md border border-border p-1 text-white/55 transition-colors hover:bg-white/[0.06] hover:text-white"
                           title="Mark as read"
                         >
                           <Check className="h-3 w-3" />
                         </button>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-muted-foreground">{formatNewsTimeAgo(item.pubDate)}</span>
+                        <span className="text-[11px] text-white/55">{formatNewsTimeAgo(item.pubDate)}</span>
                         <button
                           onClick={() => openNewsLink(item)}
-                          className="inline-flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] text-emerald-400 transition-colors hover:text-emerald-300"
                         >
                           Open
                           <ExternalLink className="h-3 w-3" />
@@ -362,7 +371,7 @@ export function Header() {
         </DropdownMenu>
         <button
           onClick={() => router.push("/dashboard/integrations")}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+          className="rounded-xl border border-border bg-white/[0.03] p-2 text-white/70 transition-colors hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
           title="Settings"
         >
           <Settings className="w-4 h-4" />
@@ -371,11 +380,12 @@ export function Header() {
           onClick={() => {
             apiService.logout()
           }}
-          className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          className="rounded-xl border border-border bg-white/[0.03] p-2 text-white/70 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-300"
           title="Logout"
         >
           <LogOut className="w-4 h-4" />
         </button>
+      </div>
       </div>
     </header>
   )

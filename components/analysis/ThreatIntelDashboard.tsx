@@ -49,6 +49,8 @@ type ServicesState = Record<ServiceKey, ServiceState>
 
 interface ThreatIntelDashboardProps {
   fileHashes: FileHashes | null
+  capeData?: any
+  parsedData?: any
   onCopyJson?: () => void
   copied?: boolean
 }
@@ -548,7 +550,7 @@ function ServiceCard({
   )
 }
 
-export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }: ThreatIntelDashboardProps) {
+export default function ThreatIntelDashboard({ fileHashes, capeData, parsedData, onCopyJson, copied }: ThreatIntelDashboardProps) {
   const [services, setServices] = useState<ServicesState>(INITIAL)
   const [expanded, setExpanded] = useState<Record<ServiceKey, boolean>>({
     virustotal: false,
@@ -557,7 +559,23 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
     alienvault: false,
   })
 
-  const hash = fileHashes?.sha256 || fileHashes?.sha1 || fileHashes?.md5 || ""
+  // Select first valid hash (skip "N/A" values)
+  // Priority: fileHashes > capeData > parsedData
+  const hash = (
+    (fileHashes?.sha256 && fileHashes.sha256 !== "N/A" ? fileHashes.sha256 : null) ||
+    (fileHashes?.sha1 && fileHashes.sha1 !== "N/A" ? fileHashes.sha1 : null) ||
+    (fileHashes?.md5 && fileHashes.md5 !== "N/A" ? fileHashes.md5 : null) ||
+    capeData?.target?.file?.sha256 ||
+    capeData?.target?.file?.sha1 ||
+    capeData?.target?.file?.md5 ||
+    parsedData?.sections?.target?.sha256 ||
+    parsedData?.sections?.target?.sha1 ||
+    parsedData?.sections?.target?.md5 ||
+    parsedData?.target?.ai_summary?.sha256 ||
+    parsedData?.target?.ai_summary?.sha1 ||
+    parsedData?.target?.ai_summary?.md5 ||
+    ""
+  )
 
   const runService = useCallback(
     async (key: ServiceKey) => {
@@ -608,7 +626,7 @@ export default function ThreatIntelDashboard({ fileHashes, onCopyJson, copied }:
     return { scanned, loading, errors, found, avgThreat, malicious, suspicious, clean }
   }, [services])
 
-  if (!fileHashes) {
+  if (!hash) {
     return (
       <div className="rounded-xl border border-border bg-card p-8 text-center">
         <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-2" />

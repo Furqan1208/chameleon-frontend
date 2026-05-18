@@ -19,6 +19,7 @@ import {
   Loader,
   XCircle,
   Shield,
+  TrendingUp,
 } from "lucide-react"
 import {
   PieChart,
@@ -30,6 +31,8 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  LineChart,
+  Line,
 } from "recharts"
 import { apiService } from "@/services/api/api.service"
 import { QuickActions } from "@/components/dashboard/QuickActions"
@@ -123,18 +126,30 @@ function formatCount(value: number, suffix: string): string {
 }
 
 const COLORS = {
-  primary: "#00ff88",
-  red: "#f87171",
+  primary: "#10b981",
+  red: "#ef4444",
+  amber: "#f59e0b",
   yellow: "#facc15",
+  blue: "#3b82f6",
   muted: "#2a2a2a",
   border: "#1a1a1a",
 }
 
+const CHART_COLORS = {
+  emerald: "#10b981",
+  red: "#ef4444",
+  amber: "#f59e0b",
+  yellow: "#facc15",
+  sky: "#0ea5e9",
+  slate: "#64748b",
+}
+
 const ICON_TONES = {
-  slate: "bg-slate-400/10 text-slate-300 ring-1 ring-slate-300/15",
-  teal: "bg-teal-400/10 text-teal-300 ring-1 ring-teal-300/15",
+  slate: "bg-slate-400/10 text-white/80 ring-1 ring-slate-300/15",
+  emerald: "bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-300/15",
   amber: "bg-amber-400/10 text-amber-300 ring-1 ring-amber-300/15",
-  blue: "bg-sky-400/10 text-sky-300 ring-1 ring-sky-300/15",
+  sky: "bg-sky-400/10 text-sky-300 ring-1 ring-sky-300/15",
+  red: "bg-red-400/10 text-red-300 ring-1 ring-red-300/15",
 }
 
 const containerVariants = {
@@ -146,36 +161,22 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-xl border border-[#1a1a1a] bg-[#0d0d0d] ${className}`}>
-      {children}
-    </div>
-  )
-}
-
-function CardHeader({ title, icon, action }: { title: string; icon: React.ReactNode; action?: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between mb-5">
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-        {icon}
-        {title}
-      </h3>
-      {action}
-    </div>
-  )
-}
-
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-3 py-2 text-xs shadow-xl">
-      {label && <p className="text-muted-foreground mb-1">{label}</p>}
-      {payload.map((p: any, i: number) => (
-        <p key={i} style={{ color: p.color ?? p.fill }} className="font-medium">
-          {p.name}: {p.value}
-        </p>
-      ))}
+    <div className="rounded-2xl border border-emerald-500/20 bg-[#062e22]/95 px-4 py-3 shadow-2xl backdrop-blur-md">
+      {label && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/80">{label}</p>}
+      <div className="space-y-2">
+        {payload.map((p: any, i: number) => (
+          <div key={i} className="flex items-center justify-between gap-4 text-xs text-white/90">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: p.color ?? p.fill }} />
+              <span className="text-white/85">{p.name}</span>
+            </div>
+            <span className="font-semibold text-white">{p.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -185,6 +186,7 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState("Analyst")
   const [reports, setReports] = useState<any[]>([])
   const [behaviorTotals, setBehaviorTotals] = useState<BehaviorTotals>(EMPTY_BEHAVIOR_TOTALS)
+  const [behaviorCacheTime, setBehaviorCacheTime] = useState<number>(0)
   const [threatIntelQueries, setThreatIntelQueries] = useState(0)
   const [loading, setLoading] = useState(true)
   const [behaviorLoading, setBehaviorLoading] = useState(false)
@@ -222,6 +224,12 @@ export default function DashboardPage() {
   }
 
   const loadBehaviorTotals = async (allReports: any[]) => {
+    // Use cache if less than 5 minutes old
+    const now = Date.now()
+    if (behaviorCacheTime && now - behaviorCacheTime < 5 * 60 * 1000) {
+      return // Cache is fresh, skip recalculation
+    }
+
     const candidates = allReports.filter(
       (report) =>
         Boolean(report?.analysis_id) &&
@@ -230,6 +238,7 @@ export default function DashboardPage() {
 
     if (!candidates.length) {
       setBehaviorTotals(EMPTY_BEHAVIOR_TOTALS)
+      setBehaviorCacheTime(now)
       setBehaviorLoading(false)
       return
     }
@@ -256,6 +265,7 @@ export default function DashboardPage() {
       }, EMPTY_BEHAVIOR_TOTALS)
 
       setBehaviorTotals(aggregated)
+      setBehaviorCacheTime(now)
     } catch {
       setBehaviorTotals(EMPTY_BEHAVIOR_TOTALS)
     } finally {
@@ -273,27 +283,66 @@ export default function DashboardPage() {
   const lowRisk   = reports.filter(r => (r.malscore ?? 0) >= 1 && (r.malscore ?? 0) < 4).length
   const clean     = reports.filter(r => (r.malscore ?? 0) === 0).length
 
-  const statusChartData = [
-    { name: "Completed", value: completed, color: COLORS.primary },
-    { name: "Pending",   value: pending,   color: "#60a5fa"       },
-    { name: "Failed",    value: failed,    color: COLORS.red      },
-  ].filter(d => d.value > 0)
-
   const riskChartData = [
-    { label: "High ≥7",    value: highRisk, fill: COLORS.red     },
-    { label: "Medium 4–6", value: medRisk,  fill: "#fb923c"      },
-    { label: "Low 1–3",    value: lowRisk,  fill: COLORS.yellow  },
-    { label: "Clean",      value: clean,    fill: COLORS.primary },
+    { label: "High ≥7",    value: highRisk, fill: CHART_COLORS.red     },
+    { label: "Medium 4–6", value: medRisk,  fill: CHART_COLORS.amber   },
+    { label: "Low 1–3",    value: lowRisk,  fill: CHART_COLORS.yellow  },
+    { label: "Clean",      value: clean,    fill: CHART_COLORS.emerald },
   ]
+
+  const statusChartData = [
+    { name: "Completed", value: completed, color: CHART_COLORS.emerald },
+    { name: "Pending",   value: pending,   color: CHART_COLORS.sky     },
+    { name: "Failed",    value: failed,    color: CHART_COLORS.red     },
+  ].filter(d => d.value > 0)
 
   const recentFive = reports.slice(0, 5)
 
+  // Weekly summary data - calculated from actual reports
+  const generateWeeklyData = () => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    const weekData: Record<string, { analyses: number; threats: number }> = {
+      Sun: { analyses: 0, threats: 0 },
+      Mon: { analyses: 0, threats: 0 },
+      Tue: { analyses: 0, threats: 0 },
+      Wed: { analyses: 0, threats: 0 },
+      Thu: { analyses: 0, threats: 0 },
+      Fri: { analyses: 0, threats: 0 },
+      Sat: { analyses: 0, threats: 0 },
+    }
+
+    // Calculate from last 7 days of reports
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    reports.forEach((r) => {
+      if (!r.created_at) return
+      const date = new Date(r.created_at)
+      if (date < sevenDaysAgo) return
+
+      const dayName = days[date.getDay()]
+      weekData[dayName].analyses++
+
+      if ((r.malscore ?? 0) >= 7) {
+        weekData[dayName].threats++
+      }
+    })
+
+    return days.map((day) => ({
+      day,
+      analyses: weekData[day].analyses,
+      threats: weekData[day].threats,
+    }))
+  }
+
+  const weeklyData = generateWeeklyData()
+
   return (
-    <div className="relative min-h-full bg-[#080808]">
+    <div className="relative min-h-full bg-[#131313]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/8 blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/5 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-primary/6 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-sky-500/4 blur-3xl" />
       </div>
 
       <div className="relative z-10 p-6 max-w-7xl mx-auto">
@@ -302,9 +351,9 @@ export default function DashboardPage() {
           {/* ── Header ─────────────────────────────────────────────────── */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary mb-1">Command Surface</p>
-              <h1 className="text-2xl font-semibold text-white">Welcome back, {userName}</h1>
-              <p className="text-muted-foreground text-sm mt-0.5">Malware analysis &amp; threat intelligence</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-400 mb-1">Security Intelligence</p>
+              <h1 className="text-3xl font-bold text-white">Welcome back, {userName}</h1>
+              <p className="text-sm text-white/70 mt-1">Real-time malware analysis &amp; threat intelligence</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <DashboardSwitcher currentPath="/dashboard" />
@@ -317,7 +366,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={loadAll}
-                className="p-2 rounded-lg border border-[#1a1a1a] text-slate-300 hover:text-foreground hover:border-[#2a2a2a] hover:bg-white/[0.02] transition-colors"
+                className="p-2 rounded-lg border border-[#1a1a1a] text-white/75 hover:text-white hover:border-[#2a2a2a] hover:bg-white/[0.03] transition-colors"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -333,31 +382,31 @@ export default function DashboardPage() {
                 label: "Completed", value: completed,
                 icon: <CheckCircle className="w-4 h-4" />,
                 sub: total > 0 ? `${Math.round((completed / total) * 100)}%` : null,
-                tone: ICON_TONES.teal,
+                tone: ICON_TONES.emerald,
               },
               {
                 label: "Threats Detected", value: highRisk,
                 icon: <AlertTriangle className="w-4 h-4" />,
                 alert: highRisk > 0,
-                tone: ICON_TONES.amber,
+                tone: ICON_TONES.red,
               },
-              { label: "Pending", value: pending, icon: <Clock className="w-4 h-4" />, sub: null, tone: ICON_TONES.blue },
+              { label: "Pending", value: pending, icon: <Clock className="w-4 h-4" />, sub: null, tone: ICON_TONES.sky },
             ].map(({ label, value, icon, sub, alert, tone }) => (
-              <Card key={label} className={`p-5 ${alert ? "border-red-500/25" : ""}`}>
-                <div className={`flex items-center justify-between mb-3`}>
-                  <div className={`p-1.5 rounded-md ${alert ? "bg-red-500/12 text-red-300 ring-1 ring-red-300/20" : tone}`}>
+              <div key={label} className={`rounded-2xl border bg-card/50 backdrop-blur-sm p-5 ${alert ? "border-red-500/25" : "border-border"}`}>
+                <div className={`flex items-center justify-between mb-4`}>
+                  <div className={`p-2 rounded-lg ${alert ? "bg-red-500/12 text-red-300 ring-1 ring-red-300/20" : tone}`}>
                     {icon}
                   </div>
-                  {alert && <span className="w-1.5 h-1.5 rounded-full bg-red-400" />}
+                  {alert && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />}
                 </div>
-                <p className={`text-3xl font-semibold ${alert ? "text-red-400" : "text-white"}`}>
+                <p className={`text-3xl font-bold ${alert ? "text-red-400" : "text-white"}`}>
                   {loading ? <span className="block h-8 w-12 bg-white/5 rounded animate-pulse" /> : value}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
+                <p className="text-xs text-white/75 mt-2 flex items-center gap-1.5 uppercase tracking-wider">
                   {label}
-                  {sub && <span className="font-mono text-primary">{sub}</span>}
+                  {sub && <span className="font-mono text-emerald-400">{sub}</span>}
                 </p>
-              </Card>
+              </div>
             ))}
           </motion.div>
 
@@ -369,24 +418,27 @@ export default function DashboardPage() {
 
               {/* Analysis Status chart */}
               <motion.div variants={itemVariants}>
-                <Card className="p-5">
-                  <CardHeader
-                    title="Analysis Status"
-                    icon={<Activity className="w-4 h-4 text-teal-300" />}
-                    action={
-                      <Link href="/dashboard/reports" className="text-xs text-primary hover:underline flex items-center gap-1">
-                        All Reports <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    }
-                  />
+                <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Statistics</p>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-emerald-400" />
+                        Analysis Status
+                      </h3>
+                    </div>
+                    <Link href="/dashboard/reports" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 font-medium">
+                      All Reports <ChevronRight className="w-3 h-3" />
+                    </Link>
+                  </div>
 
                   {loading ? (
                     <div className="h-44 bg-white/[0.03] rounded-lg animate-pulse" />
                   ) : total === 0 ? (
-                    <div className="h-44 flex flex-col items-center justify-center text-muted-foreground">
+                    <div className="h-44 flex flex-col items-center justify-center text-white/65">
                       <FileText className="w-8 h-8 mb-2 opacity-30" />
                       <p className="text-sm">No analyses yet</p>
-                      <button onClick={() => router.push("/dashboard/upload")} className="mt-2 text-xs text-primary hover:underline">
+                      <button onClick={() => router.push("/dashboard/upload")} className="mt-2 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
                         Upload a sample
                       </button>
                     </div>
@@ -418,17 +470,17 @@ export default function DashboardPage() {
                       {/* Legend + numbers */}
                       <div className="flex-1 space-y-3">
                         {[
-                          { label: "Completed", value: completed, color: COLORS.primary },
-                          { label: "Pending",   value: pending,   color: "#60a5fa"       },
-                          { label: "Failed",    value: failed,    color: COLORS.red      },
+                          { label: "Completed", value: completed, color: CHART_COLORS.emerald },
+                          { label: "Pending",   value: pending,   color: CHART_COLORS.sky       },
+                          { label: "Failed",    value: failed,    color: CHART_COLORS.red      },
                         ].map(({ label, value, color }) => (
                           <div key={label} className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
-                              <span className="text-sm text-muted-foreground">{label}</span>
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+                              <span className="text-sm text-white/80">{label}</span>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className="text-sm font-semibold text-white font-mono">{value}</span>
+                              <span className="text-sm font-bold text-white font-mono">{value}</span>
                               <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                 <div
                                   className="h-full rounded-full"
@@ -438,58 +490,63 @@ export default function DashboardPage() {
                             </div>
                           </div>
                         ))}
-                        <div className="pt-1 border-t border-[#1a1a1a] flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Total</span>
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                          <span className="text-xs text-white/70 uppercase tracking-wider">Total</span>
                           <span className="text-sm font-bold text-white font-mono">{total}</span>
                         </div>
                       </div>
                     </div>
                   )}
-                </Card>
+                </div>
               </motion.div>
 
               {/* Risk Distribution chart */}
               <motion.div variants={itemVariants}>
-                <Card className="p-5">
-                  <CardHeader
-                    title="Risk Distribution"
-                    icon={<Shield className="w-4 h-4 text-sky-300" />}
-                  />
+                <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Assessment</p>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-white/80" />
+                      Risk Distribution
+                    </h3>
+                  </div>
 
-                  {loading ? (
-                    <div className="h-44 bg-white/[0.03] rounded-lg animate-pulse" />
-                  ) : total === 0 ? (
-                    <div className="h-44 flex items-center justify-center text-muted-foreground">
-                      <p className="text-sm">No data</p>
-                    </div>
-                  ) : (
-                    <div className="h-44">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={riskChartData}
-                          layout="vertical"
-                          margin={{ top: 0, right: 12, left: 0, bottom: 0 }}
-                        >
-                          <XAxis type="number" hide />
-                          <YAxis
-                            type="category"
-                            dataKey="label"
-                            width={76}
-                            tick={{ fill: "#888", fontSize: 11 }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                          <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={18}>
-                            {riskChartData.map((entry, i) => (
-                              <Cell key={i} fill={entry.fill} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </Card>
+                  <div className="mt-6">
+                    {loading ? (
+                      <div className="h-44 bg-white/[0.03] rounded-lg animate-pulse" />
+                    ) : total === 0 ? (
+                      <div className="h-44 flex items-center justify-center text-white/65">
+                        <p className="text-sm">No data</p>
+                      </div>
+                    ) : (
+                      <div className="h-44">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={riskChartData}
+                            layout="vertical"
+                            margin={{ top: 0, right: 12, left: 0, bottom: 0 }}
+                          >
+                            <XAxis type="number" hide />
+                            <YAxis
+                              type="category"
+                              dataKey="label"
+                              width={76}
+                              tick={{ fill: "#888", fontSize: 11, fontFamily: "monospace" }}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                            <Bar dataKey="value" radius={[0, 8, 8, 0]} maxBarSize={20}>
+                              {riskChartData.map((entry, i) => (
+                                <Cell key={i} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </motion.div>
 
             </div>
@@ -497,110 +554,157 @@ export default function DashboardPage() {
             {/* Right 1/3 — threat intel */}
             <div className="space-y-6">
               <motion.div variants={itemVariants}>
-                <Card className="p-5">
-                  <CardHeader
-                    title="Threat Intel"
-                    icon={<Radar className="w-4 h-4 text-violet-300" />}
-                    action={
-                      <Link href="/dashboard/threat-intel/unified" className="text-xs text-primary hover:underline flex items-center gap-1">
-                        Unified <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    }
-                  />
-
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="rounded-lg border border-[#1a1a1a] p-3">
-                      <p className="text-[11px] text-muted-foreground mb-1">Sources</p>
-                      <p className="text-2xl font-semibold text-white">8</p>
+                <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Intelligence</p>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Radar className="w-5 h-5 text-violet-400" />
+                        Threat Intel
+                      </h3>
                     </div>
-                    <div className="rounded-lg border border-[#1a1a1a] p-3">
-                      <p className="text-[11px] text-muted-foreground mb-1">Today</p>
-                      <p className="text-2xl font-semibold text-white">{loading ? "—" : threatIntelQueries}</p>
+                    <Link href="/dashboard/threat-intel/unified" className="text-xs text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 font-medium">
+                      Unified <ChevronRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <div className="rounded-xl border border-border bg-white/5 p-4 hover:bg-white/[0.07] transition-colors">
+                      <p className="text-[10px] text-white/65 uppercase tracking-wider mb-2">Active Sources</p>
+                      <p className="text-3xl font-bold text-white">8</p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-white/5 p-4 hover:bg-white/[0.07] transition-colors">
+                      <p className="text-[10px] text-white/65 uppercase tracking-wider mb-2">Queries Today</p>
+                      <p className="text-3xl font-bold text-emerald-400">{loading ? "—" : threatIntelQueries}</p>
                     </div>
                   </div>
 
-                  <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">Active Sources</p>
-                  <div className="space-y-1.5">
-                    {["VirusTotal", "AbuseIPDB", "MalwareBazaar", "Hybrid Analysis", "AlienVault OTX", "Filescan.io", "ThreatFox"].map((name) => (
-                      <div key={name} className="flex items-center justify-between px-3 py-2 rounded-lg border border-[#1a1a1a]">
-                        <span className="text-xs text-foreground">{name}</span>
-                        <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/65 mb-3 font-semibold">Connected Services</p>
+                  <div className="space-y-1.5 flex-1">
+                    {["VirusTotal", "MalwareBazaar", "Hybrid Analysis", "AlienVault OTX", "Filescan.io", "URLhaus", "ThreatFox", "AbuseIPDB"].map((name) => (
+                      <div key={name} className="flex items-center justify-between px-3 py-2 rounded-lg border border-white/5 bg-white/[0.01]">
+                        <span className="text-xs text-white/75 font-medium">{name}</span>
+                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                       </div>
                     ))}
                   </div>
 
                   <Link
                     href="/dashboard/threat-intel/unified"
-                    className="mt-4 block w-full text-center text-sm font-medium px-4 py-2.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
+                    className="mt-6 block w-full text-center text-sm font-semibold px-4 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/15 transition-colors"
                   >
                     Search All Sources
                   </Link>
-                </Card>
+                </div>
               </motion.div>
             </div>
           </div>
 
           {/* ── Quick Actions + Behavior Metrics (Full Width) ─────────── */}
           <motion.div variants={itemVariants}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               <QuickActions />
 
-              <Card className="p-5 h-full">
-                <CardHeader
-                  title="Behavior Metrics"
-                  icon={<Activity className="w-4 h-4 text-emerald-300" />}
-                  action={<span className="text-[11px] text-muted-foreground">All reports</span>}
-                />
+              <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Aggregated</p>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-emerald-400" />
+                      Behavior Metrics
+                    </h3>
+                  </div>
+                  <span className="text-[10px] text-white/65 uppercase tracking-wider font-semibold">All reports</span>
+                </div>
 
                 {behaviorLoading ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="rounded-lg border border-[#1a1a1a] p-3 animate-pulse">
+                      <div key={i} className="rounded-lg border border-white/5 p-4 animate-pulse">
                         <div className="h-3 w-24 bg-white/5 rounded" />
-                        <div className="mt-3 h-4 w-20 bg-white/5 rounded" />
+                        <div className="mt-3 h-5 w-20 bg-white/5 rounded" />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 auto-rows-fr">
+                  <div className="grid grid-cols-2 gap-3 auto-rows-fr">
                     {[
-                      { label: "API Calls", value: formatCount(behaviorTotals.apiCalls, "calls"), color: "text-primary" },
-                      { label: "Registry Changes", value: formatCount(behaviorTotals.registryChanges, "changes"), color: "text-secondary" },
-                      { label: "Network Traffic", value: formatCount(behaviorTotals.networkTraffic, "events"), color: "text-accent" },
-                      { label: "File System Activity", value: formatCount(behaviorTotals.fileSystemActivity, "ops"), color: "text-primary" },
-                      { label: "Memory Artifacts", value: formatCount(behaviorTotals.memoryArtifacts, "findings"), color: "text-secondary" },
-                    ].map((item, idx, arr) => (
+                      { label: "API Calls", value: formatCount(behaviorTotals.apiCalls, "calls"), color: "text-emerald-400" },
+                      { label: "Registry Changes", value: formatCount(behaviorTotals.registryChanges, "changes"), color: "text-white" },
+                      { label: "Network Traffic", value: formatCount(behaviorTotals.networkTraffic, "events"), color: "text-amber-400" },
+                      { label: "File Activity", value: formatCount(behaviorTotals.fileSystemActivity, "ops"), color: "text-violet-400" },
+                    ].map((item) => (
                       <div
                         key={item.label}
-                        className={`rounded-lg border border-[#1a1a1a] bg-black/50 p-3 h-full ${arr.length % 2 === 1 && idx === arr.length - 1 ? "sm:col-span-2" : ""}`}
+                        className="rounded-xl border border-white/5 bg-white/[0.01] p-4 h-full"
                       >
-                        <p className="text-xs text-muted-foreground">{item.label}</p>
-                        <p className={`mt-2 text-sm font-mono ${item.color}`}>{item.value}</p>
+                        <p className="text-xs text-white/70 uppercase tracking-wider font-semibold mb-3">{item.label}</p>
+                        <p className={`text-base font-bold font-mono ${item.color}`}>{item.value}</p>
                       </div>
                     ))}
                   </div>
                 )}
-              </Card>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── Weekly Summary ────────────────────────────────────────── */}
+          <motion.div variants={itemVariants}>
+            <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Overview</p>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                    Weekly Activity
+                  </h3>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded bg-emerald-400" />
+                    <span className="text-xs text-white/70">Analyses</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded bg-red-400" />
+                    <span className="text-xs text-white/70">Threats</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={weeklyData} margin={{ top: 5, right: 12, left: 0, bottom: 5 }}>
+                    <XAxis dataKey="day" stroke="#888" style={{ fontSize: "11px" }} />
+                    <YAxis stroke="#888" style={{ fontSize: "11px" }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="analyses" stroke="#10b981" strokeWidth={2} dot={{ fill: "#10b981", r: 4 }} />
+                    <Line type="monotone" dataKey="threats" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444", r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </motion.div>
 
           {/* ── Recent Analyses ─────────────────────────────────────────── */}
           <motion.div variants={itemVariants}>
-            <Card className="p-5">
-              <CardHeader
-                title="Recent Analyses"
-                icon={<Activity className="w-4 h-4 text-emerald-300" />}
-                action={
-                  <Link href="/dashboard/reports" className="text-xs text-primary hover:underline flex items-center gap-1">
-                    View All <ChevronRight className="w-3 h-3" />
-                  </Link>
-                }
-              />
+            <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-white/65 mb-1">Latest</p>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-emerald-400" />
+                    Recent Analyses
+                  </h3>
+                </div>
+                <Link href="/dashboard/reports" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 font-medium">
+                  View All <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
 
               {loading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="flex items-center gap-4 h-10 animate-pulse">
+                    <div key={i} className="flex items-center gap-4 h-12 animate-pulse">
                       <div className="w-5 h-5 bg-white/5 rounded" />
                       <div className="flex-1 h-3 bg-white/5 rounded" />
                       <div className="w-16 h-3 bg-white/5 rounded" />
@@ -609,20 +713,24 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : recentFive.length === 0 ? (
-                <div className="py-10 text-center">
-                  <FileText className="w-7 h-7 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No analyses yet — upload a file to begin.</p>
+                <div className="py-12 text-center">
+                  <FileText className="w-8 h-8 text-white/35 mx-auto mb-3" />
+                  <p className="text-sm text-white/70 mb-2">No analyses yet</p>
+                  <p className="text-xs text-white/55 mb-4">Upload a file to begin real-time malware analysis</p>
+                  <button onClick={() => router.push("/dashboard/upload")} className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
+                    Upload a sample
+                  </button>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-[#1a1a1a]">
-                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">File</th>
-                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">Status</th>
-                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">Score</th>
-                        <th className="text-left text-xs text-muted-foreground font-normal pb-2 pr-4">Date</th>
-                        <th className="text-left text-xs text-muted-foreground font-normal pb-2" />
+                      <tr className="border-b border-white/5">
+                        <th className="text-left text-xs text-white/75 font-semibold pb-3 pr-4 uppercase tracking-wider">File</th>
+                        <th className="text-left text-xs text-white/75 font-semibold pb-3 pr-4 uppercase tracking-wider">Status</th>
+                        <th className="text-left text-xs text-white/75 font-semibold pb-3 pr-4 uppercase tracking-wider">Score</th>
+                        <th className="text-left text-xs text-white/75 font-semibold pb-3 pr-4 uppercase tracking-wider">Date</th>
+                        <th className="text-left text-xs text-white/75 font-semibold pb-3 uppercase tracking-wider" />
                       </tr>
                     </thead>
                     <tbody>
@@ -632,48 +740,48 @@ export default function DashboardPage() {
                         const fail = isFailedStatus(r.status)
                         const score = r.malscore ?? null
                         const scoreColor =
-                          score === null ? "text-muted-foreground" :
-                          score >= 7 ? "text-red-400" :
-                          score >= 4 ? "text-yellow-400" : "text-primary"
+                          score === null ? "text-white/65" :
+                          score >= 7 ? "text-red-400 font-bold" :
+                          score >= 4 ? "text-amber-400 font-bold" : "text-emerald-400"
                         return (
                           <tr
                             key={r.analysis_id}
                             onClick={() => router.push(`/dashboard/analysis/${r.analysis_id}`)}
-                            className="border-b border-[#111] last:border-0 hover:bg-white/[0.02] cursor-pointer transition-colors group"
+                            className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] cursor-pointer transition-all group"
                           >
                             <td className="py-3 pr-4">
                               <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-slate-300/90 shrink-0" />
-                                <span className="text-white truncate max-w-[240px]">{r.filename || "Unknown"}</span>
+                                <FileText className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                                <span className="text-white/90 truncate max-w-[240px] font-medium">{r.filename || "Unknown"}</span>
                               </div>
                             </td>
                             <td className="py-3 pr-4">
                               {done ? (
-                                <span className="inline-flex items-center gap-1 text-xs text-primary">
+                                <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-medium">
                                   <CheckCircle className="w-3 h-3" /> Completed
                                 </span>
                               ) : pend ? (
-                                <span className="inline-flex items-center gap-1 text-xs text-blue-400">
+                                <span className="inline-flex items-center gap-1 text-xs text-white/80 font-medium">
                                   <Loader className="w-3 h-3 animate-spin" /> Processing
                                 </span>
                               ) : fail ? (
-                                <span className="inline-flex items-center gap-1 text-xs text-red-400">
+                                <span className="inline-flex items-center gap-1 text-xs text-red-400 font-medium">
                                   <XCircle className="w-3 h-3" /> Failed
                                 </span>
                               ) : (
-                                <span className="text-xs text-muted-foreground capitalize">{r.status}</span>
+                                <span className="text-xs text-white/70 capitalize font-medium">{r.status}</span>
                               )}
                             </td>
                             <td className="py-3 pr-4">
                               <span className={`font-mono text-xs ${scoreColor}`}>
-                                {score !== null ? score : "—"}
+                                {score !== null ? score.toFixed(1) : "—"}
                               </span>
                             </td>
-                            <td className="py-3 pr-4 text-xs text-muted-foreground">
+                            <td className="py-3 pr-4 text-xs text-white/70 font-medium">
                               {r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}
                             </td>
                             <td className="py-3">
-                              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400/90 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <ArrowUpRight className="w-4 h-4 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </td>
                           </tr>
                         )
@@ -682,7 +790,7 @@ export default function DashboardPage() {
                   </table>
                 </div>
               )}
-            </Card>
+            </div>
           </motion.div>
 
         </motion.div>

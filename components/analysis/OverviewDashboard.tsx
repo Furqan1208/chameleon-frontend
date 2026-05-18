@@ -1,88 +1,172 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
+
 import {
   Activity,
-  AlertCircle,
   AlertTriangle,
   Brain,
-  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
   Copy,
+  Cpu,
+  Database,
   Download,
-  File,
-  FileCode,
+  FileText,
+  Fingerprint,
   Folder,
+  Globe,
   Key,
-  Network,
+  Lock,
+  MemoryStick,
+  PieChart,
+  Radar,
   Shield,
-  Sparkles,
+  Target,
   Terminal,
+  Wifi,
+  Zap,
 } from "lucide-react"
 
-type AnyRecord = Record<string, any>
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart as RePieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 
 interface OverviewDashboardProps {
-  combinedAnalysis: AnyRecord
-  fileHashes: AnyRecord
-  malscore: number
-  capeData: AnyRecord
-  parsedData: AnyRecord
-  aiData: AnyRecord
+  combinedAnalysis?: any
+  fileHashes?: any
+  malscore?: number
+  capeData?: any
+  parsedData?: any
+  aiData?: any
   onCopyJson?: () => void
   copied?: boolean
   onDownload?: (format: string) => void
 }
 
-function getScoreColor(score: number): "green" | "amber" | "red" {
-  if (score >= 6) return "red"
-  if (score <= 2) return "green"
-  return "amber"
+/* -------------------------------------------------------------------------- */
+/*                                   Utils                                    */
+/* -------------------------------------------------------------------------- */
+
+const safeArray = <T = any,>(value: any): T[] =>
+  Array.isArray(value) ? value : []
+
+const safeNumber = (value: any, defaultValue = 0): number => {
+  const n = Number(value)
+  return isNaN(n) ? defaultValue : n
 }
 
-function getRingColorClass(color: "green" | "amber" | "red"): string {
-  if (color === "red") return "#ef4444"
-  if (color === "green") return "#22c55e"
-  return "#f59e0b"
+const resolveString = (v: any) => {
+  if (v === null || v === undefined) return undefined
+  const s = String(v).trim()
+  if (!s || s.toLowerCase() === "n/a" || s.toLowerCase() === "none" || s.toLowerCase() === "null") {
+    return undefined
+  }
+  return s
 }
 
-function clampScore(score: number, max = 10): number {
-  if (!Number.isFinite(score)) return 0
+const formatBytes = (bytes?: number): string => {
+  if (!bytes || isNaN(bytes)) return "N/A"
+  const units = ["B", "KB", "MB", "GB"]
+  const idx = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
+  return `${(bytes / Math.pow(1024, idx)).toFixed(idx === 0 ? 0 : 1)} ${units[idx]}`
+}
+
+const formatDate = (date?: string): string => {
+  if (!date) return "Unknown"
+  const d = new Date(date)
+  return isNaN(d.getTime()) ? date : d.toLocaleString()
+}
+
+const truncate = (str?: string, maxLen = 80): string => {
+  if (!str) return ""
+  return str.length > maxLen ? `${str.slice(0, maxLen)}...` : str
+}
+
+const GREEN_CHART = {
+  darkest: "#064e3b",
+  dark: "#047857",
+  base: "#10b981",
+  light: "#34d399",
+  pale: "#a7f3d0",
+  grid: "rgba(16, 185, 129, 0.14)",
+  tooltipBorder: "rgba(16, 185, 129, 0.22)",
+  tooltipBg: "rgba(6, 78, 59, 0.95)",
+}
+
+const GreenTooltip = ({ active, payload, label, valueFormatter }: { active?: boolean; payload?: any[]; label?: string; valueFormatter?: (value: any, name?: string, payload?: any) => string }) => {
+  if (!active || !payload?.length) return null
+
+  return (
+    <div className="rounded-2xl border border-emerald-500/20 bg-[#062e22]/95 px-4 py-3 shadow-2xl backdrop-blur-md">
+      {label && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/80">{label}</p>}
+      <div className="space-y-2">
+        {payload.map((entry, idx) => (
+          <div key={`${entry.name}-${idx}`} className="flex items-center justify-between gap-4 text-xs text-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color || GREEN_CHART.base }} />
+              <span className="text-slate-200/90">{entry.name}</span>
+            </div>
+            <span className="font-semibold text-white">{valueFormatter ? valueFormatter(entry.value, entry.name, entry.payload) : entry.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Expandable Section                       */
+/* -------------------------------------------------------------------------- */
+
+const ExpandableSection = ({ title, items, renderItem, initialCount = 4, step = 4, emptyMessage = "No items" }: { title: string; items: any[]; renderItem: (item: any, idx: number) => React.ReactNode; initialCount?: number; step?: number; emptyMessage?: string }) => {
+  const [expanded, setExpanded] = useState(false)
+  const visibleItems = expanded ? items : items.slice(0, initialCount)
+  const hasMore = items.length > initialCount
+
+  if (items.length === 0) return null
+
+  return (
+    <div className="rounded-xl border border-border bg-card/50 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">{title}</p>
+        <span className="text-[10px] text-muted-foreground">{items.length} total</span>
+      </div>
+      <div className="space-y-2">{visibleItems.map((item, idx) => renderItem(item, idx))}</div>
+      {hasMore && (
+        <button onClick={() => setExpanded(!expanded)} className="mt-3 text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+          {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          {expanded ? "Show less" : `Show ${Math.min(step, items.length - initialCount)} more`}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Scores                                   */
+/* -------------------------------------------------------------------------- */
+
+const clampScore = (score: number, max = 10): number => {
+  if (!isFinite(score)) return 0
   return Math.max(0, Math.min(score, max))
 }
 
-function extractAiThreat(aiData: AnyRecord) {
-  const finalAnalysis = aiData?.results?.final_synthesis?.analysis
-  const aiThreatLevel = String(finalAnalysis?.overall_threat_level || "Unknown")
-  const confidenceRaw = Number(finalAnalysis?.threat_confidence_score ?? aiData?.threat_confidence_score ?? 0)
-  const confidence = Number.isFinite(confidenceRaw) ? Math.max(0, Math.min(confidenceRaw, 100)) : 0
-
-  let normalizedThreatScore = confidence / 10
-  const level = aiThreatLevel.toLowerCase()
-
-  if (confidence === 0) {
-    if (level.includes("critical")) normalizedThreatScore = 9
-    else if (level.includes("high")) normalizedThreatScore = 7.5
-    else if (level.includes("medium")) normalizedThreatScore = 5
-    else if (level.includes("low")) normalizedThreatScore = 2.5
-    else normalizedThreatScore = 0
-  }
-
-  return {
-    aiThreatLevel,
-    confidence,
-    normalizedThreatScore: clampScore(normalizedThreatScore),
-  }
-}
-
-function formatDate(date?: string) {
-  if (!date) return "Unknown"
-  const d = new Date(date)
-  if (Number.isNaN(d.getTime())) return "Unknown"
-  return d.toLocaleString()
-}
-
-function scoreLabel(score: number) {
+const scoreLabel = (score: number): string => {
   if (score >= 8) return "Critical"
   if (score >= 6) return "High"
   if (score >= 4) return "Medium"
@@ -90,34 +174,37 @@ function scoreLabel(score: number) {
   return "Clean"
 }
 
-function ScoreRing({ score, max = 10, label, subtitle }: { score: number; max?: number; label: string; subtitle?: string }) {
+const getScoreColor = (score: number) => {
+  if (score >= 8) return "#ef4444"
+  if (score >= 5) return "#f59e0b"
+  return "#22c55e"
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Score Ring                                   */
+/* -------------------------------------------------------------------------- */
+
+const ScoreRing = ({ score, max = 10, label, subtitle }: { score: number; max?: number; label: string; subtitle?: string }) => {
   const clamped = clampScore(score, max)
   const percent = (clamped / max) * 100
-  const colorType = getScoreColor(clamped)
-  const ringColor = getRingColorClass(colorType)
+  const ringColor = getScoreColor(clamped)
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-3">{label}</p>
-      <div className="flex items-center gap-4">
-        <div
-          className="relative h-24 w-24 rounded-full"
-          style={{
-            background: `conic-gradient(${ringColor} ${percent}%, rgba(255,255,255,0.08) ${percent}% 100%)`,
-          }}
-        >
+    <div className="rounded-3xl border border-border bg-card/80 backdrop-blur-sm p-5 shadow-lg">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-5">{label}</p>
+      <div className="flex items-center gap-5">
+        <div className="relative h-28 w-28 shrink-0 rounded-full" style={{ background: `conic-gradient(${ringColor} ${percent}%, rgba(255,255,255,0.08) ${percent}% 100%)` }}>
           <div className="absolute inset-[8px] rounded-full bg-background border border-border flex items-center justify-center">
             <div className="text-center">
-              <div className="text-xl font-bold text-foreground">{clamped.toFixed(1)}</div>
+              <div className="text-2xl font-bold text-foreground">{clamped.toFixed(1)}</div>
               <div className="text-[10px] text-muted-foreground">/ {max}</div>
             </div>
           </div>
         </div>
-
-        <div className="space-y-1">
-          <p className="text-base font-semibold text-foreground">{scoreLabel(clamped)} Risk</p>
-          <p className="text-sm text-muted-foreground">{subtitle || "Threat score"}</p>
-          <div className="h-1.5 w-36 rounded-full bg-white/5 overflow-hidden">
+        <div className="flex-1">
+          <p className="text-xl font-semibold text-foreground">{scoreLabel(clamped)} Risk</p>
+          <p className="text-sm text-muted-foreground mt-1 leading-6">{subtitle}</p>
+          <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden mt-4">
             <div className="h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: ringColor }} />
           </div>
         </div>
@@ -126,316 +213,506 @@ function ScoreRing({ score, max = 10, label, subtitle }: { score: number; max?: 
   )
 }
 
-function MetricTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-border bg-card/50 p-3">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-slate-400/20 bg-slate-400/10 text-slate-200">
-          {icon}
-        </span>
-        <span className="text-xs uppercase tracking-wider text-slate-300">{label}</span>
-      </div>
-      <p className="text-2xl font-semibold text-foreground">{value}</p>
+/* -------------------------------------------------------------------------- */
+/*                               Metric Tile                                  */
+/* -------------------------------------------------------------------------- */
+
+const MetricTile = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) => (
+  <div className="rounded-2xl border border-border/70 bg-card/80 p-4 shadow-[0_18px_50px_-36px_rgba(16,185,129,0.16)] backdrop-blur-sm">
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/15 bg-primary/10 text-primary">{icon}</div>
     </div>
-  )
+    <p className="text-3xl font-bold text-foreground">{value}</p>
+  </div>
+)
+
+/* -------------------------------------------------------------------------- */
+/*                           Extract AI Threat                                */
+/* -------------------------------------------------------------------------- */
+
+const extractAiThreat = (aiData: any) => {
+  const finalAnalysis = aiData?.results?.final_synthesis?.analysis || aiData?.final_synthesis?.analysis
+  const aiThreatLevel = String(finalAnalysis?.executive_summary?.final_verdict || finalAnalysis?.overall_threat_level || "Unknown")
+  const confidenceRaw = finalAnalysis?.executive_summary?.confidence_score ?? finalAnalysis?.threat_confidence_score ?? aiData?.threat_confidence_score ?? 0
+  let confidenceNum = safeNumber(confidenceRaw, 0)
+  let confidencePercent = 0
+  let confidenceOutOf10 = 0
+
+  if (confidenceNum <= 1 && confidenceNum >= 0) {
+    confidencePercent = Math.round(confidenceNum * 100)
+    confidenceOutOf10 = Number((confidenceNum * 10).toFixed(2))
+  } else if (confidenceNum > 1 && confidenceNum <= 10) {
+    confidencePercent = Math.round(confidenceNum * 10)
+    confidenceOutOf10 = Number(confidenceNum.toFixed(2))
+  } else {
+    confidencePercent = Math.min(Math.round(confidenceNum), 100)
+    confidenceOutOf10 = Number((Math.min(confidenceNum, 100) / 10).toFixed(2))
+  }
+
+  return { aiThreatLevel, confidencePercent, normalizedThreatScore: clampScore(confidenceOutOf10) }
 }
 
-function PreviewListCard({ title, items, accent }: { title: string; items: string[]; accent: string }) {
-  return (
-    <div className="rounded-lg border border-border bg-card/50 p-3">
-      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{title}</p>
-      {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No entries in this run.</p>
-      ) : (
-        <div className="space-y-1.5">
-          {items.map((item, idx) => (
-            <div key={idx} className="text-xs flex items-start gap-2">
-              <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
-              <span className="text-foreground/90 break-all">{item}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+/* -------------------------------------------------------------------------- */
+/*                            Main Component                                  */
+/* -------------------------------------------------------------------------- */
 
-export default function OverviewDashboard({
-  combinedAnalysis,
-  fileHashes,
-  malscore,
-  capeData,
-  parsedData,
-  aiData,
-  onCopyJson,
-  copied,
-  onDownload,
-}: OverviewDashboardProps) {
-  const sandboxScore = clampScore(Number(malscore || capeData?.malscore || 0))
+export default function OverviewDashboard({ capeData, aiData, parsedData, fileHashes, malscore, onCopyJson, copied, onDownload }: OverviewDashboardProps) {
+  const [expandedInsights, setExpandedInsights] = useState(false)
+
   const aiThreat = useMemo(() => extractAiThreat(aiData), [aiData])
+  const sandboxScore = clampScore(safeNumber(malscore || capeData?.malscore, 0))
+
+  /* -------------------------------------------------------------------------- */
+  /*                               CAPE Metrics                                 */
+  /* -------------------------------------------------------------------------- */
 
   const capeMetrics = useMemo(() => {
-    const summary = capeData?.behavior?.summary || {}
+    const behavior = capeData?.behavior || {}
+    const summary = behavior.summary || {}
+    const target = capeData?.target?.file || {}
     return {
-      processes: capeData?.behavior?.processes?.length || 0,
-      signatures: capeData?.signatures?.length || 0,
-      droppedFiles: capeData?.dropped?.length || 0,
-      registryKeys: summary.keys?.length || 0,
-      commands: summary.executed_commands?.length || 0,
-      mutexes: summary.mutexes?.length || 0,
-      writeFiles: summary.write_files?.length || 0,
-      deleteFiles: summary.delete_files?.length || 0,
-      ttps: capeData?.ttps?.length || 0,
-      networkArtifacts: Object.keys(capeData?.network || {}).length || 0,
-      timeout: Boolean(capeData?.info?.timeout),
+      processes: safeArray(behavior.processes).length,
+      signatures: safeArray(capeData?.signatures).length,
+      droppedFiles: safeArray(capeData?.dropped).length,
+      ttps: safeArray(capeData?.ttps).length,
+      registryKeys: safeArray(summary.keys).length,
+      writeFiles: safeArray(summary.write_files).length,
+      deleteFiles: safeArray(summary.delete_files).length,
+      networkDomains: safeArray(capeData?.network?.domains).length,
+      memoryDumps: safeArray(capeData?.procmemory).length,
       malstatus: String(capeData?.malstatus || "Unknown"),
-      duration: Number(capeData?.info?.duration || 0),
+      timeout: Boolean(capeData?.info?.timeout),
+      duration: safeNumber(capeData?.info?.duration, 0),
+      package: String(capeData?.info?.package || "Unknown"),
+      fileSize: target.size,
+      fileType: target.type,
+      capeType: target.cape_type,
+      executedCommands: safeArray(summary.executed_commands),
+      mutexes: safeArray(summary.mutexes),
+      readFiles: safeArray(summary.read_files),
     }
   }, [capeData])
+
+  /* -------------------------------------------------------------------------- */
+  /*                            Parsed Metrics                                 */
+  /* -------------------------------------------------------------------------- */
+
+  const parsedMetrics = useMemo(() => {
+    const parsedSignatures = parsedData?.signatures?.ai_summary || {}
+    const rawSignatures = safeArray(capeData?.signatures)
+    const totalSignatures = parsedSignatures.total_signatures || rawSignatures.length
+    const criticalSignatures = parsedSignatures.critical_signatures || rawSignatures.filter((s: any) => s.severity >= 3).length
+    const signatureText = rawSignatures.map((s: any) => `${s.name || ""} ${s.description || ""} ${s.categories?.join(" ") || ""}`.toLowerCase()).join(" ")
+    const hasPersistence = parsedSignatures.has_persistence || signatureText.includes("persistence") || signatureText.includes("scheduled task") || signatureText.includes("autorun")
+    const hasInjection = parsedSignatures.has_injection || signatureText.includes("injection") || signatureText.includes("shellcode")
+    const hasAntiVm = parsedSignatures.has_anti_vm || signatureText.includes("anti-vm") || signatureText.includes("virtual machine")
+    const detectedFamilies = parsedData?.target?.ai_summary?.detected_families || aiData?.results?.final_synthesis?.analysis?.integrated_findings?.confirmed_families || []
+
+    return { totalSignatures, criticalSignatures, detectedFamilies, hasPersistence, hasInjection, hasAntiVm }
+  }, [parsedData, capeData, aiData])
+
+  /* -------------------------------------------------------------------------- */
+  /*                              AI Insights                                   */
+  /* -------------------------------------------------------------------------- */
 
   const aiInsights = useMemo(() => {
-    const finalSummary = aiData?.results?.final_synthesis?.analysis?.report?.executive_summary
-    const behaviorObs = aiData?.results?.behavior_analysis?.analysis?.ai_insights_summary?.key_observations?.[0]
-    const memoryRisk = aiData?.results?.memory_analysis?.analysis?.process_memory_analysis?.filter(
-      (p: AnyRecord) => p?.memory_forensic_indicators?.process_risk_profile === "High Risk"
-    ).length || 0
-
-    return [
-      finalSummary ? { title: "Executive AI Summary", description: finalSummary } : null,
-      behaviorObs ? { title: "Behavior Highlight", description: behaviorObs } : null,
-      memoryRisk > 0
-        ? { title: "Memory Forensics", description: `${memoryRisk} high-risk processes flagged by AI memory analysis.` }
-        : null,
-    ].filter(Boolean) as Array<{ title: string; description: string }>
+    const finalAnalysis = aiData?.results?.final_synthesis?.analysis || aiData?.final_synthesis?.analysis
+    return {
+      summary: finalAnalysis?.executive_summary?.summary_paragraph || "",
+      detectedFamilies: finalAnalysis?.integrated_findings?.confirmed_families || [],
+      persistenceMechanisms: finalAnalysis?.integrated_findings?.persistence_mechanisms || [],
+      defenseEvasion: finalAnalysis?.integrated_findings?.defense_evasion_techniques || [],
+      impactAssessment: finalAnalysis?.integrated_findings?.impact_assessment || {},
+    }
   }, [aiData])
 
-  const behaviorSignals = useMemo(() => {
-    const summary = capeData?.behavior?.summary || {}
-    return {
-      package: String(capeData?.info?.package || "unknown"),
-      route: String(capeData?.info?.route || "unknown"),
-      timeout: Boolean(capeData?.info?.timeout),
-      started: String(capeData?.info?.started || ""),
-      ended: String(capeData?.info?.ended || ""),
-      commands: (summary.executed_commands || []).slice(0, 6),
-      written: (summary.write_files || []).slice(0, 6),
-      deleted: (summary.delete_files || []).slice(0, 6),
-      registry: (summary.keys || []).slice(0, 6),
-      services: (summary.started_services || []).slice(0, 6),
-      debugErrors: (capeData?.debug?.errors || []).slice(0, 4),
-    }
+  /* -------------------------------------------------------------------------- */
+  /*                               File Identity                                */
+  /* -------------------------------------------------------------------------- */
+
+  const fileName = resolveString(fileHashes?.filename) || resolveString(capeData?.target?.file?.name) || resolveString(parsedData?.target?.ai_summary?.file_name) || "Unknown Sample"
+  const sha256 = resolveString(fileHashes?.sha256) || resolveString(capeData?.target?.file?.sha256) || resolveString(parsedData?.target?.ai_summary?.sha256)
+
+  /* -------------------------------------------------------------------------- */
+  /*                               Chart Data                                   */
+  /* -------------------------------------------------------------------------- */
+
+  const severityData = [{ name: "Critical", value: parsedMetrics.criticalSignatures, color: GREEN_CHART.darkest }, { name: "Other", value: Math.max(parsedMetrics.totalSignatures - parsedMetrics.criticalSignatures, 0), color: GREEN_CHART.light }].filter(x => x.value > 0)
+
+  const behavioralData = [
+    { name: "Registry", value: Math.min(capeMetrics.registryKeys, 500), fullValue: capeMetrics.registryKeys },
+    { name: "Write Files", value: Math.min(capeMetrics.writeFiles, 500), fullValue: capeMetrics.writeFiles },
+    { name: "Delete Files", value: Math.min(capeMetrics.deleteFiles, 500), fullValue: capeMetrics.deleteFiles },
+    { name: "Read Files", value: Math.min(capeMetrics.readFiles.length, 500), fullValue: capeMetrics.readFiles.length },
+    { name: "Commands", value: Math.min(capeMetrics.executedCommands.length, 500), fullValue: capeMetrics.executedCommands.length },
+    { name: "Mutexes", value: Math.min(capeMetrics.mutexes.length, 500), fullValue: capeMetrics.mutexes.length },
+  ]
+
+  const totalSeveritySignatures = parsedMetrics.totalSignatures
+
+  const apiCategoryData = useMemo(() => {
+    const catCounts: Record<string, number> = {}
+    safeArray(capeData?.behavior?.processes).forEach((proc: any) => {
+      safeArray(proc.calls).forEach((call: any) => {
+        const cat = call.category || "other"
+        catCounts[cat] = (catCounts[cat] || 0) + 1
+      })
+    })
+    return Object.entries(catCounts).map(([name, count]) => ({ name: name.replace(/_/g, " "), count })).sort((a, b) => b.count - a.count).slice(0, 6)
   }, [capeData])
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  Render                                    */
+  /* -------------------------------------------------------------------------- */
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between gap-3">
+      {/* HEADER */}
+      <div className="flex flex-col xl:flex-row justify-between gap-5">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary mb-1">Overview Intelligence</p>
-          <h2 className="text-2xl font-semibold text-foreground">Sandbox + AI Unified View</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            This overview intentionally uses sandbox and AI outputs only to avoid duplicated telemetry-derived signals.
-          </p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-8 w-1 rounded-full bg-gradient-to-b from-primary to-primary/20" />
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary font-semibold">Unified Threat Intelligence</p>
+          </div>
+          <h2 className="text-3xl font-bold text-foreground">Sandbox + AI Unified Overview</h2>
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <span className="text-sm text-muted-foreground">{fileName}</span>
+            {capeMetrics.fileSize && <span className="text-xs text-muted-foreground">• {formatBytes(capeMetrics.fileSize)}</span>}
+            {capeMetrics.capeType && <span className="text-xs px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">{truncate(capeMetrics.capeType, 40)}</span>}
+          </div>
         </div>
-
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           {onCopyJson && (
-            <button
-              onClick={onCopyJson}
-              className="px-3 py-1.5 border border-border rounded-lg hover:bg-muted/20 transition-colors flex items-center gap-2 text-sm"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              {copied ? "Copied" : "Copy JSON"}
+            <button onClick={onCopyJson} className="px-4 py-2 rounded-xl border border-border hover:bg-muted/20 transition-all flex items-center gap-2">
+              <Copy className="w-4 h-4" /> {copied ? "Copied" : "Copy JSON"}
             </button>
           )}
           {onDownload && (
-            <button
-              onClick={() => onDownload("json")}
-              className="px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20 transition-colors flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export
+            <button onClick={() => onDownload("json")} className="px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all flex items-center gap-2">
+              <Download className="w-4 h-4" /> Export
             </button>
           )}
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-border bg-card p-5"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <ScoreRing
-            score={sandboxScore}
-            label="Sandbox Threat Score"
-            subtitle={`Sandbox verdict: ${capeMetrics.malstatus}${capeMetrics.timeout ? " (analysis timeout)" : ""}`}
-          />
+      {/* SCORE CARDS */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <ScoreRing score={sandboxScore} label="Sandbox Threat Score" subtitle={`Verdict: ${capeMetrics.malstatus}${capeMetrics.timeout ? " • Timeout" : ""}`} />
+        <ScoreRing score={aiThreat.normalizedThreatScore} label="AI Threat Assessment" subtitle={`${aiThreat.aiThreatLevel} • ${aiThreat.confidencePercent}% confidence`} />
+      </div>
 
-          <ScoreRing
-            score={aiThreat.normalizedThreatScore}
-            label="AI Threat Score"
-            subtitle={`AI level: ${aiThreat.aiThreatLevel} • confidence ${aiThreat.confidence.toFixed(1)}%`}
-          />
-        </div>
-      </motion.div>
+      {/* METRICS - 8 tiles */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
+        <MetricTile icon={<Shield className="w-4 h-4" />} label="Signatures" value={parsedMetrics.totalSignatures} />
+        <MetricTile icon={<Cpu className="w-4 h-4" />} label="Processes" value={capeMetrics.processes} />
+        <MetricTile icon={<Folder className="w-4 h-4" />} label="Dropped" value={capeMetrics.droppedFiles} />
+        <MetricTile icon={<Globe className="w-4 h-4" />} label="Domains" value={capeMetrics.networkDomains} />
+        <MetricTile icon={<MemoryStick className="w-4 h-4" />} label="Memory" value={capeMetrics.memoryDumps} />
+        <MetricTile icon={<Target className="w-4 h-4" />} label="MITRE" value={capeMetrics.ttps} />
+        <MetricTile icon={<Key className="w-4 h-4" />} label="Registry" value={capeMetrics.registryKeys} />
+        <MetricTile icon={<Terminal className="w-4 h-4" />} label="Commands" value={capeMetrics.executedCommands.length} />
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Activity className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">Sandbox Activity Metrics</h3>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <MetricTile icon={<Shield className="w-3.5 h-3.5" />} label="Signatures" value={capeMetrics.signatures} />
-              <MetricTile icon={<File className="w-3.5 h-3.5" />} label="Processes" value={capeMetrics.processes} />
-              <MetricTile icon={<Folder className="w-3.5 h-3.5" />} label="Dropped Files" value={capeMetrics.droppedFiles} />
-              <MetricTile icon={<Key className="w-3.5 h-3.5" />} label="Registry Keys" value={capeMetrics.registryKeys} />
-              <MetricTile icon={<Terminal className="w-3.5 h-3.5" />} label="Commands" value={capeMetrics.commands} />
-              <MetricTile icon={<Network className="w-3.5 h-3.5" />} label="Network Artifacts" value={capeMetrics.networkArtifacts} />
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Mutexes</p>
-                <p className="text-foreground font-semibold mt-1">{capeMetrics.mutexes}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Write Files</p>
-                <p className="text-foreground font-semibold mt-1">{capeMetrics.writeFiles}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Delete Files</p>
-                <p className="text-foreground font-semibold mt-1">{capeMetrics.deleteFiles}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">MITRE Mappings</p>
-                <p className="text-foreground font-semibold mt-1">{capeMetrics.ttps}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <FileCode className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">Execution & Behavior Signals</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-3">
-              High-value behavior extracted from sandbox runtime output for quick triage.
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Package</p>
-                <p className="text-foreground font-semibold mt-1 break-all">{behaviorSignals.package}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Route</p>
-                <p className="text-foreground font-semibold mt-1 break-all">{behaviorSignals.route}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Started</p>
-                <p className="text-foreground font-semibold mt-1">{behaviorSignals.started || "Unknown"}</p>
-              </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Ended</p>
-                <p className="text-foreground font-semibold mt-1">{behaviorSignals.ended || "Unknown"}</p>
-              </div>
-            </div>
-
-            <div className="mb-4 flex items-center gap-2 text-xs">
-              {behaviorSignals.timeout ? (
-                <span className="px-2 py-1 rounded-md bg-red-500/15 text-red-400 border border-red-500/30">Execution Timeout Observed</span>
-              ) : (
-                <span className="px-2 py-1 rounded-md bg-green-500/15 text-green-400 border border-green-500/30">Execution Completed in Time</span>
-              )}
-              {behaviorSignals.debugErrors.length > 0 && (
-                <span className="px-2 py-1 rounded-md bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
-                  {behaviorSignals.debugErrors.length} debug errors logged
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <PreviewListCard title="Executed Commands" items={behaviorSignals.commands} accent="#3b82f6" />
-              <PreviewListCard title="Written Files" items={behaviorSignals.written} accent="#22c55e" />
-              <PreviewListCard title="Registry Keys" items={behaviorSignals.registry} accent="#a855f7" />
-              <PreviewListCard title="Started Services" items={behaviorSignals.services} accent="#f59e0b" />
-            </div>
-          </div>
-        </div>
-
+      {/* MAIN GRID - Enhanced Left Pane */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-6">
+        {/* LEFT PANE - RICH CONTENT */}
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Brain className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">AI Highlights</h3>
-            </div>
-
-            {aiInsights.length === 0 ? (
-              <div className="text-sm text-muted-foreground border border-border rounded-lg p-3">
-                AI insights are not available for this report yet.
+          {/* Row 1: Two Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Signature Severity Pie */}
+            <div className="rounded-3xl border border-border bg-card/80 p-5">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <PieChart className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-semibold text-foreground">Signature Severity</h3>
+                </div>
+                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">
+                  {totalSeveritySignatures} total
+                </span>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {aiInsights.map((insight, idx) => (
-                  <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
-                    <p className="text-xs uppercase tracking-wider text-primary mb-1">{insight.title}</p>
-                    <p className="text-sm text-foreground/90">{insight.description}</p>
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={250}>
+                  <RePieChart>
+                    <defs>
+                      <linearGradient id="signatureSeverityCritical" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={GREEN_CHART.darkest} />
+                        <stop offset="100%" stopColor={GREEN_CHART.base} />
+                      </linearGradient>
+                      <linearGradient id="signatureSeverityOther" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={GREEN_CHART.light} />
+                        <stop offset="100%" stopColor={GREEN_CHART.pale} />
+                      </linearGradient>
+                    </defs>
+                    <Pie data={severityData} cx="50%" cy="50%" innerRadius={60} outerRadius={92} dataKey="value" paddingAngle={4} cornerRadius={12} startAngle={90} endAngle={-270} stroke={"rgba(6, 78, 59, 0.9)"} strokeWidth={3}>
+                      {severityData.map((entry, idx) => <Cell key={idx} fill={idx === 0 ? "url(#signatureSeverityCritical)" : "url(#signatureSeverityOther)"} />)}
+                    </Pie>
+                    <Tooltip content={<GreenTooltip valueFormatter={(value) => `${value} sigs`} />} />
+                  </RePieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-200/70">Signature load</p>
+                  <p className="mt-2 text-3xl font-bold text-foreground">{totalSeveritySignatures}</p>
+                  <p className="text-xs text-muted-foreground">detected signatures</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {severityData.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-2 rounded-full border border-border bg-background/30 px-3 py-1.5 text-[11px] text-slate-200">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                    <span>{entry.name}</span>
+                    <span className="font-semibold text-emerald-100">{entry.value}</span>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
 
-            <div className="mt-4 border-t border-border pt-4 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">AI Level</p>
-                <p className="text-foreground font-semibold mt-1">{aiThreat.aiThreatLevel}</p>
+            {/* API Categories Bar Chart */}
+            <div className="rounded-3xl border border-border bg-card/80 p-5">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-semibold text-foreground">Top API Categories</h3>
+                </div>
+                <span className="text-[10px] uppercase tracking-[0.16em] text-emerald-300/80">Behavior focus</span>
               </div>
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Confidence</p>
-                <p className="text-foreground font-semibold mt-1">{aiThreat.confidence.toFixed(1)}%</p>
+              {apiCategoryData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={apiCategoryData} layout="vertical" margin={{ top: 4, right: 18, left: 6, bottom: 4 }} barCategoryGap={16}>
+                    <defs>
+                      <linearGradient id="apiCategoryBar" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor={GREEN_CHART.darkest} />
+                        <stop offset="45%" stopColor={GREEN_CHART.dark} />
+                        <stop offset="100%" stopColor={GREEN_CHART.light} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 4" stroke={GREEN_CHART.grid} horizontal={false} />
+                    <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#a7f3d0" }} />
+                    <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#d1fae5" }} width={84} />
+                    <Tooltip content={<GreenTooltip valueFormatter={(value) => `${value} calls`} />} />
+                    <Bar dataKey="count" fill="url(#apiCategoryBar)" radius={[0, 12, 12, 0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[240px] text-muted-foreground">No API call data</div>
+              )}
+              {apiCategoryData.length > 0 && (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {apiCategoryData.slice(0, 4).map((item) => (
+                    <div key={item.name} className="rounded-2xl border border-border bg-background/30 px-3 py-2">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-emerald-200/60">{item.name}</p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">{item.count}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Row 2: Behavioral Activity Chart (Enhanced) */}
+          <div className="rounded-3xl border border-border bg-card/80 p-5">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-semibold text-foreground">Behavioral Activity Distribution</h3>
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.16em] text-emerald-300/80">Normalized trend</span>
+            </div>
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={behavioralData}>
+                <defs>
+                  <linearGradient id="behavioralGreen" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={GREEN_CHART.light} stopOpacity={0.72} />
+                    <stop offset="95%" stopColor={GREEN_CHART.darkest} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="4 4" stroke={GREEN_CHART.grid} vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#d1fae5" }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#a7f3d0" }} tickLine={false} axisLine={false} width={34} />
+                <Tooltip content={<GreenTooltip valueFormatter={(value, _name, payload) => `${payload?.fullValue ?? value} events`} />} />
+                <Area type="monotone" dataKey="value" stroke={GREEN_CHART.base} strokeWidth={2.5} fillOpacity={1} fill="url(#behavioralGreen)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: GREEN_CHART.pale }} />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-3 mt-4 text-center">
+              <div className="rounded-2xl border border-border bg-background/30 p-3"><p className="text-[10px] uppercase tracking-[0.18em] text-emerald-200/70">Registry</p><p className="mt-2 text-lg font-bold text-foreground">{capeMetrics.registryKeys}</p></div>
+              <div className="rounded-2xl border border-border bg-background/30 p-3"><p className="text-[10px] uppercase tracking-[0.18em] text-emerald-200/70">Write Files</p><p className="mt-2 text-lg font-bold text-foreground">{capeMetrics.writeFiles}</p></div>
+              <div className="rounded-2xl border border-border bg-background/30 p-3"><p className="text-[10px] uppercase tracking-[0.18em] text-emerald-200/70">Commands</p><p className="mt-2 text-lg font-bold text-foreground">{capeMetrics.executedCommands.length}</p></div>
+            </div>
+          </div>
+
+          {/* Row 3: Executed Commands */}
+          {capeMetrics.executedCommands.length > 0 && (
+            <ExpandableSection title="Executed Commands" items={capeMetrics.executedCommands} initialCount={4} renderItem={(cmd, idx) => (
+              <div key={idx} className="rounded-xl bg-muted/10 border border-border p-3">
+                <code className="text-[11px] font-mono text-foreground break-all">{cmd}</code>
+              </div>
+            )} />
+          )}
+
+          {/* Row 4: Mutexes */}
+          {capeMetrics.mutexes.length > 0 && (
+            <ExpandableSection title="Mutexes" items={capeMetrics.mutexes} initialCount={5} renderItem={(mutex, idx) => (
+              <div key={idx} className="text-xs text-primary font-mono break-all py-1 border-b border-border/50 last:border-0">{mutex}</div>
+            )} />
+          )}
+
+          {/* Row 5: Detected Families & Capabilities */}
+          {parsedMetrics.detectedFamilies.length > 0 && (
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <h3 className="text-sm font-semibold text-foreground">Detected Malware Families</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {parsedMetrics.detectedFamilies.map((family: string, idx: number) => (
+                  <span key={idx} className="px-3 py-1.5 rounded-full border border-red-500/20 bg-red-500/10 text-red-300 text-xs font-medium shadow-sm">{family}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Capabilities */}
+          {(parsedMetrics.hasPersistence || parsedMetrics.hasInjection || parsedMetrics.hasAntiVm) && (
+            <div className="rounded-3xl border border-border bg-card/80 p-5">
+              <div className="flex items-center gap-2 mb-5">
+                <Zap className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Detected Capabilities</h3>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {parsedMetrics.hasPersistence && <span className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2"><Lock className="w-3 h-3" />Persistence</span>}
+                {parsedMetrics.hasInjection && <span className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2"><Activity className="w-3 h-3" />Process Injection</span>}
+                {parsedMetrics.hasAntiVm && <span className="px-3 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs flex items-center gap-2"><Shield className="w-3 h-3" />Anti-VM</span>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT PANE - AI & Identity (Unchanged) */}
+        <div className="space-y-6">
+          {/* AI Synthesis */}
+          <div className="rounded-3xl border border-border bg-card/80 p-5">
+            <div className="flex items-center gap-2 mb-5">
+              <Brain className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">AI Synthesis</h3>
+            </div>
+            {aiInsights.summary ? (
+              <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4 overflow-hidden">
+                <div className={`relative transition-all duration-500 ${expandedInsights ? "max-h-[1200px]" : "max-h-[180px]"} overflow-hidden`}>
+                  <p className="text-sm leading-7 text-slate-200 whitespace-pre-wrap break-words">{aiInsights.summary}</p>
+                  {!expandedInsights && <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card to-transparent" />}
+                </div>
+                {aiInsights.summary.length > 300 && (
+                  <button onClick={() => setExpandedInsights(!expandedInsights)} className="mt-4 text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-2">
+                    {expandedInsights ? <><ChevronUp className="w-3 h-3" />Show less</> : <><ChevronDown className="w-3 h-3" />Read full synthesis</>}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No AI insights available.</p>
+            )}
+            {aiInsights.detectedFamilies.length > 0 && (
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-3">AI Confirmed Families</p>
+                <div className="flex flex-wrap gap-2">
+                  {aiInsights.detectedFamilies.map((family: string, idx: number) => (
+                    <span key={idx} className="px-3 py-1 rounded-full border border-red-500/20 bg-red-500/10 text-red-300 text-xs font-medium shadow-sm">{family}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3 mt-5">
+              <div className="rounded-2xl border border-border bg-background/30 p-4">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Confidence</p>
+                <p className="mt-2 text-2xl font-bold text-foreground">{aiThreat.confidencePercent}%</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-background/30 p-4">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">AI Verdict</p>
+                <p className="mt-2 text-xl font-bold text-foreground">{aiThreat.aiThreatLevel}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">Report Identity</h3>
+          {/* Threat Intel */}
+          <div className="rounded-3xl border border-border bg-card/80 p-5">
+            <div className="flex items-center gap-2 mb-5">
+              <Radar className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">Threat Intelligence</h3>
             </div>
-
-            <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Filename</p>
-                <p className="text-foreground mt-1 break-all">{fileHashes?.filename || combinedAnalysis?.filename || "Unknown"}</p>
-              </div>
-
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Analysis Date</p>
-                <p className="text-foreground mt-1">{formatDate(combinedAnalysis?.created_at || capeData?.info?.started)}</p>
-              </div>
-
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Engine</p>
-                <p className="text-foreground mt-1">{capeData?.info?.version || "CAPE"}</p>
-              </div>
-
-              <div className="rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Run Duration</p>
-                <p className="text-foreground mt-1">{capeMetrics.duration ? `${capeMetrics.duration}s` : "Unknown"}</p>
-              </div>
+            <div className="space-y-5">
+              {aiInsights.persistenceMechanisms.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Persistence</p>
+                  <div className="space-y-2">
+                    {aiInsights.persistenceMechanisms.slice(0, 3).map((item: string, idx: number) => (
+                      <div key={idx} className="rounded-xl border border-amber-500/10 bg-amber-500/5 px-3 py-2 text-xs leading-6 text-slate-300">{item}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {aiInsights.defenseEvasion.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Defense Evasion</p>
+                  <div className="space-y-2">
+                    {aiInsights.defenseEvasion.slice(0, 3).map((item: string, idx: number) => (
+                      <div key={idx} className="rounded-xl border border-red-500/10 bg-red-500/5 px-3 py-2 text-xs leading-6 text-slate-300">{item}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
 
-            {(fileHashes?.sha256 || capeData?.target?.file?.sha256) && (
-              <div className="mt-4 rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">SHA256</p>
-                <code className="text-xs text-primary block mt-1 break-all">
-                  {fileHashes?.sha256 || capeData?.target?.file?.sha256}
-                </code>
+          {/* File Identity */}
+          <div className="rounded-3xl border border-border bg-card/80 p-5">
+            <div className="flex items-center gap-2 mb-5">
+              <Fingerprint className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">File Identity</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Filename</p>
+                <p className="text-sm font-medium text-foreground break-all">{fileName}</p>
               </div>
-            )}
+              {capeMetrics.fileType && (
+                <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">File Type</p>
+                  <p className="text-xs leading-6 text-slate-300 break-words">{truncate(capeMetrics.fileType, 100)}</p>
+                </div>
+              )}
+              <div className="rounded-2xl border border-border/60 bg-background/40 p-4">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Analysis Date</p>
+                <p className="text-sm text-foreground">{formatDate(capeData?.info?.started)}</p>
+              </div>
+              {sha256 && (
+                <div className="rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">SHA256</p>
+                  <code className="block text-[11px] leading-6 break-all text-primary font-mono">{sha256}</code>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Activity Summary */}
+          <div className="rounded-3xl border border-border bg-card/80 p-5">
+            <div className="flex items-center gap-2 mb-5">
+              <Database className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">Activity Summary</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Registry Keys", value: capeMetrics.registryKeys },
+                { label: "Write Files", value: capeMetrics.writeFiles },
+                { label: "Delete Files", value: capeMetrics.deleteFiles },
+                { label: "Critical Sigs", value: parsedMetrics.criticalSignatures },
+                { label: "Mutexes", value: capeMetrics.mutexes.length },
+                { label: "Commands", value: capeMetrics.executedCommands.length },
+              ].map((item, idx) => (
+                <div key={idx} className="rounded-2xl border border-border bg-background/30 p-4">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{item.label}</p>
+                  <p className="mt-3 text-3xl font-bold text-foreground">{item.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

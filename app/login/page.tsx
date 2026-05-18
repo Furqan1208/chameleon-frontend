@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { AlertTriangle, ArrowLeft, Lock, ShieldCheck, Sparkles, Zap } from "lucide-react"
 import { apiService } from "@/services/api/api.service"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 
 const sora = Sora({ subsets: ["latin"], variable: "--font-sora" })
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
@@ -23,6 +24,11 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [googleReady, setGoogleReady] = useState(false)
+  const [authMode, setAuthMode] = useState<"google" | "credentials">("google")
+  const [formData, setFormData] = useState({ username: "", password: "" })
+  const [pendingMfaToken, setPendingMfaToken] = useState<string | null>(null)
+  const [mfaCode, setMfaCode] = useState("")
+  const [pendingMfaUserLabel, setPendingMfaUserLabel] = useState<string | null>(null)
   const googleBtnRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,8 +54,17 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      await apiService.googleAuth(response.credential)
-      const me = await apiService.getMe()
+      const result = await apiService.googleAuth(response.credential)
+
+      if (result?.mfa_required && result?.mfa_token) {
+        setPendingMfaToken(result.mfa_token)
+        setPendingMfaUserLabel(result?.user?.email || result?.user?.username || null)
+        setMfaCode("")
+        setIsLoading(false)
+        return
+      }
+
+      const me = result?.user || (await apiService.getMe())
 
       if (typeof window !== "undefined") {
         localStorage.setItem("user", JSON.stringify(me))
@@ -64,6 +79,77 @@ export default function LoginPage() {
       setError(authError?.message || "Authentication failed. Please try again.")
       setIsLoading(false)
     }
+  }
+
+  const handleCredentialsLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const result = await apiService.login(formData.username, formData.password)
+
+      if (result?.mfa_required && result?.mfa_token) {
+        setPendingMfaToken(result.mfa_token)
+        setPendingMfaUserLabel(result?.user?.email || result?.user?.username || formData.username)
+        setMfaCode("")
+        setIsLoading(false)
+        return
+      }
+
+      const me = result?.user || (await apiService.getMe())
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(me))
+      }
+
+      if (me?.onboarding_completed) {
+        router.push("/dashboard")
+      } else {
+        router.push("/onboarding")
+      }
+    } catch (authError: any) {
+      setError(authError?.message || "Login failed. Please try again.")
+      setIsLoading(false)
+    }
+  }
+
+  const handleMfaVerification = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!pendingMfaToken || mfaCode.length !== 6) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const result = await apiService.verifyMfa(pendingMfaToken, mfaCode)
+      const me = result?.user || (await apiService.getMe())
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(me))
+      }
+
+      setPendingMfaToken(null)
+      setPendingMfaUserLabel(null)
+      setMfaCode("")
+
+      if (me?.onboarding_completed) {
+        router.push("/dashboard")
+      } else {
+        router.push("/onboarding")
+      }
+    } catch (authError: any) {
+      setError(authError?.message || "Invalid authentication code. Please try again.")
+      setIsLoading(false)
+    }
+  }
+
+  const cancelMfaChallenge = () => {
+    setPendingMfaToken(null)
+    setPendingMfaUserLabel(null)
+    setMfaCode("")
+    setError(null)
   }
 
   useEffect(() => {
@@ -82,7 +168,7 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-    if (!googleReady || !googleBtnRef.current) {
+    if (!googleReady || !googleBtnRef.current || authMode !== "google") {
       return
     }
 
@@ -108,7 +194,7 @@ export default function LoginPage() {
       logo_alignment: "left",
       width: googleBtnRef.current.offsetWidth || 360,
     })
-  }, [googleReady])
+  }, [googleReady, authMode])
 
   return (
     <div className={`${sora.variable} ${inter.variable} ${jetbrainsMono.variable} relative min-h-screen overflow-hidden bg-background text-foreground`}>
@@ -182,45 +268,175 @@ export default function LoginPage() {
               <p className="mt-2 font-[var(--font-inter)] text-sm text-muted-foreground">Authenticate to launch the analyst command surface.</p>
             </div>
 
-            <div className="rounded-xl border border-border bg-card/50 p-4">
-              {!googleReady && (
-                <div className="flex h-12 items-center justify-center gap-3 rounded-lg border border-border bg-black/50">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/35 border-t-primary" />
-                  <p className="font-[var(--font-inter)] text-sm text-muted-foreground">Initializing secure auth...</p>
-                </div>
-              )}
-
-              <div
-                ref={googleBtnRef}
-                className={`w-full transition-opacity duration-300 ${googleReady ? "opacity-100" : "h-0 overflow-hidden opacity-0"}`}
-              />
-
-              {isLoading && (
-                <div className="mt-4 flex items-center gap-2 font-[var(--font-inter)] text-sm text-muted-foreground">
-                  <Zap className="h-4 w-4 animate-pulse text-primary" />
-                  Verifying identity and provisioning session...
-                </div>
-              )}
-
-              {error && (
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-500/35 bg-red-500/10 p-3">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-                  <p className="font-[var(--font-inter)] text-sm text-red-300">{error}</p>
-                </div>
-              )}
+            {/* Auth Mode Selector */}
+            <div className="mb-6 flex gap-2 rounded-lg border border-border bg-card/30 p-1">
+              <button
+                onClick={() => setAuthMode("google")}
+                className={`flex-1 rounded px-3 py-2 font-[var(--font-inter)] text-sm transition-colors ${
+                  authMode === "google"
+                    ? "bg-primary/20 text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Google
+              </button>
+              <button
+                onClick={() => setAuthMode("credentials")}
+                className={`flex-1 rounded px-3 py-2 font-[var(--font-inter)] text-sm transition-colors ${
+                  authMode === "credentials"
+                    ? "bg-primary/20 text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Username
+              </button>
             </div>
+
+            {pendingMfaToken ? (
+              <form onSubmit={handleMfaVerification} className="space-y-5 rounded-xl border border-border bg-card/50 p-4">
+                <div className="min-w-0">
+                  <p className="font-[var(--font-inter)] text-sm font-medium text-foreground">
+                    Enter authentication code
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {pendingMfaUserLabel
+                      ? `Use the six-digit code from your authenticator app for ${pendingMfaUserLabel}.`
+                      : "Use the six-digit code from your authenticator app."}
+                  </p>
+                </div>
+
+                <div className="overflow-x-hidden pb-1">
+                  <InputOTP value={mfaCode} onChange={setMfaCode} maxLength={6}>
+                    <InputOTPGroup className="gap-1.5 sm:gap-2">
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || mfaCode.length !== 6}
+                  className="w-full rounded-lg bg-primary px-4 py-2 font-[var(--font-inter)] text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  {isLoading ? "Verifying..." : "Verify Code"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={cancelMfaChallenge}
+                  className="w-full rounded-lg border border-border bg-black/30 px-4 py-2 font-[var(--font-inter)] text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Back to sign in
+                </button>
+
+                {error && (
+                  <div className="flex items-start gap-2 rounded-lg border border-red-500/35 bg-red-500/10 p-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                    <p className="font-[var(--font-inter)] text-sm text-red-300">{error}</p>
+                  </div>
+                )}
+              </form>
+            ) : authMode === "google" && (
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                {!googleReady && (
+                  <div className="flex h-12 items-center justify-center gap-3 rounded-lg border border-border bg-black/50">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/35 border-t-primary" />
+                    <p className="font-[var(--font-inter)] text-sm text-muted-foreground">Initializing secure auth...</p>
+                  </div>
+                )}
+
+                <div
+                  ref={googleBtnRef}
+                  className={`w-full transition-opacity duration-300 ${googleReady ? "opacity-100" : "h-0 overflow-hidden opacity-0"}`}
+                />
+
+                {isLoading && (
+                  <div className="mt-4 flex items-center gap-2 font-[var(--font-inter)] text-sm text-muted-foreground">
+                    <Zap className="h-4 w-4 animate-pulse text-primary" />
+                    Verifying identity and provisioning session...
+                  </div>
+                )}
+
+                {error && (
+                  <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-500/35 bg-red-500/10 p-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                    <p className="font-[var(--font-inter)] text-sm text-red-300">{error}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Credentials Auth */}
+            {!pendingMfaToken && authMode === "credentials" && (
+              <form onSubmit={handleCredentialsLogin} className="space-y-4">
+                <div>
+                  <label className="block font-[var(--font-inter)] text-xs text-muted-foreground mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    disabled={isLoading}
+                    className="w-full rounded-lg border border-border bg-black/50 px-3 py-2 font-[var(--font-inter)] text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                    placeholder="Enter your username"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-[var(--font-inter)] text-xs text-muted-foreground mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    disabled={isLoading}
+                    className="w-full rounded-lg border border-border bg-black/50 px-3 py-2 font-[var(--font-inter)] text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none disabled:opacity-50"
+                    placeholder="Enter your password"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || !formData.username || !formData.password}
+                  className="w-full rounded-lg bg-primary px-4 py-2 font-[var(--font-inter)] text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-black/35 border-t-black" />
+                      Signing in...
+                    </span>
+                  ) : (
+                    "Sign In"
+                  )}
+                </button>
+
+                {error && (
+                  <div className="flex items-start gap-2 rounded-lg border border-red-500/35 bg-red-500/10 p-3">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                    <p className="font-[var(--font-inter)] text-sm text-red-300">{error}</p>
+                  </div>
+                )}
+              </form>
+            )}
 
             <div className="mt-5 rounded-xl border border-primary/25 bg-primary/8 p-4">
               <div className="flex items-start gap-3">
                 <Lock className="mt-0.5 h-4 w-4 text-primary" />
                 <p className="font-[var(--font-inter)] text-xs text-muted-foreground">
-                  Credentials are never stored in Chameleon. Authentication is handled through Google OAuth 2.0 with secure token exchange.
+                  Passwords are encrypted with bcrypt. Authentication tokens are managed securely and expire after use.
                 </p>
               </div>
             </div>
 
             <div className="mt-5 grid grid-cols-3 gap-2">
-              {["Auth Encrypted", "Zero Password Storage", "SOC Ready"].map((item) => (
+              {["Auth Encrypted", "Zero Plaintext Storage", "SOC Ready"].map((item) => (
                 <div key={item} className="rounded-lg border border-border bg-card/50 p-2 text-center">
                   <div className="mx-auto h-1.5 w-1.5 rounded-full bg-primary" />
                   <p className="mt-2 font-[var(--font-jetbrains-mono)] text-[10px] text-muted-foreground">{item}</p>
@@ -229,7 +445,13 @@ export default function LoginPage() {
             </div>
 
             <p className="mt-6 text-center font-[var(--font-inter)] text-xs text-muted-foreground">
-              By signing in, you agree to the platform Terms and Privacy Policy.
+              Don't have an account?{" "}
+              <button
+                onClick={() => router.push("/signup")}
+                className="text-primary hover:underline"
+              >
+                Sign up here
+              </button>
             </p>
           </motion.div>
         </section>

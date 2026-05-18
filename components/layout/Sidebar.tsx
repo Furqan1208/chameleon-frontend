@@ -510,9 +510,9 @@ export function Sidebar() {
   // Don't render sidebar until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <div className="border-r border-border flex flex-col w-16 md:w-64 h-screen z-40 bg-card">
+      <div className="flex h-screen w-16 flex-col border-r border-border/70 bg-[#131313] z-40 md:w-64">
         <div className="border-b border-border/50 p-4">
-          <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse" />
+          <div className="h-8 rounded-lg bg-white/[0.04] animate-pulse" />
         </div>
       </div>
     )
@@ -528,7 +528,7 @@ export function Sidebar() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2.5 bg-background border border-border rounded-lg md:hidden"
+          className="fixed left-4 top-4 z-50 rounded-xl border border-border bg-card/80 p-2.5 backdrop-blur-xl md:hidden"
         >
           {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
         </motion.button>
@@ -541,22 +541,22 @@ export function Sidebar() {
         animate={isCollapsed ? "collapsed" : "expanded"}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "border-r border-border flex flex-col h-screen z-40 bg-card overflow-hidden",
-          "fixed md:relative shadow-2xl md:shadow-none",
+          "flex h-screen flex-col overflow-hidden border-r border-border/70 bg-[#131313]/95 z-40 shadow-2xl shadow-black/20 backdrop-blur-xl",
+          "fixed md:relative md:shadow-none",
           "md:translate-x-0 transition-transform",
           isMobile && isCollapsed && "-translate-x-full",
           isMobile && !isCollapsed && "translate-x-0"
         )}
       >
         {/* Gradient background effect */}
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_15%_0%,rgba(0,255,136,0.08),transparent_38%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.1),transparent_36%)]" />
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] bg-[size:34px_34px]" />
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.10),transparent_35%),radial-gradient(circle_at_88%_8%,rgba(14,165,233,0.08),transparent_32%)]" />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] bg-[size:36px_36px]" />
         
         {/* Logo section */}
         <motion.div 
           className={cn(
-            "border-b border-border/50 flex items-center",
-            isCollapsed ? "p-4 justify-center" : "p-4"
+            "flex items-center border-b border-border/50",
+            isCollapsed ? "justify-center p-4" : "p-4"
           )}
         >
           {/* Clickable logo */}
@@ -565,7 +565,7 @@ export function Sidebar() {
             whileTap={{ scale: 0.98 }}
             onClick={() => router.push("/")}
             className={cn(
-              "flex items-center gap-3 transition-all duration-200 cursor-pointer",
+              "flex cursor-pointer items-center gap-3 transition-all duration-200",
               isCollapsed ? "justify-center" : ""
             )}
             title="Go to Home"
@@ -579,11 +579,11 @@ export function Sidebar() {
                 className="min-w-0"
               >
                 <div className="flex items-center gap-2">
-                  <h1 className="text-base font-semibold text-foreground tracking-tight truncate">
+                  <h1 className="truncate text-base font-semibold tracking-tight text-white">
                     Chameleon
                   </h1>
                 </div>
-                <p className="text-xs text-muted-foreground truncate">Adaptive Malware Intelligence</p>
+                <p className="truncate text-xs text-white/60">Adaptive Malware Intelligence</p>
               </motion.div>
             )}
           </motion.button>
@@ -593,14 +593,14 @@ export function Sidebar() {
         <nav className="flex-1 p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted/50 hover:scrollbar-thumb-muted">
           {!isCollapsed && (
             <button
-              className="w-full mb-3 flex items-center justify-between gap-2 rounded-xl border border-border bg-[#111111] px-3 py-2 text-xs text-muted-foreground hover:bg-[#141414] transition-colors"
+              className="mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:border-white/10 hover:bg-white/[0.05]"
               title="Quick search coming soon"
             >
               <span className="inline-flex items-center gap-2">
                 <Search className="w-3.5 h-3.5" />
                 Quick Search
               </span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-border/70 px-1.5 py-0.5 text-[10px]">
+              <span className="inline-flex items-center gap-1 rounded-md border border-white/10 px-1.5 py-0.5 text-[10px] text-white/75">
                 <Command className="w-3 h-3" />
                 K
               </span>
@@ -611,7 +611,7 @@ export function Sidebar() {
             {groupedMenuItems.map((group) => (
               <div key={group.section}>
                 {!isCollapsed && (
-                  <p className="px-2 mb-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80">
+                  <p className="mb-2 px-2 text-[10px] uppercase tracking-[0.18em] text-white/45">
                     {group.section}
                   </p>
                 )}
@@ -626,16 +626,16 @@ export function Sidebar() {
         {/* Footer section */}
         <div className="p-4 border-t border-border">
           {!isCollapsed && !isMobile && (
-            <div className="mb-3 rounded-xl border border-border bg-[#111111] p-3">
+            <div className="mb-3 rounded-xl border border-border bg-white/[0.03] p-3">
               <button
                 onClick={() => setShortcutsExpanded((prev) => !prev)}
-                className="w-full flex items-center justify-between text-xs"
+                className="flex w-full items-center justify-between text-xs"
               >
-                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <Zap className="w-3.5 h-3.5 text-primary" />
+                <span className="inline-flex items-center gap-1.5 text-white/70">
+                  <Zap className="h-3.5 w-3.5 text-emerald-400" />
                   Quick Shortcuts
                 </span>
-                <span className="text-muted-foreground inline-flex items-center gap-2">
+                <span className="inline-flex items-center gap-2 text-white/55">
                   <span className="text-[10px]">Alt+1..9</span>
                   {shortcutsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRightIcon className="w-3.5 h-3.5" />}
                 </span>
@@ -644,29 +644,29 @@ export function Sidebar() {
               {shortcutsExpanded && (
                 <div className="space-y-1.5 mt-2">
                   {quickShortcuts.map((shortcut) => {
-                  const Icon = shortcut.icon
+                    const Icon = shortcut.icon
 
-                  return (
-                    <button
-                      key={shortcut.path}
-                      onClick={() => navigateToPath(shortcut.path)}
-                      className={cn(
-                        "w-full flex items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
-                        pathname === shortcut.path
-                          ? "bg-primary/10 text-primary"
-                          : "hover:bg-white/[0.04] text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <span className="inline-flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5" />
-                        {shortcut.label}
-                      </span>
-                      <span className="rounded border border-border/70 px-1.5 py-0.5 text-[10px]">
-                        {shortcut.combo}
-                      </span>
-                    </button>
-                  )
-                })}
+                    return (
+                      <button
+                        key={shortcut.path}
+                        onClick={() => navigateToPath(shortcut.path)}
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
+                          pathname === shortcut.path
+                            ? "bg-primary/10 text-primary"
+                            : "text-white/60 hover:bg-white/[0.04] hover:text-white"
+                        )}
+                      >
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon className="h-3.5 w-3.5" />
+                          {shortcut.label}
+                        </span>
+                        <span className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
+                          {shortcut.combo}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -680,16 +680,15 @@ export function Sidebar() {
                 whileTap={{ scale: 0.95 }}
                 onClick={toggleSidebar}
                 className={cn(
-                  "p-2 rounded-lg hover:bg-white/[0.05] transition-colors flex items-center justify-center",
-                  "border border-border",
+                  "flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white/[0.03] transition-colors hover:bg-white/[0.06]",
                   isCollapsed ? "w-8 h-8" : "w-8 h-8"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {isCollapsed ? (
-                  <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <ChevronRightIcon className="w-4 h-4 text-white/65 transition-colors group-hover:text-white" />
                 ) : (
-                  <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <ChevronLeft className="w-4 h-4 text-white/65 transition-colors group-hover:text-white" />
                 )}
                 
                 {/* Tooltip */}
@@ -715,7 +714,7 @@ export function Sidebar() {
             >
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-muted/30 rounded-full">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <p className="text-xs text-muted-foreground">v2.0.0</p>
+                <p className="text-xs text-white/55">v2.0.0</p>
               </div>
             </motion.div>
           )}

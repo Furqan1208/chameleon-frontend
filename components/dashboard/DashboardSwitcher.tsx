@@ -12,6 +12,7 @@ import {
 const OPTIONS = [
   { label: "Operational Dashboard", value: "/dashboard" },
   { label: "MITRE ATT&CK Dashboard", value: "/dashboard/mitre" },
+  { label: "Admin Dashboard", value: "/dashboard/admin" },
 ]
 
 interface DashboardSwitcherProps {

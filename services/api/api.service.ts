@@ -13,6 +13,13 @@ import { unifiedThreatApi } from "./threat-intel/unified.api";
 export const apiService = {
   // ── Auth ──────────────────────────────────────────────────────────────────
   googleAuth: (idToken: string) => authApi.googleAuth(idToken),
+  register: (name: string, email: string, username: string, password: string) =>
+    authApi.register(name, email, username, password),
+  login: (username: string, password: string) => authApi.login(username, password),
+  verifyMfa: (mfaToken: string, code: string) => authApi.verifyMfa(mfaToken, code),
+  beginMfaSetup: () => authApi.beginMfaSetup(),
+  confirmMfaSetup: (code: string) => authApi.confirmMfaSetup(code),
+  disableMfa: () => authApi.disableMfa(),
   getMe: () => authApi.getMe(),
   logout: () => authApi.logout(),
   isAuthenticated: () => authApi.isAuthenticated(),
@@ -42,6 +49,17 @@ export const apiService = {
   getPreferences: () => userApi.getPreferences(),
   updatePreferences: (prefs: Parameters<typeof userApi.updatePreferences>[0]) =>
     userApi.updatePreferences(prefs),
+  changePassword: (current: string, next: string) =>
+    userApi.changePassword(current, next),
+  setPassword: (newPassword: string) =>
+    userApi.setPassword(newPassword),
+  listAllUsersAdmin: () => userApi.listAllUsersAdmin(),
+  updateUserStatus: (userId: string, isActive: boolean) =>
+    userApi.updateUserStatus(userId, isActive),
+  adminResetPassword: (userId: string, newPassword: string) =>
+    userApi.adminResetPassword(userId, newPassword),
+  getUserReports: (userId: string, limit?: number, skip?: number) =>
+    userApi.getUserReports(userId, limit, skip),
 
   // ── Threat Intel — VirusTotal ─────────────────────────────────────────────
   scanVirusTotal: (req: Parameters<typeof virusTotalApi.scan>[0]) =>

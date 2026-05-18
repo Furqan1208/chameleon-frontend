@@ -20,20 +20,48 @@ import {
   FileText as FileTextIcon
 } from "lucide-react"
 
-// Utility function to extract file hashes from parsed data
-export const extractFileHashes = (parsedData: any) => {
-  const targetData = parsedData?.sections?.target?.[0] || parsedData?.sections?.target
+// Utility function to extract file hashes from multiple analysis sources
+export const extractFileHashes = (parsedData?: any, capeData?: any, overviewData?: any, originalAnalysis?: any) => {
+  // Try multiple paths to find target data (in priority order)
+  let targetData = 
+    // Parsed data sources (highest priority)
+    parsedData?.target?.ai_summary ||          // AI summary target
+    parsedData?.sections?.target ||             // Parsed sections target
+    parsedData?.target ||                       // Direct target object
+    // Overview data sources
+    overviewData?.target?.ai_summary ||        // Overview AI summary
+    overviewData?.target ||                    // Overview target
+    overviewData?.sections?.target ||          // Overview sections target
+    // Cape data sources
+    capeData?.target?.file ||                   // CAPE file target
+    capeData?.file ||                           // CAPE file
+    capeData?.target ||                         // CAPE target
+    // Original analysis fallback
+    originalAnalysis?.target ||                 // Original target
+    originalAnalysis ||                         // Direct original
+    null
 
   if (!targetData) return null
 
+  // Extract hashes and validate they're not empty strings
+  const md5 = targetData.md5 || targetData?.file?.md5 || ""
+  const sha1 = targetData.sha1 || targetData?.file?.sha1 || ""
+  const sha256 = targetData.sha256 || targetData?.file?.sha256 || ""
+  const sha512 = targetData.sha512 || targetData?.file?.sha512 || ""
+
+  // Return null if we have no valid hashes (all empty)
+  if (!md5 && !sha1 && !sha256 && !sha512) {
+    return null
+  }
+
   return {
-    md5: targetData.md5 || "N/A",
-    sha1: targetData.sha1 || "N/A",
-    sha256: targetData.sha256 || "N/A",
-    sha512: targetData.sha512 || "N/A",
-    filename: targetData.file_name || "N/A",
-    file_size: targetData.file_size || 0,
-    file_type: targetData.file_type || "N/A",
+    md5: md5 || "N/A",
+    sha1: sha1 || "N/A",
+    sha256: sha256 || "N/A",
+    sha512: sha512 || "N/A",
+    filename: targetData.file_name || targetData.name || targetData?.filename || "N/A",
+    file_size: targetData.file_size || targetData.size || 0,
+    file_type: targetData.file_type || targetData.type || "N/A",
     file_path: targetData.file_path || "N/A"
   }
 }

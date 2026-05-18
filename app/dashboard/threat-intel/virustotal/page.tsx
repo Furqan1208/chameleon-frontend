@@ -124,14 +124,28 @@ export default function VirusTotalPage() {
 
           {/* Scanner Section */}
           <motion.div variants={itemVariants} className="rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] p-6 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/25">
-                <Search className="w-5 h-5 text-sky-300" />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/25">
+                  <Search className="w-5 h-5 text-sky-300" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Threat Scanner</h2>
+                  <p className="text-xs text-muted-foreground">Query hashes, domains, and IPs against VirusTotal's public API</p>
+                </div>
               </div>
-              <h2 className="text-lg font-semibold text-white">Threat Scanner</h2>
+
+              <a
+                href="/dashboard/integrations"
+                className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg border border-[#1a1a1a] bg-[#101214] text-slate-200 hover:text-white hover:border-[#2a2a2a] transition-colors"
+              >
+                Configure API Key
+              </a>
             </div>
 
-            <VTScanner />
+            <div className="border-t border-[#1a1a1a] pt-5">
+              <VTScanner />
+            </div>
           </motion.div>
 
           {/* Features Grid */}
