@@ -93,9 +93,34 @@ export function Header() {
     setReadNewsIds(new Set(newsItems.map((item) => item.id)))
   }
 
+  // Helper function to safely validate and return URLs
+  const getSafeUrl = (url: string | undefined): string | null => {
+    if (!url) return null
+    try {
+      const parsed = new URL(url)
+      // Only allow http and https protocols
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.href
+      }
+      return null
+    } catch {
+      // Invalid URL format
+      return null
+    }
+  }
+
+  const isSafeUrl = (url: string | undefined): boolean => {
+    return getSafeUrl(url) !== null
+  }
+
   const openNewsLink = (item: NewsItem) => {
     markOneAsRead(item.id)
-    window.open(item.link, "_blank", "noopener,noreferrer")
+    const safeUrl = getSafeUrl(item.link)
+    if (safeUrl) {
+      window.open(safeUrl, "_blank", "noopener,noreferrer")
+    } else {
+      console.warn('Invalid or unsafe URL attempted:', item.link)
+    }
   }
 
   const fetchNewsFeed = async (signal?: AbortSignal) => {
@@ -329,6 +354,7 @@ export function Header() {
 
                 {newsItems.map((item) => {
                   const isRead = readNewsIds.has(item.id)
+                  const isValidUrl = isSafeUrl(item.link)
                   return (
                     <div
                       key={item.id}
@@ -340,8 +366,13 @@ export function Header() {
                     >
                       <div className="mb-1 flex items-start justify-between gap-2">
                         <button
-                          onClick={() => openNewsLink(item)}
-                          className="line-clamp-2 text-left text-xs text-white/85 transition-colors hover:text-emerald-300"
+                          onClick={() => isValidUrl && openNewsLink(item)}
+                          disabled={!isValidUrl}
+                          className={`line-clamp-2 text-left text-xs transition-colors ${
+                            isValidUrl
+                              ? 'text-white/85 hover:text-emerald-300 cursor-pointer'
+                              : 'text-white/50 cursor-not-allowed'
+                          }`}
                         >
                           {item.title}
                         </button>
@@ -356,8 +387,14 @@ export function Header() {
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] text-white/55">{formatNewsTimeAgo(item.pubDate)}</span>
                         <button
-                          onClick={() => openNewsLink(item)}
-                          className="inline-flex items-center gap-1 text-[11px] text-emerald-400 transition-colors hover:text-emerald-300"
+                          onClick={() => isValidUrl && openNewsLink(item)}
+                          disabled={!isValidUrl}
+                          className={`inline-flex items-center gap-1 text-[11px] transition-colors ${
+                            isValidUrl
+                              ? 'text-emerald-400 hover:text-emerald-300 cursor-pointer'
+                              : 'text-white/40 cursor-not-allowed'
+                          }`}
+                          title={isValidUrl ? 'Open in new tab' : 'Invalid or unsafe URL'}
                         >
                           Open
                           <ExternalLink className="h-3 w-3" />

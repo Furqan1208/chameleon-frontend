@@ -5,8 +5,7 @@ import type { NextRequest } from "next/server";
 const AUTH_COOKIE = "access_token";
 
 // Routes that are always public (no token required)
-const PUBLIC_PATHS = ["/login", "/signup", "/", "/api/auth"];
-
+const PUBLIC_PATHS = ["/login", "/signup", "/", "/about", "/docs", "/support", "/contact", "/api/auth", "/legal/privacy", "/legal/terms", "/legal/ethical-use"];
 // Routes that only make sense when NOT authenticated
 const AUTH_ONLY_PATHS = ["/login", "/signup"];
 

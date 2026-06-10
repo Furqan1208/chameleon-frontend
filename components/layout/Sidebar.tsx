@@ -1,4 +1,4 @@
-// components/layout/Sidebar.tsx - IMPROVED VERSION
+// components/layout/Sidebar.tsx - FIXED SCROLLING VERSION
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
@@ -8,20 +8,17 @@ import {
   FileText, 
   Shield, 
   ChevronDown, 
-  Plug, 
-  Cpu,
+  Cpu, 
   Globe,
   Menu,
   X,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   Database,
-  Cpu as CpuIcon,
   Activity,
   Zap,
   Sparkles,
   ShieldCheck,
-  ShieldAlert,
   Lock,
   Fingerprint,
   Brain,
@@ -38,7 +35,6 @@ import {
   Compass,
   Box,
   Server,
-  Shield as ShieldIcon,
   Target,
   Radio,
   Satellite,
@@ -48,7 +44,7 @@ import {
   Settings
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useUiPreferences } from "@/hooks/useUiPreferences"
 import { SidebarPreferences } from "@/lib/types/preferences"
 import { Logo } from "@/components/ui/Logo"
@@ -197,8 +193,8 @@ const menuItems = [
 
 // Animation variants
 const sidebarVariants = {
-  expanded: { width: 256 },
-  collapsed: { width: 72 }
+  expanded: { width: 280 }, // Increased from 256 to give more space
+  collapsed: { width: 80 }   // Increased from 72 to prevent icon clipping
 }
 
 const menuItemVariants = {
@@ -233,6 +229,7 @@ export function Sidebar() {
   const [mounted, setMounted] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [shortcutsExpanded, setShortcutsExpanded] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Check for mobile - only on client side
   useEffect(() => {
@@ -342,6 +339,9 @@ export function Sidebar() {
       ? "bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-indigo-300"
       : "bg-gradient-to-br from-cyan-500/20 to-sky-500/20 text-cyan-300"
 
+    // Fixed padding and spacing to prevent clipping
+    const paddingLeft = isCollapsed ? "px-0" : depth > 0 ? `pl-${Math.min(depth * 4 + 3, 12)}` : "pl-3"
+    
     return (
       <motion.div
         key={item.path}
@@ -364,56 +364,44 @@ export function Sidebar() {
 
         <button
           onClick={() => {
-            if (hasSubmenu) {
-              if (!isCollapsed) {
-                toggleSubmenu(item.label)
-              } else {
-                // On collapsed, just go to the main path
-                navigateToPath(item.path)
-              }
+            if (hasSubmenu && !isCollapsed) {
+              toggleSubmenu(item.label)
             } else {
               navigateToPath(item.path)
             }
           }}
           className={cn(
-            "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
+            "w-full flex items-center gap-3 py-2.5 rounded-xl transition-all duration-200 group relative overflow-visible",
+            isCollapsed ? "justify-center px-2" : "px-3",
             isItemActive
               ? "bg-gradient-to-r from-primary/18 via-primary/10 to-transparent text-primary border border-primary/25 shadow-[0_0_0_1px_rgba(0,255,136,0.06),0_10px_30px_rgba(0,255,136,0.09)]"
               : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] border border-transparent hover:border-border",
-            depth > 0 && "ml-3",
-            isCollapsed && "justify-center px-2"
+            paddingLeft
           )}
           title={isCollapsed ? item.label : undefined}
         >
-          {/* Hover tint */}
-          {isHovered && !isItemActive && (
-            <div className="absolute inset-0 bg-white/[0.02] rounded-xl" />
-          )}
-
-          <div className="flex items-center gap-3 min-w-0 relative z-10">
+          {/* Icon with proper sizing and no clipping */}
+          <div className={cn(
+            "flex-shrink-0 transition-all duration-200",
+            isCollapsed ? "w-10 flex justify-center" : ""
+          )}>
             <div className={cn(
-              "relative",
-              isCollapsed ? "flex-shrink-0" : "flex-shrink-0"
+              "p-1.5 rounded-lg transition-all duration-200 group-hover:scale-110",
+              iconTone
             )}>
-              {/* Icon with gradient background */}
-              <div className={cn(
-                "p-1.5 rounded-lg transition-all duration-200 group-hover:scale-110",
-                iconTone
-              )}>
-                <Icon className="w-5 h-5" />
-              </div>
-              
-
+              <Icon className="w-5 h-5 min-w-[20px] min-h-[20px]" />
             </div>
-            
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
+          </div>
+          
+          {!isCollapsed && (
+            <>
+              <div className="flex-1 min-w-0 text-left">
                 <div className="flex items-center gap-2">
                   <span className="font-medium truncate text-sm">{item.label}</span>
                   
                   {/* Badge for new items */}
                   {item.badge && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-primary/30 text-primary">
+                    <span className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-primary/30 text-primary flex-shrink-0">
                       {item.badge}
                     </span>
                   )}
@@ -426,17 +414,17 @@ export function Sidebar() {
                   </p>
                 )}
               </div>
-            )}
-          </div>
-          
-          {hasSubmenu && !isCollapsed && (
-            <motion.div
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="relative z-10"
-            >
-              <ChevronDown className="w-4 h-4 flex-shrink-0" />
-            </motion.div>
+              
+              {hasSubmenu && (
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-shrink-0"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </motion.div>
+              )}
+            </>
           )}
         </button>
 
@@ -448,7 +436,7 @@ export function Sidebar() {
               animate={{ opacity: 1, height: "auto", y: 0 }}
               exit={{ opacity: 0, height: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="mt-1 space-y-1 overflow-hidden"
+              className="mt-1 space-y-1 overflow-hidden ml-6"
             >
               {item.submenu.map((subItem: any) => (
                 <motion.div
@@ -480,8 +468,8 @@ export function Sidebar() {
   // Filter menu items based on sidebar preferences
   const filteredMenuItems = menuItems.filter((item) => {
     const prefKey = preferenceMap[item.label]
-    if (!prefKey) return true // Items without a preference key are always shown
-    return uiPreferences.sidebar?.[prefKey] ?? true // Default to true if not set
+    if (!prefKey) return true
+    return uiPreferences.sidebar?.[prefKey] ?? true
   })
 
   const groupedMenuItems = sectionOrder
@@ -494,8 +482,8 @@ export function Sidebar() {
   // Create filtered quick shortcuts based on preferences
   const filteredQuickShortcutRoutes = quickShortcutRoutes.filter((item) => {
     const prefKey = preferenceMap[item.label]
-    if (!prefKey) return true // Items without a preference key are always shown
-    return uiPreferences.sidebar?.[prefKey] ?? true // Default to true if not set
+    if (!prefKey) return true
+    return uiPreferences.sidebar?.[prefKey] ?? true
   })
 
   const quickShortcuts = filteredQuickShortcutRoutes.map((item, idx) => {
@@ -510,7 +498,7 @@ export function Sidebar() {
   // Don't render sidebar until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
-      <div className="flex h-screen w-16 flex-col border-r border-border/70 bg-[#131313] z-40 md:w-64">
+      <div className="flex h-screen w-20 flex-col border-r border-border/70 bg-[#131313] z-40 md:w-72">
         <div className="border-b border-border/50 p-4">
           <div className="h-8 rounded-lg bg-white/[0.04] animate-pulse" />
         </div>
@@ -540,6 +528,7 @@ export function Sidebar() {
         initial="expanded"
         animate={isCollapsed ? "collapsed" : "expanded"}
         transition={{ duration: 0.3, ease: "easeInOut" }}
+        style={{ width: isCollapsed ? 80 : 280 }}
         className={cn(
           "flex h-screen flex-col overflow-hidden border-r border-border/70 bg-[#131313]/95 z-40 shadow-2xl shadow-black/20 backdrop-blur-xl",
           "fixed md:relative md:shadow-none",
@@ -548,18 +537,15 @@ export function Sidebar() {
           isMobile && !isCollapsed && "translate-x-0"
         )}
       >
-        {/* Gradient background effect */}
+        {/* Gradient background effect - fixed positioning */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.10),transparent_35%),radial-gradient(circle_at_88%_8%,rgba(14,165,233,0.08),transparent_32%)]" />
         <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[linear-gradient(rgba(255,255,255,0.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.8)_1px,transparent_1px)] bg-[size:36px_36px]" />
         
-        {/* Logo section */}
-        <motion.div 
-          className={cn(
-            "flex items-center border-b border-border/50",
-            isCollapsed ? "justify-center p-4" : "p-4"
-          )}
-        >
-          {/* Clickable logo */}
+        {/* Logo section - fixed height, no overflow */}
+        <div className={cn(
+          "flex items-center border-b border-border/50 flex-shrink-0",
+          isCollapsed ? "justify-center p-4" : "p-4"
+        )}>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -587,44 +573,53 @@ export function Sidebar() {
               </motion.div>
             )}
           </motion.button>
-        </motion.div>
+        </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted/50 hover:scrollbar-thumb-muted">
-          {!isCollapsed && (
-            <button
-              className="mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:border-white/10 hover:bg-white/[0.05]"
-              title="Quick search coming soon"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Search className="w-3.5 h-3.5" />
-                Quick Search
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-md border border-white/10 px-1.5 py-0.5 text-[10px] text-white/75">
-                <Command className="w-3 h-3" />
-                K
-              </span>
-            </button>
-          )}
+        {/* Navigation - FIXED SCROLLING */}
+        <nav className="flex-1 min-h-0 flex flex-col">
+          <div 
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20"
+            style={{ 
+              scrollbarWidth: 'thin',
+              overscrollBehavior: 'contain'
+            }}
+          >
+            {!isCollapsed && (
+              <button
+                className="mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-white/[0.03] px-3 py-2 text-xs text-white/70 transition-colors hover:border-white/10 hover:bg-white/[0.05] flex-shrink-0"
+                title="Quick search coming soon"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Search className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate">Quick Search</span>
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md border border-white/10 px-1.5 py-0.5 text-[10px] text-white/75 flex-shrink-0">
+                  <Command className="w-3 h-3" />
+                  K
+                </span>
+              </button>
+            )}
 
-          <div className="space-y-4">
-            {groupedMenuItems.map((group) => (
-              <div key={group.section}>
-                {!isCollapsed && (
-                  <p className="mb-2 px-2 text-[10px] uppercase tracking-[0.18em] text-white/45">
-                    {group.section}
-                  </p>
-                )}
-                <div className="space-y-1">
-                  {group.items.map((item) => renderMenuItem(item))}
+            <div className="space-y-4">
+              {groupedMenuItems.map((group) => (
+                <div key={group.section} className="flex-shrink-0">
+                  {!isCollapsed && (
+                    <p className="mb-2 px-2 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                      {group.section}
+                    </p>
+                  )}
+                  <div className="space-y-1">
+                    {group.items.map((item) => renderMenuItem(item))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </nav>
 
-        {/* Footer section */}
-        <div className="p-4 border-t border-border">
+        {/* Footer section - fixed at bottom, no overflow */}
+        <div className="flex-shrink-0 p-4 border-t border-border">
           {!isCollapsed && !isMobile && (
             <div className="mb-3 rounded-xl border border-border bg-white/[0.03] p-3">
               <button
@@ -632,74 +627,71 @@ export function Sidebar() {
                 className="flex w-full items-center justify-between text-xs"
               >
                 <span className="inline-flex items-center gap-1.5 text-white/70">
-                  <Zap className="h-3.5 w-3.5 text-emerald-400" />
-                  Quick Shortcuts
+                  <Zap className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
+                  <span>Quick Shortcuts</span>
                 </span>
-                <span className="inline-flex items-center gap-2 text-white/55">
+                <span className="inline-flex items-center gap-2 text-white/55 flex-shrink-0">
                   <span className="text-[10px]">Alt+1..9</span>
                   {shortcutsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRightIcon className="w-3.5 h-3.5" />}
                 </span>
               </button>
 
-              {shortcutsExpanded && (
-                <div className="space-y-1.5 mt-2">
-                  {quickShortcuts.map((shortcut) => {
-                    const Icon = shortcut.icon
+              <AnimatePresence>
+                {shortcutsExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-1.5 mt-2 overflow-hidden"
+                  >
+                    {quickShortcuts.map((shortcut) => {
+                      const Icon = shortcut.icon
 
-                    return (
-                      <button
-                        key={shortcut.path}
-                        onClick={() => navigateToPath(shortcut.path)}
-                        className={cn(
-                          "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
-                          pathname === shortcut.path
-                            ? "bg-primary/10 text-primary"
-                            : "text-white/60 hover:bg-white/[0.04] hover:text-white"
-                        )}
-                      >
-                        <span className="inline-flex items-center gap-1.5">
-                          <Icon className="h-3.5 w-3.5" />
-                          {shortcut.label}
-                        </span>
-                        <span className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
-                          {shortcut.combo}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+                      return (
+                        <button
+                          key={shortcut.path}
+                          onClick={() => navigateToPath(shortcut.path)}
+                          className={cn(
+                            "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
+                            pathname === shortcut.path
+                              ? "bg-primary/10 text-primary"
+                              : "text-white/60 hover:bg-white/[0.04] hover:text-white"
+                          )}
+                        >
+                          <span className="inline-flex items-center gap-1.5 min-w-0">
+                            <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="truncate">{shortcut.label}</span>
+                          </span>
+                          <span className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-white/70 flex-shrink-0 ml-2">
+                            {shortcut.combo}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
           
           {/* Desktop toggle button */}
           {!isMobile && (
-            <div className="flex justify-end relative z-10">
+            <div className="flex justify-end">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={toggleSidebar}
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white/[0.03] transition-colors hover:bg-white/[0.06]",
-                  isCollapsed ? "w-8 h-8" : "w-8 h-8"
+                  "flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white/[0.03] transition-colors hover:bg-white/[0.06] flex-shrink-0",
+                  isCollapsed ? "w-full" : "w-8"
                 )}
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {isCollapsed ? (
-                  <ChevronRightIcon className="w-4 h-4 text-white/65 transition-colors group-hover:text-white" />
+                  <ChevronRightIcon className="w-4 h-4 text-white/65" />
                 ) : (
-                  <ChevronLeft className="w-4 h-4 text-white/65 transition-colors group-hover:text-white" />
-                )}
-                
-                {/* Tooltip */}
-                {isCollapsed && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    whileHover={{ opacity: 1, x: 0 }}
-                    className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-foreground text-background text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg"
-                  >
-                    {isCollapsed ? "Expand" : "Collapse"}
-                  </motion.div>
+                  <ChevronLeft className="w-4 h-4 text-white/65" />
                 )}
               </motion.button>
             </div>
@@ -710,7 +702,7 @@ export function Sidebar() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-4 text-center relative z-10"
+              className="mt-4 text-center"
             >
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-muted/30 rounded-full">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
@@ -724,7 +716,7 @@ export function Sidebar() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-4 text-center relative z-10"
+              className="mt-4 text-center"
             >
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse mx-auto" />
             </motion.div>

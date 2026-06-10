@@ -48,6 +48,16 @@ function timeAgo(input: string) {
   return `${days}d ago`
 }
 
+function isSafeUrl(url: string | undefined): boolean {
+  if (!url) return false
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 async function getCyberNews(signal?: AbortSignal): Promise<RssItem[]> {
   const response = await fetch(FEED_URL, {
     signal,
@@ -127,8 +137,16 @@ export function APTThreatGlobe() {
       .join("     •     ")
   }, [state.items])
 
+  // Format update time safely
+  const getUpdatedText = () => {
+    if (state.updatedAt) {
+      return `Updated ${timeAgo(state.updatedAt.toISOString())}`
+    }
+    return "Waiting for first sync"
+  }
+
   return (
-    <div className="relative h-[24rem] w-full max-w-full overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-[#06120f] via-[#071018] to-[#101523]">
+    <div className="relative h-[32rem] w-full max-w-full overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-[#06120f] via-[#071018] to-[#101523]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,255,136,0.12),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(0,174,239,0.12),transparent_34%)]" />
       <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(rgba(0,255,136,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.08) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
       <motion.div
@@ -153,7 +171,7 @@ export function APTThreatGlobe() {
               <span className="font-[var(--font-jetbrains-mono)] text-[10px] uppercase tracking-[0.14em] text-primary">Live</span>
             </div>
             <p className="mt-2 font-[var(--font-jetbrains-mono)] text-[10px] text-muted-foreground">
-              {state.updatedAt ? `Updated ${timeAgo(state.updatedAt.toISOString())}` : "Waiting for first sync"}
+              {getUpdatedText()}
             </p>
           </div>
         </div>
@@ -169,8 +187,8 @@ export function APTThreatGlobe() {
           <div className="h-4" />
         </div>
 
-        <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-          {(state.items.length ? state.items : Array.from({ length: 6 }, (_, idx) => ({
+        <div className="mt-3 h-[280px] space-y-2 overflow-y-auto pr-1">
+          {(state.items.length ? state.items : Array.from({ length: 8 }, (_, idx) => ({
             title: `Loading intelligence item ${idx + 1}`,
             pubDate: new Date().toISOString(),
             link: "#",
@@ -180,7 +198,7 @@ export function APTThreatGlobe() {
             return (
               <a
                 key={`${item.title}-${idx}`}
-                href={item.link}
+                href={isSafeUrl(item.link) ? item.link : '#'}
                 target="_blank"
                 rel="noreferrer"
                 className="group flex min-h-20 min-w-0 flex-col overflow-hidden rounded-md border border-border/80 bg-black/55 px-3 py-2 transition-colors hover:border-primary/40"

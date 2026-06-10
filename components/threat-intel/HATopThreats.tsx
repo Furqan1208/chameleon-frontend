@@ -35,6 +35,17 @@ interface HATopThreatsProps {
   onRefresh: () => Promise<void>;
 }
 
+// Helper function to safely encode SHA256 hash for URL parameter
+function safeHashUrl(hash: string | undefined): string {
+  if (!hash) return '';
+  // Validate SHA256 format (64 hex characters)
+  if (!/^[a-fA-F0-9]{64}$/.test(hash)) {
+    console.warn('Invalid SHA256 hash format:', hash);
+    return '';
+  }
+  return encodeURIComponent(hash);
+}
+
 export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps) {
   const [expandedThreat, setExpandedThreat] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'malicious' | 'suspicious'>('all');
@@ -287,7 +298,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                         <Copy className="w-4 h-4" />
                       </button>
                       <a
-                        href={`https://www.hybrid-analysis.com/sample/${threat.sha256}`}
+                        href={`https://www.hybrid-analysis.com/sample/${safeHashUrl(threat.sha256)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
@@ -346,7 +357,7 @@ export function HATopThreats({ threats, loading, onRefresh }: HATopThreatsProps)
                       {/* Action Buttons */}
                       <div className="flex flex-wrap gap-3">
                         <a
-                          href={`https://www.hybrid-analysis.com/sample/${threat.sha256}`}
+                          href={`https://www.hybrid-analysis.com/sample/${safeHashUrl(threat.sha256)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 font-medium"

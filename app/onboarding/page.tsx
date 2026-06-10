@@ -4,8 +4,9 @@ import { Sora, Inter, JetBrains_Mono } from "next/font/google"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { AlertTriangle, ArrowRight, Briefcase, Building2, Radar, ShieldCheck } from "lucide-react"
+import { AlertTriangle, ArrowRight, Building2, Radar, ShieldCheck } from "lucide-react"
 import { apiService } from "@/services/api/api.service"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const sora = Sora({ subsets: ["latin"], variable: "--font-sora" })
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
@@ -151,25 +152,21 @@ export default function OnboardingPage() {
               <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">
                 Role *
               </label>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {roleOptions.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setRole(option)}
-                    className={`rounded-lg border px-3 py-2 text-left font-[var(--font-inter)] text-sm transition ${
-                      role === option
-                        ? "border-primary bg-primary/20 text-foreground"
-                        : "border-border bg-card/50 text-muted-foreground hover:border-primary/35 hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4" />
-                      <span>{option}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <Select value={role || "__none__"} onValueChange={(value) => setRole(value === "__none__" ? "" : value)}>
+                <SelectTrigger className="h-11 w-full rounded-lg border-[#22262d] bg-[#101214] px-3 font-[var(--font-inter)] text-sm text-slate-100 hover:border-[#2a2f38] focus-visible:border-primary/40 focus-visible:ring-primary/20">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                  <SelectItem value="__none__" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">
+                    Select role
+                  </SelectItem>
+                  {roleOptions.map((option) => (
+                    <SelectItem key={option} value={option} className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
@@ -192,18 +189,21 @@ export default function OnboardingPage() {
                 <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">
                   Experience Level
                 </label>
-                <select
-                  value={experienceLevel}
-                  onChange={(e) => setExperienceLevel(e.target.value)}
-                  className="h-11 w-full rounded-lg border border-border bg-card/40 px-3 font-[var(--font-inter)] text-sm outline-none transition focus:border-primary/50"
-                >
-                  <option value="">Select level (optional)</option>
-                  {experienceOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                <Select value={experienceLevel || "__none__"} onValueChange={(value) => setExperienceLevel(value === "__none__" ? "" : value)}>
+                  <SelectTrigger className="h-11 w-full rounded-lg border-[#22262d] bg-[#101214] px-3 font-[var(--font-inter)] text-sm text-slate-100 hover:border-[#2a2f38] focus-visible:border-primary/40 focus-visible:ring-primary/20">
+                    <SelectValue placeholder="Select level (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                    <SelectItem value="__none__" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">
+                      Select level (optional)
+                    </SelectItem>
+                    {experienceOptions.map((option) => (
+                      <SelectItem key={option} value={option} className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -211,18 +211,21 @@ export default function OnboardingPage() {
               <label className="font-[var(--font-jetbrains-mono)] text-xs uppercase tracking-[0.15em] text-muted-foreground">
                 Primary Security Focus
               </label>
-              <select
-                value={primaryFocus}
-                onChange={(e) => setPrimaryFocus(e.target.value)}
-                className="h-11 w-full rounded-lg border border-border bg-card/40 px-3 font-[var(--font-inter)] text-sm outline-none transition focus:border-primary/50"
-              >
-                <option value="">Select focus (optional)</option>
-                {focusOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              <Select value={primaryFocus || "__none__"} onValueChange={(value) => setPrimaryFocus(value === "__none__" ? "" : value)}>
+                <SelectTrigger className="h-11 w-full rounded-lg border-[#22262d] bg-[#101214] px-3 font-[var(--font-inter)] text-sm text-slate-100 hover:border-[#2a2f38] focus-visible:border-primary/40 focus-visible:ring-primary/20">
+                  <SelectValue placeholder="Select focus (optional)" />
+                </SelectTrigger>
+                <SelectContent className="border-[#22262d] bg-[#101214] text-slate-100">
+                  <SelectItem value="__none__" className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">
+                    Select focus (optional)
+                  </SelectItem>
+                  {focusOptions.map((option) => (
+                    <SelectItem key={option} value={option} className="focus:bg-[#173226] focus:text-emerald-100 data-[state=checked]:bg-[#173226] data-[state=checked]:text-emerald-100">
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {error && (
