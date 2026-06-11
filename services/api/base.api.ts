@@ -5,31 +5,33 @@ export const AUTH_COOKIE = "access_token";
 
 // ─── Cookie helpers (client-side only) ────────────────────────────────────────
 
-/** Write a secure, SameSite=Strict cookie visible to the middleware. */
+/** Write a secure cookie visible to the middleware. */
 export function setAuthCookie(token: string): void {
   if (typeof document === "undefined") return;
-  // No HttpOnly here — JS must be able to write it from the client.
-  // Middleware (Edge Runtime) can read any non-HttpOnly cookie.
   const maxAge = 60 * 60 * 24 * 7; // 7 days
-  document.cookie = [
+  const isProduction = process.env.NODE_ENV === "production";
+  const cookieParts = [
     `${AUTH_COOKIE}=${encodeURIComponent(token)}`,
     `path=/`,
     `max-age=${maxAge}`,
-    `SameSite=Strict`,
-    // Add `; Secure` when deploying to HTTPS:
-    // process.env.NODE_ENV === "production" ? "Secure" : "",
-  ]
-    .filter(Boolean)
-    .join("; ");
+    `SameSite=Lax`, // Changed from Strict for cross-origin
+  ];
+  
+  // Add Secure flag only in production (HTTPS)
+  if (isProduction) {
+    cookieParts.push("Secure");
+  }
+  
+  document.cookie = cookieParts.join("; ");
 }
 
 /** Delete the auth cookie by expiring it immediately. */
 export function clearAuthCookie(): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Strict`;
+  document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
 }
 
-/** Read the auth token — prefers cookie (SSR-safe source of truth), falls back to localStorage. */
+/** Read the auth token — prefers cookie, falls back to localStorage. */
 export function readAuthToken(): string | null {
   if (typeof document === "undefined") return null;
 
@@ -41,7 +43,7 @@ export function readAuthToken(): string | null {
     return decodeURIComponent(match.split("=").slice(1).join("="));
   }
 
-  // Fallback: localStorage (for sessions that pre-date this update)
+  // Fallback: localStorage
   return localStorage.getItem("access_token");
 }
 
@@ -83,6 +85,7 @@ export class BaseApi {
     const response = await fetch(`${this.baseUrl}${path}`, {
       ...options,
       headers,
+      credentials: "include", // IMPORTANT: Include cookies for auth
     });
 
     if (response.status === 401) {
