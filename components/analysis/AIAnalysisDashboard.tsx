@@ -76,6 +76,156 @@ interface AIAnalysisDashboardProps {
 
 type TabId = "overview" | "cycle" | "target" | "signatures" | "memory" | "behavior" | "network" | "synthesis" | "raw"
 
+// ==================== MALFORMED JSON PARSING UTILITIES ====================
+
+/**
+ * Attempts to extract JSON from malformed string responses
+ * Handles cases where JSON is wrapped in quotes and escaped
+ */
+const extractJsonFromMalformedString = (input: unknown): any | null => {
+  if (!input || typeof input !== 'string') return null
+  
+  let cleaned = input.trim()
+  
+  // Case 1: String starts with pattern like "\": {" (malformed wrapper)
+  if (cleaned.includes('\\": {') || cleaned.includes('\\":{')) {
+    const match = cleaned.match(/\\":\s*({[\s\S]*?})\s*"?(?:\s*[,\}\]])?$/)
+    if (match && match[1]) {
+      try {
+        return JSON.parse(match[1])
+      } catch (e) {
+        // Fall through to other methods
+      }
+    }
+  }
+  
+  // Case 2: Remove leading/trailing quotes and unescape
+  if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+    cleaned = cleaned.slice(1, -1)
+    cleaned = cleaned.replace(/\\"/g, '"')
+    cleaned = cleaned.replace(/\\n/g, ' ')
+    cleaned = cleaned.replace(/\\t/g, ' ')
+    cleaned = cleaned.replace(/\\r/g, ' ')
+  }
+  
+  // Case 3: Try to find any JSON object in the string
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0])
+    } catch (e) {
+      // Try to fix common issues
+      let fixed = jsonMatch[0]
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']')
+        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":')
+        .replace(/:\s*"([^"]*)"\s*:/g, ':"$1",')
+      
+      // Fix missing commas between properties
+      fixed = fixed.replace(/}\s*{/g, '},{')
+      
+      try {
+        return JSON.parse(fixed)
+      } catch (e2) {
+        return null
+      }
+    }
+  }
+  
+  return null
+}
+
+/**
+ * Safely extracts executive summary data from potentially malformed analysis
+ */
+const extractExecutiveSummary = (analysis: any): any => {
+  if (!analysis) return null
+  
+  // Already properly structured
+  if (analysis.executive_summary && typeof analysis.executive_summary === 'object' && !analysis.executive_summary.overview) {
+    return analysis.executive_summary
+  }
+  
+  // Check for overview string that might contain malformed JSON
+  if (analysis.executive_summary?.overview && typeof analysis.executive_summary.overview === 'string') {
+    const extracted = extractJsonFromMalformedString(analysis.executive_summary.overview)
+    if (extracted) {
+      // Merge extracted data, preserving existing valid fields
+      const cleaned = { ...analysis.executive_summary, ...extracted }
+      delete cleaned.overview
+      return cleaned
+    }
+  }
+  
+  // Check if analysis itself has an overview field
+  if (analysis.overview && typeof analysis.overview === 'string') {
+    const extracted = extractJsonFromMalformedString(analysis.overview)
+    if (extracted) {
+      return extracted
+    }
+  }
+  
+  // Check for executive_summary as a string
+  if (analysis.executive_summary && typeof analysis.executive_summary === 'string') {
+    const extracted = extractJsonFromMalformedString(analysis.executive_summary)
+    if (extracted) {
+      return extracted
+    }
+  }
+  
+  // Return whatever we have
+  return analysis.executive_summary || null
+}
+
+/**
+ * Fixes malformed analysis data recursively
+ */
+const fixMalformedAnalysis = (analysis: any): any => {
+  if (!analysis || typeof analysis !== 'object') return analysis
+  
+  // Handle array
+  if (Array.isArray(analysis)) {
+    return analysis.map(item => fixMalformedAnalysis(item))
+  }
+  
+  // Deep clone to avoid mutations
+  const fixed: any = {}
+  
+  for (const [key, value] of Object.entries(analysis)) {
+    // Recursively fix nested objects
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      fixed[key] = fixMalformedAnalysis(value)
+    } else if (key === 'executive_summary' && typeof value === 'string') {
+      // Executive summary is a string that might contain JSON
+      const extracted = extractJsonFromMalformedString(value)
+      fixed[key] = extracted || value
+    } else if (key === 'overview' && typeof value === 'string') {
+      // Overview field might contain malformed JSON
+      const extracted = extractJsonFromMalformedString(value)
+      fixed[key] = extracted || value
+    } else {
+      fixed[key] = value
+    }
+  }
+  
+  // Special handling for executive_summary with overview inside
+  if (fixed.executive_summary?.overview && typeof fixed.executive_summary.overview === 'string') {
+    const extracted = extractJsonFromMalformedString(fixed.executive_summary.overview)
+    if (extracted) {
+      fixed.executive_summary = { ...fixed.executive_summary, ...extracted }
+      delete fixed.executive_summary.overview
+    }
+  }
+  
+  // If no executive_summary but we have an overview at root
+  if (!fixed.executive_summary && fixed.overview && typeof fixed.overview === 'object') {
+    fixed.executive_summary = fixed.overview
+    delete fixed.overview
+  }
+  
+  return fixed
+}
+
 // Utility functions
 const safeArray = <T = any,>(value: any): T[] => Array.isArray(value) ? value : []
 const safeObject = (value: any): Record<string, any> => value && typeof value === "object" && !Array.isArray(value) ? value : {}
@@ -201,14 +351,24 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Extract all stages from the analysis data
+  // Sanitize the entire data object first
+  const sanitizedData = useMemo(() => {
+    if (!data) return data
+    return fixMalformedAnalysis(data)
+  }, [data])
+
+  // Extract all stages from the analysis data with malformed JSON handling
   const stages = useMemo(() => {
-    const results = data?.results || data || {}
+    const results = sanitizedData?.results || sanitizedData || {}
     
     const getStageData = (key: string) => {
       const stage = results[key]
-      if (stage?.analysis && typeof stage.analysis === "object") return stage.analysis
-      if (typeof stage === "object") return stage
+      if (stage?.analysis && typeof stage.analysis === "object") {
+        return fixMalformedAnalysis(stage.analysis)
+      }
+      if (typeof stage === "object") {
+        return fixMalformedAnalysis(stage)
+      }
       return null
     }
 
@@ -221,9 +381,16 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
       network: getStageData("network_analysis"),
       synthesis: getStageData("final_synthesis"),
     }
-  }, [data])
+  }, [sanitizedData])
 
-  // Stage definitions
+  // Helper to safely get executive summary from any stage
+  const getExecutiveSummary = (stageData: any) => {
+    if (!stageData) return null
+    const fixed = fixMalformedAnalysis(stageData)
+    return extractExecutiveSummary(fixed) || fixed?.executive_summary || null
+  }
+
+  // Stage definitions with safe summary extraction
   const stageDefs = useMemo(() => [
     { key: "initial", label: "Initial Intake", icon: <Radar className="w-3.5 h-3.5" />, available: !!stages.initial, data: stages.initial, summary: firstSentence(stages.initial?.executive_summary?.summary_paragraph) || firstSentence(stages.initial?.analysis_quality?.quality_assessment) || "" },
     { key: "target", label: "Binary Forensics", icon: <FileText className="w-3.5 h-3.5" />, available: !!stages.target, data: stages.target, summary: firstSentence(stages.target?.summary) || firstSentence(stages.target?.target_classification?.cape_type) || "" },
@@ -237,11 +404,12 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
   const availableStages = stageDefs.filter(s => s.data !== null)
   const synthesis = stages.synthesis
 
-  // Threat assessment
+  // Threat assessment with safe extraction
   const threatAssessment = useMemo(() => {
-    const verdict = synthesis?.executive_summary?.final_verdict || "INCONCLUSIVE"
-    const confidence = safeNumber(synthesis?.executive_summary?.confidence_score, 0)
-    const threatLevel = synthesis?.executive_summary?.threat_level || 
+    const summary = getExecutiveSummary(synthesis)
+    const verdict = summary?.final_verdict || synthesis?.executive_summary?.final_verdict || "INCONCLUSIVE"
+    const confidence = safeNumber(summary?.confidence_score || synthesis?.executive_summary?.confidence_score, 0)
+    const threatLevel = summary?.threat_level || synthesis?.executive_summary?.threat_level || 
                        stages.behavior?.executive_summary?.threat_level || 
                        stages.initial?.executive_summary?.threat_level || "UNKNOWN"
     
@@ -368,7 +536,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
           <div className="flex items-center gap-2 mt-1">
             <span className={`text-xs px-2 py-0.5 rounded-full ${threatAssessment.color.badge}`}>{threatAssessment.verdict}</span>
             <span className="text-xs text-muted-foreground">Confidence: {threatAssessment.confidence}%</span>
-            <span className="text-xs text-muted-foreground">Model: {data?.ai_model || "gemini-2.5-flash"}</span>
+            <span className="text-xs text-muted-foreground">Model: {sanitizedData?.ai_model || "gemini-2.5-flash"}</span>
           </div>
         </div>
         <div className="flex gap-2">
@@ -608,7 +776,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
               <AnimatePresence>
                 {stageDefs.map((stage) => {
                   if (!expandedStages.has(stage.key) || !stage.data) return null
-                  const data = stage.data
+                  const data = fixMalformedAnalysis(stage.data)
                   return (
                     <motion.div key={stage.key} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={`${sectionCardClass} overflow-hidden`}>
                       <div className="border-b border-border p-4 bg-muted/10">
@@ -1040,7 +1208,7 @@ export default function AIAnalysisDashboard({ data, loading = false, onCopyJson,
           {/* ==================== RAW TAB ==================== */}
           {activeTab === "raw" && (
             <div className={`${sectionCardClass} p-4 overflow-auto max-h-[70vh]`}>
-              <pre className="text-xs text-foreground font-mono whitespace-pre-wrap break-all">{JSON.stringify(data, null, 2)}</pre>
+              <pre className="text-xs text-foreground font-mono whitespace-pre-wrap break-all">{JSON.stringify(sanitizedData, null, 2)}</pre>
             </div>
           )}
 
